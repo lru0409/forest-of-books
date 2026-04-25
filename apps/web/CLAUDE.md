@@ -19,15 +19,15 @@ lib/              유틸, 헬퍼, 상수
 
 ## 기술 스택
 
-| 역할 | 도구 |
-|------|------|
-| UI 컴포넌트 | shadcn/ui + Radix UI |
-| 스타일링 | Tailwind CSS v4 |
-| 상태관리 (전역) | Zustand ❓ 미설치 |
-| 서버 상태 | TanStack Query ❓ 미설치 |
-| 폼 & 유효성 | React Hook Form + Zod ❓ 미설치 |
-| 테스트 | Vitest + Testing Library ❓ 미설치 |
-| E2E | Playwright ❓ 미설치 |
+| 역할            | 도구                               |
+| --------------- | ---------------------------------- |
+| UI 컴포넌트     | shadcn/ui + Radix UI               |
+| 스타일링        | Tailwind CSS v4                    |
+| 상태관리 (전역) | Zustand ❓ 미설치                  |
+| 서버 상태       | TanStack Query ❓ 미설치           |
+| 폼 & 유효성     | React Hook Form + Zod ❓ 미설치    |
+| 테스트          | Vitest + Testing Library ❓ 미설치 |
+| E2E             | Playwright ❓ 미설치               |
 
 ## shadcn/ui 컴포넌트 추가
 
