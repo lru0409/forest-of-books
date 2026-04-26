@@ -7,7 +7,7 @@ interface ContainerProps {
 
 export function Container({ children, className }: ContainerProps) {
   return (
-    <div className="flex justify-center">
+    <div className="flex min-h-170 min-w-80 justify-center">
       <main className={cn('min-h-screen w-lg px-4', className)}>{children}</main>
     </div>
   );
