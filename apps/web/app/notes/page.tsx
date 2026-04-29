@@ -1,9 +1,9 @@
 import { Container } from '@/components/layout/container';
 
-export default function Home() {
+export default function NotesPage() {
   return (
     <Container>
-      <h1 className="text-2xl font-semibold">커뮤니티</h1>
+      <h1 className="text-2xl font-semibold">독서 노트</h1>
     </Container>
   );
 }

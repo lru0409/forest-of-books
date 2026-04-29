@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { Sidebar } from './sidebar';
 
 interface ContainerProps {
   children: React.ReactNode;
@@ -7,8 +8,9 @@ interface ContainerProps {
 
 export function Container({ children, className }: ContainerProps) {
   return (
-    <div className="flex min-h-170 min-w-80 justify-center">
-      <main className={cn('min-h-screen w-lg px-4', className)}>{children}</main>
+    <div className="flex">
+      <Sidebar />
+      <main className={cn('h-screen px-4', className)}>{children}</main>
     </div>
   );
 }
