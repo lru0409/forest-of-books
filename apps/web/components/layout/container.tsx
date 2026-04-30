@@ -8,9 +8,9 @@ interface ContainerProps {
 
 export function Container({ children, className }: ContainerProps) {
   return (
-    <div className="flex">
+    <div className="flex min-h-screen">
       <Sidebar />
-      <main className={cn('h-screen px-4', className)}>{children}</main>
+      <main className={cn('flex-1 px-4', className)}>{children}</main>
     </div>
   );
 }
