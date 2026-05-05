@@ -95,7 +95,14 @@ const EmailPasswordStep = () => {
           onChange={(e) => setConfirmPassword(e.target.value)}
         />
       </div>
-      <Button onClick={() => router.push(`/signup?step=${Step.PROFILE}`)}>다음</Button>
+      <div className="flex gap-2">
+        <Button variant="outline" className="flex-1" onClick={() => router.back()}>
+          돌아가기
+        </Button>
+        <Button className="flex-1" onClick={() => router.push(`/signup?step=${Step.PROFILE}`)}>
+          다음
+        </Button>
+      </div>
     </div>
   );
 };
@@ -156,7 +163,15 @@ const ProfileStep = () => {
           </Button>
         </div>
       </div>
-      <Button onClick={() => router.push(`/signup?step=${Step.GENRES}`)}>다음</Button>
+
+      <div className="flex gap-2">
+        <Button variant="outline" className="flex-1" onClick={() => router.back()}>
+          이전
+        </Button>
+        <Button className="flex-1" onClick={() => router.push(`/signup?step=${Step.GENRES}`)}>
+          다음
+        </Button>
+      </div>
     </div>
   );
 };
@@ -178,6 +193,8 @@ const GENRES = [
 ];
 
 const GenresStep = () => {
+  const router = useRouter();
+
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
 
   const toggle = (genre: string) => {
@@ -206,7 +223,15 @@ const GenresStep = () => {
           ))}
         </div>
       </div>
-      <Button onClick={() => console.log('완료')}>완료</Button>
+
+      <div className="flex gap-2">
+        <Button variant="outline" className="flex-1" onClick={() => router.back()}>
+          이전
+        </Button>
+        <Button className="flex-1" onClick={() => console.log('완료')}>
+          완료
+        </Button>
+      </div>
     </div>
   );
 };
