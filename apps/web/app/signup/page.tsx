@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import { validateEmail, validatePassword } from '@/lib/validations';
 
 const TOTAL_STEPS = 3;
 
@@ -57,6 +58,28 @@ const EmailPasswordStep = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [touched, setTouched] = useState({ email: false, password: false, confirmPassword: false });
+
+  const touch = (field: keyof typeof touched) => setTouched((prev) => ({ ...prev, [field]: true }));
+
+  const emailErrorMessage = (() => {
+    if (!email) return '이메일을 입력해 주세요.';
+    if (!validateEmail(email)) return '올바른 이메일 형식을 입력해 주세요.';
+    return null;
+  })();
+
+  const passwordErrorMessage = (() => {
+    if (!password) return '비밀번호를 입력해 주세요.';
+    if (!validatePassword(password))
+      return '8~16자의 영문 대소문자, 숫자, 특수문자를 조합해 주세요.';
+    return null;
+  })();
+
+  const confirmPasswordErrorMessage = (() => {
+    if (!confirmPassword) return '비밀번호를 한 번 더 입력해 주세요.';
+    if (password !== confirmPassword) return '비밀번호가 일치하지 않습니다.';
+    return null;
+  })();
 
   return (
     <div className="flex flex-1 flex-col justify-between">
@@ -73,6 +96,9 @@ const EmailPasswordStep = () => {
           placeholder="이메일을 입력하세요."
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          onBlur={() => touch('email')}
+          state={touched.email && emailErrorMessage ? 'error' : 'default'}
+          message={touched.email ? emailErrorMessage : undefined}
           className="mb-5"
         />
 
@@ -86,6 +112,9 @@ const EmailPasswordStep = () => {
           placeholder="비밀번호를 입력하세요."
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          onBlur={() => touch('password')}
+          state={touched.password && passwordErrorMessage ? 'error' : 'default'}
+          message={touched.password ? passwordErrorMessage : undefined}
           className="mb-2"
         />
         <Input
@@ -93,13 +122,22 @@ const EmailPasswordStep = () => {
           placeholder="비밀번호를 한 번 더 입력하세요."
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
+          onBlur={() => touch('confirmPassword')}
+          state={touched.confirmPassword && confirmPasswordErrorMessage ? 'error' : 'default'}
+          message={touched.confirmPassword ? confirmPasswordErrorMessage : undefined}
         />
       </div>
       <div className="flex gap-2">
         <Button variant="outline" className="flex-1" onClick={() => router.back()}>
           돌아가기
         </Button>
-        <Button className="flex-1" onClick={() => router.push(`/signup?step=${Step.PROFILE}`)}>
+        <Button
+          className="flex-1"
+          disabled={Boolean(
+            emailErrorMessage || passwordErrorMessage || confirmPasswordErrorMessage,
+          )}
+          onClick={() => router.push(`/signup?step=${Step.PROFILE}`)}
+        >
           다음
         </Button>
       </div>
