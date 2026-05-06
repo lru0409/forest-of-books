@@ -26,7 +26,7 @@ const messageStyles: Record<InputState, string> = {
 interface InputProps extends React.ComponentProps<'input'> {
   clearable?: boolean;
   state?: InputState;
-  message?: string;
+  message?: string | null;
 }
 
 function Input({
