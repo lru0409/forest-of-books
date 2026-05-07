@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { validateEmail, validatePassword } from '@/lib/validations';
+import { validateEmail, validatePassword, validateNickname } from '@/lib/validations';
 
 const TOTAL_STEPS = 3;
 
@@ -150,6 +150,15 @@ const ProfileStep = () => {
 
   const [nickname, setNickname] = useState('');
   const [bio, setBio] = useState('');
+  const [touched, setTouched] = useState({ nickname: false });
+
+  const touch = (field: keyof typeof touched) => setTouched((prev) => ({ ...prev, [field]: true }));
+
+  const nicknameErrorMessage = (() => {
+    if (!nickname) return '닉네임을 입력해 주세요.';
+    if (!validateNickname(nickname)) return '2~12자의 한글, 영문, 숫자만 입력해 주세요.';
+    return null;
+  })();
 
   return (
     <div className="flex flex-1 flex-col justify-between">
@@ -169,6 +178,9 @@ const ProfileStep = () => {
           placeholder="닉네임을 입력하세요."
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
+          onBlur={() => touch('nickname')}
+          state={touched.nickname && nicknameErrorMessage ? 'error' : 'default'}
+          message={touched.nickname ? nicknameErrorMessage : undefined}
           className="mb-5"
         />
 
@@ -206,7 +218,11 @@ const ProfileStep = () => {
         <Button variant="outline" className="flex-1" onClick={() => router.back()}>
           이전
         </Button>
-        <Button className="flex-1" onClick={() => router.push(`/signup?step=${Step.GENRES}`)}>
+        <Button
+          className="flex-1"
+          disabled={Boolean(nicknameErrorMessage)}
+          onClick={() => router.push(`/signup?step=${Step.GENRES}`)}
+        >
           다음
         </Button>
       </div>
