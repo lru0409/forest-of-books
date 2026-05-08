@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { validateEmail, validatePassword, validateNickname } from '@/lib/validations';
+import { GENRES } from '@/lib/constants';
 
 const TOTAL_STEPS = 3;
 
@@ -229,22 +230,6 @@ const ProfileStep = () => {
     </div>
   );
 };
-
-const GENRES = [
-  '소설',
-  '시',
-  '에세이',
-  '인문',
-  '사회·정치',
-  '경제·경영',
-  '자기계발',
-  '과학·기술',
-  '역사',
-  '예술·문화',
-  '여행',
-  '아동·청소년',
-  '만화',
-];
 
 const GenresStep = () => {
   const router = useRouter();
