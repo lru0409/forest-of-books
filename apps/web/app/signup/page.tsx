@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-import { Container } from '@/components/layout/container';
+import { Container } from '@/components/layout';
 import { EmailPasswordStep } from './components/EmailPasswordStep';
 import { ProfileStep } from './components/ProfileStep';
 import { GenresStep } from './components/GenresStep';

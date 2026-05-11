@@ -3,10 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { validateNickname } from '@/lib/validations';
+import { Button, Input, Textarea } from '@/components/ui';
+import { validateNickname } from '@/lib';
 import { Step } from '../constants';
 
 export const ProfileStep = () => {
