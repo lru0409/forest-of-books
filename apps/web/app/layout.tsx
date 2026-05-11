@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Hahmlet } from 'next/font/google';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib';
 
 const hahmlet = Hahmlet({ subsets: ['latin'], variable: '--font-sans' });
 

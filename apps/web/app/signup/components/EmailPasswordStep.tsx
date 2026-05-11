@@ -3,9 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { validateEmail, validatePassword } from '@/lib/validations';
+import { Button, Input } from '@/components/ui';
+import { validateEmail, validatePassword } from '@/lib';
 import { Step } from '../constants';
 
 export const EmailPasswordStep = () => {

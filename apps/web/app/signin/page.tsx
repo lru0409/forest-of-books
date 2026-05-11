@@ -1,9 +1,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 
-import { Container } from '@/components/layout/container';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Container } from '@/components/layout';
+import { Button, Input } from '@/components/ui';
 
 export default function SignIn() {
   return (
