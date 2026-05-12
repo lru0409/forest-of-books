@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui';
 import { cn, GENRES } from '@/lib';
 
-export const GenresStep = () => {
+export const GenresStep = ({ onComplete }: { onComplete: () => void }) => {
   const router = useRouter();
 
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
@@ -42,7 +42,7 @@ export const GenresStep = () => {
         <Button variant="outline" className="flex-1" onClick={() => router.back()}>
           이전
         </Button>
-        <Button className="flex-1" onClick={() => console.log('완료')}>
+        <Button className="flex-1" onClick={onComplete}>
           완료
         </Button>
       </div>

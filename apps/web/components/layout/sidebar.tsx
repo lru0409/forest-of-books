@@ -22,7 +22,7 @@ export function Sidebar() {
     <nav
       aria-label="주요 메뉴"
       className={cn(
-        'bg-primary h-screen shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out',
+        'bg-primary min-h-screen shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out',
         isCollapsed ? 'w-16' : 'w-75',
       )}
     >
@@ -43,7 +43,7 @@ export function Sidebar() {
           aria-label={isCollapsed ? '사이드바 펼치기' : '사이드바 접기'}
           aria-expanded={!isCollapsed}
           onClick={() => setIsCollapsed((current) => !current)}
-          className="hover:bg-primary-foreground hover:text-primary ml-auto flex size-9 items-center justify-center rounded-full transition-colors"
+          className="hover:bg-primary-foreground/20 ml-auto flex size-9 items-center justify-center rounded-full transition-colors"
         >
           <ChevronLeft
             className={cn('size-5 transition-transform duration-500', isCollapsed && 'rotate-180')}
@@ -65,7 +65,7 @@ export function Sidebar() {
                   'flex h-11 items-center gap-3 rounded-lg px-3.5 transition-colors',
                   isActive
                     ? 'bg-primary-foreground text-primary'
-                    : 'text-primary-foreground hover:bg-primary-foreground hover:text-primary',
+                    : 'text-primary-foreground hover:bg-primary-foreground/20',
                 )}
               >
                 <span className="flex size-5 shrink-0 items-center justify-center">
