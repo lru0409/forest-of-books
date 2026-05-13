@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 import { Button, Input, Textarea } from '@/components/ui';
 import { validateNickname } from '@/lib';
 import { Step } from '../constants';
+import { ProfileImageOverlay } from './ProfileImageOverlay';
 
 export const ProfileStep = () => {
   const router = useRouter();
@@ -13,6 +15,8 @@ export const ProfileStep = () => {
   const [nickname, setNickname] = useState('');
   const [bio, setBio] = useState('');
   const [touched, setTouched] = useState({ nickname: false });
+  const [isProfileImageOverlayOpen, setIsProfileImageOverlayOpen] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
   const touch = (field: keyof typeof touched) => setTouched((prev) => ({ ...prev, [field]: true }));
 
@@ -66,8 +70,19 @@ export const ProfileStep = () => {
         </p>
 
         <div className="mb-14 flex flex-col items-center">
-          <div className="bg-secondary/20 border-border mb-4 h-35 w-35 rounded-full border-2" />
-          <Button size="sm" className="mb-2 w-50">
+          <div className="bg-primary/70 border-primary mb-4 size-35 overflow-hidden rounded-full border-2">
+            <Image
+              src={`/images/profile-defaults/${selectedImageIndex ? selectedImageIndex + 1 : 1}.png`}
+              alt="기본 프로필 이미지"
+              width={140}
+              height={140}
+            />
+          </div>
+          <Button
+            size="sm"
+            className="mb-2 w-50"
+            onClick={() => setIsProfileImageOverlayOpen(true)}
+          >
             기본 프로필 이미지 선택
           </Button>
           <Button size="sm" variant="outline" className="w-50">
@@ -75,6 +90,17 @@ export const ProfileStep = () => {
           </Button>
         </div>
       </div>
+
+      {isProfileImageOverlayOpen && (
+        <ProfileImageOverlay
+          onClose={() => setIsProfileImageOverlayOpen(false)}
+          onSelect={(index: number) => {
+            setSelectedImageIndex(index);
+            setIsProfileImageOverlayOpen(false);
+          }}
+          selectedIndex={selectedImageIndex}
+        />
+      )}
 
       <div className="flex gap-2">
         <Button variant="outline" className="flex-1" onClick={() => router.back()}>
