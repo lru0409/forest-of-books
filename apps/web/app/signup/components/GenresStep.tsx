@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui';
-import { cn, GENRES } from '@/lib';
+import { GENRES } from '@/lib';
 
 export const GenresStep = ({ onComplete }: { onComplete: () => void }) => {
   const router = useRouter();
@@ -30,7 +30,7 @@ export const GenresStep = ({ onComplete }: { onComplete: () => void }) => {
               size="sm"
               onClick={() => toggle(genre)}
               variant={selectedGenres.includes(genre) ? 'default' : 'outline'}
-              className={cn('px-3 py-1.5 transition-colors')}
+              className={'px-3 py-1.5 transition-colors'}
             >
               {genre}
             </Button>
