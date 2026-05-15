@@ -49,7 +49,7 @@ function SignUpContent() {
   return (
     <Container className="relative flex min-h-170 justify-center">
       <ProgressBar step={step} total={TOTAL_STEPS} isCompleted={isCompleted} />
-      <div className="flex w-125 min-w-80 pt-12 pb-10">
+      <div className="flex w-125 min-w-80 pt-16 pb-10">
         {step === Step.EMAIL_PASSWORD && <EmailPasswordStep />}
         {step === Step.PROFILE && <ProfileStep />}
         {step === Step.GENRES && <GenresStep onComplete={handleComplete} />}
