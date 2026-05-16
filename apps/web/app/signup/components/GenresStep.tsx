@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui';
 import { GENRES } from '@/lib';
+import { useSignupStore } from '@/store/signupStore';
 
 export const GenresStep = ({ onComplete }: { onComplete: () => void }) => {
   const router = useRouter();
+  const setStepData = useSignupStore((s) => s.setGenresStep);
 
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
 
@@ -42,7 +44,13 @@ export const GenresStep = ({ onComplete }: { onComplete: () => void }) => {
         <Button variant="outline" className="flex-1" onClick={() => router.back()}>
           이전
         </Button>
-        <Button className="flex-1" onClick={onComplete}>
+        <Button
+          className="flex-1"
+          onClick={() => {
+            setStepData({ genres: selectedGenres });
+            onComplete();
+          }}
+        >
           완료
         </Button>
       </div>
