@@ -76,14 +76,17 @@ export const ProfileStep = () => {
         <Controller
           name="bio"
           control={control}
-          render={({ field }) => (
+          render={({ field, fieldState }) => (
             <Textarea
               id="bio"
               placeholder="소설책이나 철학책을 즐겨읽어요!"
               value={field.value}
-              maxLength={160}
+              warnLength={160}
+              showCounter
               onChange={field.onChange}
               onBlur={field.onBlur}
+              state={fieldState.error ? 'error' : 'default'}
+              message={fieldState.error?.message}
               className="mb-5"
             />
           )}

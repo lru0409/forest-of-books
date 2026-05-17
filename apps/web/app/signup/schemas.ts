@@ -25,7 +25,7 @@ export const profileSchema = z.object({
     .string()
     .min(1, '닉네임을 입력해 주세요.')
     .regex(/^[가-힣a-zA-Z0-9]{2,12}$/, '2~12자의 한글, 영문, 숫자만 입력해 주세요.'),
-  bio: z.string(),
+  bio: z.string().max(160, '최대 160자까지 입력할 수 있어요.'),
 });
 
 export type EmailPasswordFormData = z.infer<typeof emailPasswordSchema>;
