@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useForm, Controller } from 'react-hook-form';
@@ -12,14 +12,57 @@ import { useSignupStore } from '@/store/signupStore';
 import { Step } from '../constants';
 import { ProfileImageOverlay } from './ProfileImageOverlay';
 
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
 export const ProfileStep = () => {
   const router = useRouter();
-  const setStepData = useSignupStore((s) => s.setProfileStep);
+  const setStepData = useSignupStore((s) => s.setStep);
   const defaultNickname = useSignupStore((s) => s.nickname);
   const defaultBio = useSignupStore((s) => s.bio);
+  const defaultProfileImage = useSignupStore((s) => s.profileImage);
 
+  const [selectedProfileImageIndex, setSelectedProfileImageIndex] = useState<number | null>(
+    defaultProfileImage.kind === 'default' ? defaultProfileImage.index : null,
+  );
   const [isProfileImageOverlayOpen, setIsProfileImageOverlayOpen] = useState(false);
-  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  const [profileImagePreviewUrl, setProfileImagePreviewUrl] = useState<string | null>(null);
+  const [profileImageError, setProfileImageError] = useState<string | null>(null);
+  const profileImageInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (defaultProfileImage.kind === 'uploaded') {
+      const url = URL.createObjectURL(defaultProfileImage.file);
+      setProfileImageFile(defaultProfileImage.file);
+      setProfileImagePreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    }
+  }, []);
+
+  const handleProfileImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      setProfileImageError('JPG, PNG, WEBP, GIF 형식만 업로드할 수 있어요.');
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      setProfileImageError('5MB 이하의 파일만 업로드할 수 있어요.');
+      return;
+    }
+
+    setProfileImageError(null);
+    if (profileImagePreviewUrl) URL.revokeObjectURL(profileImagePreviewUrl);
+
+    const previewUrl = URL.createObjectURL(file);
+    setProfileImageFile(file);
+    setProfileImagePreviewUrl(previewUrl);
+    setSelectedProfileImageIndex(null);
+
+    e.target.value = '';
+  };
 
   const {
     control,
@@ -35,8 +78,22 @@ export const ProfileStep = () => {
   });
 
   const onSubmit = (data: ProfileFormData) => {
-    setStepData({ ...data, profileImageIndex: selectedImageIndex });
+    const profileImage =
+      profileImageFile !== null
+        ? { kind: 'uploaded' as const, file: profileImageFile }
+        : { kind: 'default' as const, index: selectedProfileImageIndex ?? 0 };
+    setStepData({ ...data, profileImage });
     router.push(`/signup?step=${Step.GENRES}`);
+  };
+
+  const handleSelectDefaultImage = (index: number) => {
+    if (profileImagePreviewUrl) {
+      URL.revokeObjectURL(profileImagePreviewUrl);
+      setProfileImagePreviewUrl(null);
+    }
+    setProfileImageFile(null);
+    setSelectedProfileImageIndex(index);
+    setIsProfileImageOverlayOpen(false);
   };
 
   return (
@@ -101,12 +158,21 @@ export const ProfileStep = () => {
 
         <div className="mb-14 flex flex-col items-center">
           <div className="bg-primary/70 border-primary mb-4 size-35 overflow-hidden rounded-full border-2">
-            <Image
-              src={`/images/profile-defaults/${selectedImageIndex + 1}.png`}
-              alt="기본 프로필 이미지"
-              width={140}
-              height={140}
-            />
+            {profileImagePreviewUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={profileImagePreviewUrl}
+                alt="업로드한 프로필 이미지"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <Image
+                src={`/images/profile-defaults/${(selectedProfileImageIndex ?? 0) + 1}.png`}
+                alt="기본 프로필 이미지"
+                width={140}
+                height={140}
+              />
+            )}
           </div>
           <Button
             size="sm"
@@ -115,20 +181,34 @@ export const ProfileStep = () => {
           >
             기본 프로필 이미지 선택
           </Button>
-          <Button size="sm" variant="outline" className="w-50">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="w-50"
+            onClick={() => profileImageInputRef.current?.click()}
+          >
             직접 업로드
           </Button>
+          {profileImageError && (
+            <p className="text-destructive mt-2 text-sm">{profileImageError}</p>
+          )}
+          <input
+            ref={profileImageInputRef}
+            type="file"
+            accept={ACCEPTED_TYPES.join(',')}
+            className="hidden"
+            onChange={handleProfileImageFileChange}
+            aria-label="프로필 이미지 업로드"
+          />
         </div>
       </div>
 
       {isProfileImageOverlayOpen && (
         <ProfileImageOverlay
           onClose={() => setIsProfileImageOverlayOpen(false)}
-          onSelect={(index: number) => {
-            setSelectedImageIndex(index);
-            setIsProfileImageOverlayOpen(false);
-          }}
-          selectedIndex={selectedImageIndex}
+          onSelect={handleSelectDefaultImage}
+          selectedIndex={selectedProfileImageIndex}
         />
       )}
 

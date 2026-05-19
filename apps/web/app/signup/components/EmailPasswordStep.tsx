@@ -12,7 +12,7 @@ import { Step } from '../constants';
 
 export const EmailPasswordStep = () => {
   const router = useRouter();
-  const setStepData = useSignupStore((s) => s.setEmailPasswordStep);
+  const setStepData = useSignupStore((s) => s.setStep);
   const defaultEmail = useSignupStore((s) => s.email);
   const defaultPassword = useSignupStore((s) => s.password);
   const defaultConfirmPassword = useSignupStore((s) => s.confirmPassword);

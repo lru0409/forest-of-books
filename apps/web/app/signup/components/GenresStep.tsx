@@ -9,7 +9,7 @@ import { useSignupStore } from '@/store/signupStore';
 
 export const GenresStep = ({ onComplete }: { onComplete: () => void }) => {
   const router = useRouter();
-  const setStepData = useSignupStore((s) => s.setGenresStep);
+  const setStepData = useSignupStore((s) => s.setStep);
 
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
 
