@@ -11,15 +11,13 @@ interface SignupData {
   // Profile Step
   nickname: string;
   bio: string;
-  profileImageIndex: number;
+  profileImage: { kind: 'default'; index: number } | { kind: 'uploaded'; file: File };
   // Genres Step
   genres: (typeof GENRES)[number][];
 }
 
 interface SignupActions {
-  setEmailPasswordStep: (data: Pick<SignupData, 'email' | 'password' | 'confirmPassword'>) => void;
-  setProfileStep: (data: Pick<SignupData, 'nickname' | 'bio' | 'profileImageIndex'>) => void;
-  setGenresStep: (data: Pick<SignupData, 'genres'>) => void;
+  setStep: (data: Partial<SignupData>) => void;
   reset: () => void;
 }
 
@@ -29,7 +27,7 @@ const initialState: SignupData = {
   confirmPassword: '',
   nickname: '',
   bio: '',
-  profileImageIndex: 0,
+  profileImage: { kind: 'default', index: 0 },
   genres: [],
 };
 
@@ -37,14 +35,13 @@ export const useSignupStore = create<SignupData & SignupActions>()(
   persist(
     (set) => ({
       ...initialState,
-      setEmailPasswordStep: (data) => set(data),
-      setProfileStep: (data) => set(data),
-      setGenresStep: (data) => set(data),
+      setStep: (data) => set(data),
       reset: () => set(initialState),
     }),
     {
       name: 'signup',
       storage: createJSONStorage(() => sessionStorage),
+      partialize: ({ profileImage: _, ...rest }) => rest,
     },
   ),
 );
