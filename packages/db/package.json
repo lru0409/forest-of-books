@@ -2,15 +2,21 @@
   "name": "@repo/db",
   "version": "0.0.0",
   "private": true,
+  "main": "./dist/client.js",
+  "types": "./dist/client.d.ts",
   "exports": {
-    ".": "./src/client.ts"
+    ".": {
+      "types": "./dist/client.d.ts",
+      "default": "./dist/client.js"
+    }
   },
   "scripts": {
     "db:migrate:deploy": "prisma migrate deploy",
     "db:migrate:dev": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:seed": "tsx src/seed.ts",
-    "dev": "tsup src/* --watch",
+    "build": "tsup src/client.ts --format cjs --dts --shims",
+    "dev": "tsup src/client.ts --format cjs --dts --shims --watch",
     "format": "prisma format",
     "generate": "prisma generate",
     "lint": "eslint . --max-warnings 0",
