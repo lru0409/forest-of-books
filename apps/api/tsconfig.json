@@ -3,5 +3,8 @@
   "compilerOptions": {
     "outDir": "./dist",
     "baseUrl": "./",
+    "useDefineForClassFields": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   }
 }
