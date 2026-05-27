@@ -19,12 +19,11 @@ export class NaverStrategy extends PassportStrategy(Strategy, 'naver') {
     profile: Profile,
     done: (error: unknown, user?: unknown) => void,
   ): Promise<void> {
-    const user = await this.authService.findOrCreateNaverUser({
+    done(null, {
       naverId: profile.id,
       email: profile.email ?? undefined,
-      nickname: profile.nickname ?? `user_${profile.id}`,
+      nickname: profile.nickname ?? undefined,
       profileImage: profile.profileImage ?? undefined,
     });
-    done(null, user);
   }
 }
