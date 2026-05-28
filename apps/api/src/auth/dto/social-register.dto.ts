@@ -1,9 +1,6 @@
 import { IsString, IsOptional, IsArray } from 'class-validator';
 
-export class CompleteSignupDto {
-  @IsString()
-  pendingToken!: string;
-
+export class SocialRegisterDto {
   @IsString()
   nickname!: string;
 

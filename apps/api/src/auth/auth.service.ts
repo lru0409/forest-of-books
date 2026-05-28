@@ -15,22 +15,22 @@ export class AuthService {
   }
 
   // 소셜 로그인 신규 유저용 pending token 발급
-  issuePendingToken(profile: {
+  issueSocialPendingToken(profile: {
     naverId: string;
     email?: string;
     nickname?: string;
     profileImage?: string;
   }): string {
-    return this.jwtService.sign({ ...profile, status: 'pending' }, { expiresIn: '10m' });
+    return this.jwtService.sign({ ...profile, status: 'pending' }, { expiresIn: '30m' });
   }
 
   // 소셜 로그인 회원가입 완료 (pending token 검증 후 유저 생성)
   async socialRegister(
-    pendingToken: string,
+    socialPendingToken: string,
     data: { nickname: string; bio: string; profileImageUrl?: string; genres: string[] },
   ) {
     const payload = this.jwtService.verify<{ naverId: string; email?: string; status: string }>(
-      pendingToken,
+      socialPendingToken,
     );
     if (payload.status !== 'pending') throw new UnauthorizedException();
 
