@@ -12,10 +12,7 @@ import { Step } from '../constants';
 
 export const EmailPasswordStep = () => {
   const router = useRouter();
-  const setStepData = useSignupStore((s) => s.setStep);
-  const defaultEmail = useSignupStore((s) => s.email);
-  const defaultPassword = useSignupStore((s) => s.password);
-  const defaultConfirmPassword = useSignupStore((s) => s.confirmPassword);
+  const { update, email: defaultEmail, password: defaultPassword, confirmPassword: defaultConfirmPassword } = useSignupStore();
 
   const {
     control,
@@ -45,7 +42,7 @@ export const EmailPasswordStep = () => {
   );
 
   const onSubmit = (data: EmailPasswordFormData) => {
-    setStepData(data);
+    update(data);
     router.push(`/signup?step=${Step.PROFILE}`);
   };
 
