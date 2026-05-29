@@ -8,6 +8,8 @@ interface SignupData {
   email: string;
   password: string;
   confirmPassword: string;
+  // Social Login Step
+  isSocialLogin: boolean;
   // Profile Step
   nickname: string;
   bio: string;
@@ -17,7 +19,7 @@ interface SignupData {
 }
 
 interface SignupActions {
-  setStep: (data: Partial<SignupData>) => void;
+  update: (data: Partial<SignupData>) => void;
   reset: () => void;
 }
 
@@ -25,6 +27,7 @@ const initialState: SignupData = {
   email: '',
   password: '',
   confirmPassword: '',
+  isSocialLogin: false,
   nickname: '',
   bio: '',
   profileImage: { kind: 'default', index: 0 },
@@ -35,12 +38,13 @@ export const useSignupStore = create<SignupData & SignupActions>()(
   persist(
     (set) => ({
       ...initialState,
-      setStep: (data) => set(data),
+      update: (data) => set(data),
       reset: () => set(initialState),
     }),
     {
       name: 'signup',
       storage: createJSONStorage(() => sessionStorage),
+      // TODO: profileImage는 즉시 서버 업로드 및 URL 받아서 사용 + BE 업로드 엔드포인트 개발 및 고아 파일 정리 로직 구현
       partialize: ({ profileImage: _, ...rest }) => rest,
     },
   ),

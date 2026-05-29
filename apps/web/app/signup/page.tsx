@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Container } from '@/components/layout';
 import { useSignupStore } from '@/store/signupStore';
+import { useAuthStore } from '@/store/authStore';
+import AuthService from '@/services/auth';
 import { EmailPasswordStep } from './components/EmailPasswordStep';
 import { ProfileStep } from './components/ProfileStep';
 import { GenresStep } from './components/GenresStep';
@@ -23,7 +25,9 @@ export default function SignUpPage() {
 function SignUpContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { email, password, confirmPassword, nickname, bio } = useSignupStore();
+  const { email, password, confirmPassword, nickname, bio, genres, isSocialLogin, update } =
+    useSignupStore();
+  const { setToken } = useAuthStore();
 
   const stepParam = searchParams.get('step') ?? '1';
   const step: Step = Math.max(1, Math.min(TOTAL_STEPS, Number(stepParam)));
@@ -31,13 +35,25 @@ function SignUpContent() {
   const [hasHydrated, setHasHydrated] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
 
-  const canProceedToProfileStep = emailPasswordSchema.safeParse({
-    email,
-    password,
-    confirmPassword,
-  }).success;
+  const canProceedToProfileStep =
+    isSocialLogin ||
+    emailPasswordSchema.safeParse({
+      email,
+      password,
+      confirmPassword,
+    }).success;
   const canProceedToGenresStep =
     canProceedToProfileStep && profileSchema.safeParse({ nickname, bio }).success;
+
+  useEffect(
+    function detectSocialLoginRedirect() {
+      if (searchParams.get('social_login') === 'true') {
+        update({ isSocialLogin: true });
+        router.replace(`/signup?step=${Step.PROFILE}`);
+      }
+    },
+    [searchParams, update, router],
+  );
 
   useEffect(function checkHydration() {
     if (useSignupStore.persist.hasHydrated()) {
@@ -65,6 +81,7 @@ function SignUpContent() {
   useEffect(
     function redirectAfterComplete() {
       if (isCompleted) {
+        // TODO: signup 완료 화면으로 이동
         const timeout = setTimeout(() => {
           router.push('/signin');
         }, 500);
@@ -73,6 +90,17 @@ function SignUpContent() {
     },
     [isCompleted, router],
   );
+
+  const onSignupComplete = async () => {
+    if (isSocialLogin) {
+      // TODO: 실패 케이스 처리
+      const { token } = await AuthService.socialRegister({ nickname, bio, genres });
+      setToken(token);
+    } else {
+      // TODO: /auth/register
+    }
+    setIsCompleted(true);
+  };
 
   if (step === Step.PROFILE && (!hasHydrated || !canProceedToProfileStep)) return null;
   if (step === Step.GENRES && (!hasHydrated || !canProceedToGenresStep)) return null;
@@ -83,7 +111,7 @@ function SignUpContent() {
       <div className="flex w-125 min-w-80 pt-16 pb-10">
         {step === Step.EMAIL_PASSWORD && <EmailPasswordStep />}
         {step === Step.PROFILE && <ProfileStep />}
-        {step === Step.GENRES && <GenresStep onComplete={() => setIsCompleted(true)} />}
+        {step === Step.GENRES && <GenresStep onComplete={onSignupComplete} />}
       </div>
     </Container>
   );

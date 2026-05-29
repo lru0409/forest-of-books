@@ -9,7 +9,7 @@ import { useSignupStore } from '@/store/signupStore';
 
 export const GenresStep = ({ onComplete }: { onComplete: () => void }) => {
   const router = useRouter();
-  const setStepData = useSignupStore((s) => s.setStep);
+  const { update } = useSignupStore();
 
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
 
@@ -47,7 +47,7 @@ export const GenresStep = ({ onComplete }: { onComplete: () => void }) => {
         <Button
           className="flex-1"
           onClick={() => {
-            setStepData({ genres: selectedGenres });
+            update({ genres: selectedGenres });
             onComplete();
           }}
         >

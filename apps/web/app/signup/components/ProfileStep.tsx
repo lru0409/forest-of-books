@@ -17,10 +17,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export const ProfileStep = () => {
   const router = useRouter();
-  const setStepData = useSignupStore((s) => s.setStep);
-  const defaultNickname = useSignupStore((s) => s.nickname);
-  const defaultBio = useSignupStore((s) => s.bio);
-  const defaultProfileImage = useSignupStore((s) => s.profileImage);
+  const { update, nickname: defaultNickname, bio: defaultBio, profileImage: defaultProfileImage } = useSignupStore();
 
   const [selectedProfileImageIndex, setSelectedProfileImageIndex] = useState<number | null>(
     defaultProfileImage.kind === 'default' ? defaultProfileImage.index : null,
@@ -82,7 +79,7 @@ export const ProfileStep = () => {
       profileImageFile !== null
         ? { kind: 'uploaded' as const, file: profileImageFile }
         : { kind: 'default' as const, index: selectedProfileImageIndex ?? 0 };
-    setStepData({ ...data, profileImage });
+    update({ ...data, profileImage });
     router.push(`/signup?step=${Step.GENRES}`);
   };
 
