@@ -10,9 +10,12 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   app.use(cookieParser());
   app.enableCors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+    origin: process.env.API_FRONTEND_URL ?? 'http://localhost:3000',
     credentials: true,
   });
-  await app.listen(process.env.PORT ?? 3001);
+  if (!process.env.API_PORT) {
+    throw new Error('API_PORT is not set');
+  }
+  await app.listen(process.env.API_PORT);
 }
 bootstrap();

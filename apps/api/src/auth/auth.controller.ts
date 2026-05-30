@@ -32,7 +32,7 @@ export class AuthController {
       nickname?: string;
       profileImage?: string;
     };
-    const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+    const frontendUrl = process.env.API_FRONTEND_URL ?? 'http://localhost:3000';
 
     const existing = await this.authService.findNaverUser(profile.naverId);
     if (existing) {

@@ -1,11 +1,13 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
+  "globalEnv": ["NODE_ENV"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": ["DATABASE_URL", "NEXT_PUBLIC_API_URL"]
     },
     "lint": {
       "dependsOn": ["^lint"]
@@ -15,7 +17,17 @@
     },
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "env": [
+        "DATABASE_URL",
+        "NEXT_PUBLIC_API_URL",
+        "API_PORT",
+        "API_FRONTEND_URL",
+        "API_JWT_SECRET",
+        "API_NAVER_CLIENT_ID",
+        "API_NAVER_CLIENT_SECRET",
+        "API_NAVER_CALLBACK_URL"
+      ]
     }
   }
 }
