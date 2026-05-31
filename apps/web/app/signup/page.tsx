@@ -94,7 +94,11 @@ function SignUpContent() {
   const onSignupComplete = async () => {
     if (isSocialLogin) {
       // TODO: 실패 케이스 처리
-      const { token } = await AuthService.socialRegister({ nickname, bio, genres });
+      const { token } = await AuthService.socialRegister({
+        nickname,
+        bio,
+        preferredGenres: genres,
+      });
       setToken(token);
     } else {
       // TODO: /auth/register

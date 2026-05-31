@@ -12,12 +12,30 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Genre {
+  NOVEL
+  POETRY
+  ESSAY
+  HUMANITIES
+  SOCIAL_POLITICS
+  ECONOMICS_BUSINESS
+  SELF_DEVELOPMENT
+  SCIENCE_TECHNOLOGY
+  HISTORY
+  ART_CULTURE
+  TRAVEL
+  CHILDREN_TEEN
+  COMICS
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String?   @unique
   nickname      String
+  bio           String
   profileImage  String?
   naverId       String?   @unique
+  preferredGenres Genre[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
