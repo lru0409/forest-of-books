@@ -1,6 +1,6 @@
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { prisma } from '@repo/db';
+import { Genre, prisma } from '@repo/db';
 
 @Injectable()
 export class AuthService {
@@ -21,13 +21,13 @@ export class AuthService {
     nickname?: string;
     profileImage?: string;
   }): string {
-    return this.jwtService.sign({ ...profile, status: 'pending' }, { expiresIn: '30m' });
+    return this.jwtService.sign({ ...profile, status: 'pending' }, { expiresIn: '24h' });
   }
 
   // 소셜 로그인 회원가입 완료 (pending token 검증 후 유저 생성)
   async socialRegister(
     socialPendingToken: string,
-    data: { nickname: string; bio: string; profileImageUrl?: string; genres: string[] },
+    data: { nickname: string; bio: string; profileImageUrl?: string; preferredGenres: Genre[] },
   ) {
     const payload = this.jwtService.verify<{ naverId: string; email?: string; status: string }>(
       socialPendingToken,
@@ -39,7 +39,13 @@ export class AuthService {
     if (existingUser) throw new ConflictException('이미 가입된 유저입니다.');
 
     const user = await prisma.user.create({
-      data: { naverId: payload.naverId, email: payload.email, ...data },
+      data: {
+        naverId: payload.naverId,
+        email: payload.email,
+        nickname: data.nickname,
+        bio: data.bio,
+        preferredGenres: data.preferredGenres,
+      },
     });
     return this.issueToken(user.id);
   }

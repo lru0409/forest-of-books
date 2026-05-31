@@ -39,13 +39,12 @@ export class AuthController {
       const token = this.authService.issueToken(existing.id);
       res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
     } else {
-      // TODO: pending token 대신 Onboarding user를 관리하거나 서버 저장형 pending session 활용하는 방식 고려
       const socialPendingToken = this.authService.issueSocialPendingToken(profile);
       res.cookie('social_pending_token', socialPendingToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        maxAge: 30 * 60 * 1000, // 30분
+        maxAge: 24 * 60 * 60 * 1000,
       });
       res.redirect(`${frontendUrl}/signup?step=2&social_login=true`);
     }

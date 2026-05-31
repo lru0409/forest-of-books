@@ -4,16 +4,16 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui';
-import { GENRES } from '@/lib';
+import { GENRE_LABELS, GENRES, type Genre } from '@/lib';
 import { useSignupStore } from '@/store/signupStore';
 
 export const GenresStep = ({ onComplete }: { onComplete: () => void }) => {
   const router = useRouter();
   const { update } = useSignupStore();
 
-  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [selectedGenres, setSelectedGenres] = useState<Genre[]>([]);
 
-  const toggle = (genre: string) => {
+  const toggle = (genre: Genre) => {
     setSelectedGenres((prev) =>
       prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre],
     );
@@ -34,7 +34,7 @@ export const GenresStep = ({ onComplete }: { onComplete: () => void }) => {
               variant={selectedGenres.includes(genre) ? 'default' : 'outline'}
               className={'px-3 py-1.5 transition-colors'}
             >
-              {genre}
+              {GENRE_LABELS[genre]}
             </Button>
           ))}
         </div>

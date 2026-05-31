@@ -1,4 +1,6 @@
-import { IsString, IsOptional, IsArray } from 'class-validator';
+import { IsString, IsOptional, IsArray, IsEnum } from 'class-validator';
+
+import { Genre } from '@repo/db';
 
 export class SocialRegisterDto {
   @IsString()
@@ -12,6 +14,6 @@ export class SocialRegisterDto {
   profileImageUrl?: string;
 
   @IsArray()
-  @IsString({ each: true })
-  genres!: string[];
+  @IsEnum(Genre, { each: true })
+  preferredGenres!: Genre[];
 }

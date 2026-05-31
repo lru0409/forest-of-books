@@ -1,10 +1,12 @@
+import { Genre } from '@/lib';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
 interface SocialRegisterPayload {
   nickname: string;
   bio: string;
   profileImageUrl?: string;
-  genres: string[];
+  preferredGenres: Genre[];
 }
 
 async function socialRegister(payload: SocialRegisterPayload): Promise<{ token: string }> {
