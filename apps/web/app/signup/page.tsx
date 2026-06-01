@@ -7,10 +7,10 @@ import { Container } from '@/components/layout';
 import { useSignupStore } from '@/store/signupStore';
 import { useAuthStore } from '@/store/authStore';
 import AuthService from '@/services/auth';
-import { EmailPasswordStep } from './components/EmailPasswordStep';
-import { ProfileStep } from './components/ProfileStep';
-import { GenresStep } from './components/GenresStep';
-import { ProgressBar } from './components/ProgressBar';
+import { EmailPasswordStep } from './_components/EmailPasswordStep';
+import { ProfileStep } from './_components/ProfileStep';
+import { GenresStep } from './_components/GenresStep';
+import { ProgressBar } from './_components/ProgressBar';
 import { Step, TOTAL_STEPS } from './constants';
 import { emailPasswordSchema, profileSchema } from './schemas';
 
@@ -83,7 +83,7 @@ function SignUpContent() {
       if (isCompleted) {
         // TODO: signup 완료 화면으로 이동
         const timeout = setTimeout(() => {
-          router.push('/signin');
+          router.push('/signup/complete');
         }, 500);
         return () => clearTimeout(timeout);
       }
@@ -103,6 +103,7 @@ function SignUpContent() {
     } else {
       // TODO: /auth/register
     }
+    // TODO: signup store 초기화
     setIsCompleted(true);
   };
 

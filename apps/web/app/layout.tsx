@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { Hahmlet } from 'next/font/google';
+import { Noto_Sans_KR } from 'next/font/google';
 import { cn } from '@/lib';
 
-const hahmlet = Hahmlet({ subsets: ['latin'], variable: '--font-sans' });
+const notoSansKR = Noto_Sans_KR({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -16,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className={cn('font-sans', hahmlet.variable)}>
+    <html lang="ko" className={cn('font-sans', notoSansKR.variable)}>
       <body>{children}</body>
     </html>
   );

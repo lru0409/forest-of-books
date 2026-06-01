@@ -81,6 +81,26 @@
 }
 
 @layer base {
+  @keyframes emerge {
+    from {
+      transform: translateY(18px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+}
+
+@utility animate-emerge {
+  animation-name: emerge;
+  animation-duration: 0.8s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: both;
+}
+
+@layer base {
   *,
   *::before,
   *::after {

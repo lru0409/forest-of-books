@@ -1,0 +1,14 @@
+export type Genre =
+  | 'NOVEL'
+  | 'POETRY'
+  | 'ESSAY'
+  | 'HUMANITIES'
+  | 'SOCIAL_POLITICS'
+  | 'ECONOMICS_BUSINESS'
+  | 'SELF_DEVELOPMENT'
+  | 'SCIENCE_TECHNOLOGY'
+  | 'HISTORY'
+  | 'ART_CULTURE'
+  | 'TRAVEL'
+  | 'CHILDREN_TEEN'
+  | 'COMICS';
