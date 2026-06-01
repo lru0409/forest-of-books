@@ -37,13 +37,28 @@ export default function SignIn() {
         {/* 소셜 로그인 버튼 */}
         <div className="flex justify-center gap-4.5">
           <a href={`${process.env.NEXT_PUBLIC_API_URL}/auth/naver`}>
-            <Image src="/naver-login.png" alt="네이버로 로그인" width={52} height={52} />
+            <Image
+              src="/images/social-login/naver.png"
+              alt="네이버로 로그인"
+              width={52}
+              height={52}
+            />
           </a>
           <a href={`${process.env.NEXT_PUBLIC_API_URL}/auth/kakao`}>
-            <Image src="/kakao-login.png" alt="카카오로 로그인" width={52} height={52} />
+            <Image
+              src="/images/social-login/kakao.png"
+              alt="카카오로 로그인"
+              width={52}
+              height={52}
+            />
           </a>
           <a href={`${process.env.NEXT_PUBLIC_API_URL}/auth/google`}>
-            <Image src="/google-login.png" alt="구글로 로그인" width={52} height={52} />
+            <Image
+              src="/images/social-login/google.png"
+              alt="구글로 로그인"
+              width={52}
+              height={52}
+            />
           </a>
         </div>
       </div>
