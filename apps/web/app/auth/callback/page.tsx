@@ -4,6 +4,7 @@ import { Suspense, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 import { useAuthStore } from '@/store/authStore';
+import { LoadingScreen } from '@/components/screens/LoadingScreen';
 
 function CallbackHandler() {
   const searchParams = useSearchParams();
@@ -20,14 +21,12 @@ function CallbackHandler() {
     router.replace('/');
   }, [searchParams, router, setToken]);
 
-  // TODO: 로딩 표시
-  return <p>로그인 중...</p>;
+  return <LoadingScreen message="로그인 중..." />;
 }
 
 export default function AuthCallback() {
   return (
-    // TODO: 로딩 표시
-    <Suspense fallback={<p>로그인 중...</p>}>
+    <Suspense fallback={<LoadingScreen message="로그인 중..." />}>
       <CallbackHandler />
     </Suspense>
   );
