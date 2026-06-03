@@ -3,6 +3,7 @@ import {
   IsOptional,
   IsArray,
   IsEnum,
+  IsEmail,
   MinLength,
   MaxLength,
   Matches,
@@ -10,7 +11,18 @@ import {
 
 import { Genre } from '@repo/db';
 
-export class SocialRegisterDto {
+export class RegisterDto {
+  @IsEmail()
+  email!: string;
+
+  @IsString()
+  @MinLength(8)
+  @MaxLength(16)
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,16}$/, {
+    message: '비밀번호는 8~16자의 영문 대소문자, 숫자, 특수문자를 조합해 주세요.',
+  })
+  password!: string;
+
   @IsString()
   @MinLength(2)
   @MaxLength(12)

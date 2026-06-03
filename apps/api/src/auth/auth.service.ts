@@ -1,5 +1,7 @@
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+
 import { Genre, prisma } from '@repo/db';
 
 @Injectable()
@@ -24,7 +26,7 @@ export class AuthService {
     return this.jwtService.sign({ ...profile, status: 'pending' }, { expiresIn: '24h' });
   }
 
-  // 소셜 로그인 회원가입 완료 (pending token 검증 후 유저 생성)
+  // 소셜 로그인 회원가입 (pending token 검증 후 유저 생성)
   async socialRegister(
     socialPendingToken: string,
     data: { nickname: string; bio: string; profileImageUrl?: string; preferredGenres: Genre[] },
@@ -42,6 +44,30 @@ export class AuthService {
       data: {
         naverId: payload.naverId,
         email: payload.email,
+        nickname: data.nickname,
+        bio: data.bio,
+        preferredGenres: data.preferredGenres,
+      },
+    });
+    return this.issueToken(user.id);
+  }
+
+  // 일반 회원가입
+  async register(data: {
+    email: string;
+    password: string;
+    nickname: string;
+    bio: string;
+    preferredGenres: Genre[];
+  }) {
+    const existingUser = await prisma.user.findUnique({ where: { email: data.email } });
+    if (existingUser) throw new ConflictException('이미 가입된 유저입니다.');
+
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+    const user = await prisma.user.create({
+      data: {
+        email: data.email,
+        password: hashedPassword,
         nickname: data.nickname,
         bio: data.bio,
         preferredGenres: data.preferredGenres,

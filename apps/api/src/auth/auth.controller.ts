@@ -12,6 +12,7 @@ import { AuthGuard } from '@nestjs/passport';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { SocialRegisterDto } from './dto/social-register.dto';
+import { RegisterDto } from './dto/register.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -60,7 +61,8 @@ export class AuthController {
   }
 
   @Post('register')
-  async register() {
-    // TODO: 일반 회원가입
+  async register(@Body() body: RegisterDto, @Res() res: Response) {
+    const token = await this.authService.register(body);
+    return res.json({ token });
   }
 }

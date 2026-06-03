@@ -9,7 +9,11 @@ import { NaverStrategy } from './strategies/naver.strategy';
   imports: [
     PassportModule,
     JwtModule.register({
-      secret: process.env.API_JWT_SECRET,
+      secret:
+        process.env.API_JWT_SECRET ??
+        (() => {
+          throw new Error('API_JWT_SECRET is not set');
+        })(),
       signOptions: { expiresIn: '7d' },
     }),
   ],

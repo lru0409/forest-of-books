@@ -31,6 +31,7 @@ enum Genre {
 model User {
   id            String    @id @default(cuid())
   email         String?   @unique
+  password      String?
   nickname      String
   bio           String
   profileImage  String?
