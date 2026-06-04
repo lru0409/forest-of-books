@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Noto_Sans_KR } from 'next/font/google';
+
 import { cn } from '@/lib';
+import { DialogProvider } from '@/context/dialog';
 
 const notoSansKR = Noto_Sans_KR({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -17,7 +19,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className={cn('font-sans', notoSansKR.variable)}>
-      <body>{children}</body>
+      <body>
+        <DialogProvider>{children}</DialogProvider>
+      </body>
     </html>
   );
 }
