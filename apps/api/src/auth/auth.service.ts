@@ -12,18 +12,17 @@ export class AuthService {
     return this.jwtService.sign({ sub: userId });
   }
 
-  async findNaverUser(naverId: string) {
+  async findUserByEmail(email: string) {
+    return prisma.user.findUnique({ where: { email } });
+  }
+
+  async findUserByNaverId(naverId: string) {
     return prisma.user.findUnique({ where: { naverId } });
   }
 
   // 소셜 로그인 신규 유저용 pending token 발급
-  issueSocialPendingToken(profile: {
-    naverId: string;
-    email?: string;
-    nickname?: string;
-    profileImage?: string;
-  }): string {
-    return this.jwtService.sign({ ...profile, status: 'pending' }, { expiresIn: '24h' });
+  issueSocialPendingToken(profile: { naverId: string }): string {
+    return this.jwtService.sign({ ...profile }, { expiresIn: '24h' });
   }
 
   // 소셜 로그인 회원가입 (pending token 검증 후 유저 생성)
@@ -31,19 +30,22 @@ export class AuthService {
     socialPendingToken: string,
     data: { nickname: string; bio: string; profileImageUrl?: string; preferredGenres: Genre[] },
   ) {
-    const payload = this.jwtService.verify<{ naverId: string; email?: string; status: string }>(
-      socialPendingToken,
-    );
-    if (payload.status !== 'pending') throw new UnauthorizedException();
+    let payload: { naverId: string };
+    try {
+      payload = this.jwtService.verify<{ naverId: string }>(socialPendingToken);
+    } catch {
+      throw new UnauthorizedException();
+    }
+    if (!payload.naverId) throw new UnauthorizedException();
 
     // 이미 가입된 경우
-    const existingUser = await prisma.user.findUnique({ where: { naverId: payload.naverId } });
-    if (existingUser) throw new ConflictException('이미 가입된 유저입니다.');
+    const existingNaverUser = await this.findUserByNaverId(payload.naverId);
+    if (existingNaverUser) throw new ConflictException('이미 가입된 네이버 계정입니다.');
+    // TODO: kakao, google
 
     const user = await prisma.user.create({
       data: {
         naverId: payload.naverId,
-        email: payload.email,
         nickname: data.nickname,
         bio: data.bio,
         preferredGenres: data.preferredGenres,
@@ -60,8 +62,10 @@ export class AuthService {
     bio: string;
     preferredGenres: Genre[];
   }) {
-    const existingUser = await prisma.user.findUnique({ where: { email: data.email } });
-    if (existingUser) throw new ConflictException('이미 가입된 유저입니다.');
+    const existingEmailUser = await this.findUserByEmail(data.email);
+    if (existingEmailUser) {
+      throw new ConflictException('이미 가입된 이메일입니다.');
+    }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const user = await prisma.user.create({
