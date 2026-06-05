@@ -18,11 +18,6 @@ export class NaverStrategy extends PassportStrategy(Strategy, 'naver') {
     profile: Profile,
     done: (error: unknown, user?: unknown) => void,
   ): Promise<void> {
-    done(null, {
-      naverId: profile.id,
-      email: profile.email ?? undefined,
-      nickname: profile.nickname ?? undefined,
-      profileImage: profile.profileImage ?? undefined,
-    });
+    done(null, { naverId: profile.id });
   }
 }

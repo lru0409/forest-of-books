@@ -27,28 +27,26 @@ export class AuthController {
   @Get('naver/callback')
   @UseGuards(AuthGuard('naver'))
   async naverCallback(@Req() req: Request, @Res() res: Response) {
-    const profile = req.user as {
-      naverId: string;
-      email?: string;
-      nickname?: string;
-      profileImage?: string;
-    };
+    const profile = req.user as { naverId: string };
     const frontendUrl = process.env.API_FRONTEND_URL ?? 'http://localhost:3000';
 
-    const existing = await this.authService.findNaverUser(profile.naverId);
-    if (existing) {
-      const token = this.authService.issueToken(existing.id);
+    const existingNaverUser = await this.authService.findUserByNaverId(profile.naverId);
+    if (existingNaverUser) {
+      const token = this.authService.issueToken(existingNaverUser.id);
       res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
-    } else {
-      const socialPendingToken = this.authService.issueSocialPendingToken(profile);
-      res.cookie('social_pending_token', socialPendingToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        maxAge: 24 * 60 * 60 * 1000,
-      });
-      res.redirect(`${frontendUrl}/signup?step=2&social_login=true`);
+      return;
     }
+
+    const socialPendingToken = this.authService.issueSocialPendingToken({
+      naverId: profile.naverId,
+    });
+    res.cookie('social_pending_token', socialPendingToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+    res.redirect(`${frontendUrl}/signup?step=2&social_login=true`);
   }
 
   @Post('social/register')
