@@ -1,7 +1,5 @@
 import type { Genre } from './types/genre';
 
-export type { Genre };
-
 export const GENRE_LABELS: Record<Genre, string> = {
   NOVEL: '소설',
   POETRY: '시',
