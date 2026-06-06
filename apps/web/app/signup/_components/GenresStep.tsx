@@ -7,7 +7,13 @@ import { Button } from '@/components/ui';
 import { GENRE_LABELS, GENRES, type Genre } from '@/lib';
 import { useSignupStore } from '@/store/signupStore';
 
-export const GenresStep = ({ onComplete }: { onComplete: () => void }) => {
+export const GenresStep = ({
+  onComplete,
+  isSubmitting,
+}: {
+  onComplete: () => void;
+  isSubmitting?: boolean;
+}) => {
   const router = useRouter();
   const { update } = useSignupStore();
 
@@ -46,6 +52,7 @@ export const GenresStep = ({ onComplete }: { onComplete: () => void }) => {
         </Button>
         <Button
           className="flex-1"
+          disabled={isSubmitting}
           onClick={() => {
             update({ genres: selectedGenres });
             onComplete();
