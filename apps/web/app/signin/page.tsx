@@ -3,6 +3,7 @@ import Image from 'next/image';
 
 import { Container } from '@/components/layout';
 import { Button, Input } from '@/components/ui';
+import { SignupLink } from './_components/SignupLink';
 
 export default function SignIn() {
   return (
@@ -21,9 +22,7 @@ export default function SignIn() {
             비밀번호 찾기
           </Link>
           |
-          <Link href="/signup" className="hover:underline">
-            회원가입
-          </Link>
+          <SignupLink />
         </div>
 
         {/* 소셜 로그인 구분선 */}
