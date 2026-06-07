@@ -13,6 +13,9 @@ import { EmailPasswordStep, GenresStep, ProfileStep, ProgressBar } from './_comp
 import { Step, TOTAL_STEPS } from './constants';
 import { emailPasswordSchema, profileSchema } from './schemas';
 
+// TODO: 이메일 코드 확인 + 이메일 중복 확인
+// TODO: 닉네임 중복 확인
+
 export default function SignUpPage() {
   return (
     <Suspense>
@@ -67,7 +70,7 @@ function SignUpContent() {
 
   useEffect(
     function redirectToValidStep() {
-      if (!hasHydrated) return;
+      if (!hasHydrated || isCompleted) return;
       if (step === Step.PROFILE && !canProceedToProfileStep) {
         router.replace(`/signup?step=${Step.EMAIL_PASSWORD}`);
       } else if (step === Step.GENRES && !canProceedToGenresStep) {
@@ -76,13 +79,12 @@ function SignUpContent() {
         );
       }
     },
-    [step, canProceedToProfileStep, canProceedToGenresStep, router, hasHydrated],
+    [step, canProceedToProfileStep, canProceedToGenresStep, router, hasHydrated, isCompleted],
   );
 
   useEffect(
     function redirectAfterComplete() {
       if (isCompleted) {
-        // TODO: 화면 전환 시 이상함
         const timeout = setTimeout(() => {
           router.push('/signup/complete');
           reset();
@@ -107,15 +109,14 @@ function SignUpContent() {
             <Button
               key="login"
               onClick={() => {
-                // TODO: 로그인 페이지로 이동이 안 됨
                 router.push('/signin');
                 closeDialog();
-                reset();
               }}
             >
               로그인으로 이동
             </Button>,
           ]}
+          showCloseButton={false}
         />,
       );
       return null;
@@ -129,6 +130,7 @@ function SignUpContent() {
             확인
           </Button>,
         ]}
+        showCloseButton={false}
       />,
     );
     return null;
@@ -156,12 +158,12 @@ function SignUpContent() {
               onClick={() => {
                 router.push('/signin');
                 closeDialog();
-                reset();
               }}
             >
               로그인으로 이동
             </Button>,
           ]}
+          showCloseButton={false}
         />,
       );
       return null;
@@ -175,6 +177,7 @@ function SignUpContent() {
             확인
           </Button>,
         ]}
+        showCloseButton={false}
       />,
     );
     return null;
@@ -193,8 +196,10 @@ function SignUpContent() {
     }
   };
 
-  if (step === Step.PROFILE && (!hasHydrated || !canProceedToProfileStep)) return null;
-  if (step === Step.GENRES && (!hasHydrated || !canProceedToGenresStep)) return null;
+  if (step === Step.PROFILE && !isCompleted && (!hasHydrated || !canProceedToProfileStep))
+    return null;
+  if (step === Step.GENRES && !isCompleted && (!hasHydrated || !canProceedToGenresStep))
+    return null;
 
   return (
     <Container className="relative flex min-h-170 justify-center">
