@@ -6,6 +6,7 @@ import {
   UseGuards,
   Post,
   Body,
+  Query,
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -13,6 +14,7 @@ import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { SocialRegisterDto } from './dto/social-register.dto';
 import { RegisterDto } from './dto/register.dto';
+import { CheckNicknameDto } from './dto/check-nickname.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -47,6 +49,12 @@ export class AuthController {
       maxAge: 24 * 60 * 60 * 1000,
     });
     res.redirect(`${frontendUrl}/signup?step=2&social_login=true`);
+  }
+
+  @Get('check-nickname')
+  async checkNickname(@Query() query: CheckNicknameDto) {
+    const existingNicknameUser = await this.authService.findUserByNickname(query.nickname);
+    return { available: !existingNicknameUser };
   }
 
   @Post('social/register')
