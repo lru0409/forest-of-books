@@ -20,6 +20,10 @@ export class AuthService {
     return prisma.user.findUnique({ where: { naverId } });
   }
 
+  async findUserByNickname(nickname: string) {
+    return prisma.user.findUnique({ where: { nickname } });
+  }
+
   // 소셜 로그인 신규 유저용 pending token 발급
   issueSocialPendingToken(profile: { naverId: string }): string {
     return this.jwtService.sign({ ...profile }, { expiresIn: '24h' });
@@ -41,7 +45,11 @@ export class AuthService {
     // 이미 가입된 경우
     const existingNaverUser = await this.findUserByNaverId(payload.naverId);
     if (existingNaverUser) throw new ConflictException('이미 가입된 네이버 계정입니다.');
+
     // TODO: kakao, google
+
+    const existingNicknameUser = await this.findUserByNickname(data.nickname);
+    if (existingNicknameUser) throw new ConflictException('이미 사용 중인 닉네임입니다.');
 
     const user = await prisma.user.create({
       data: {
@@ -66,6 +74,9 @@ export class AuthService {
     if (existingEmailUser) {
       throw new ConflictException('이미 가입된 이메일입니다.');
     }
+
+    const existingNicknameUser = await this.findUserByNickname(data.nickname);
+    if (existingNicknameUser) throw new ConflictException('이미 사용 중인 닉네임입니다.');
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const user = await prisma.user.create({

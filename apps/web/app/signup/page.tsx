@@ -100,6 +100,7 @@ function SignUpContent() {
     if (result.isSuccess) {
       return result.data.token;
     }
+    // TODO: 닉네임 중복 케이스(409) 처리 필요
     // 소셜 로그인 pending token 만료
     if (result.statusCode === 401) {
       openDialog(
@@ -148,6 +149,7 @@ function SignUpContent() {
       return result.data.token;
     }
     // 이미 가입된 계정
+    // TODO: 닉네임 또는 이메일 중복 케이스
     if (result.statusCode === 409) {
       openDialog(
         <Modal

@@ -32,7 +32,7 @@ model User {
   id            String    @id @default(cuid())
   email         String?   @unique
   password      String?
-  nickname      String
+  nickname      String    @unique
   bio           String
   profileImage  String?
   naverId       String?   @unique
