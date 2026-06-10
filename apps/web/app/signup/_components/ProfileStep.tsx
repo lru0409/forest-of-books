@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, type ControllerFieldState } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { Button, Input, Textarea } from '@/components/ui';
@@ -11,13 +11,23 @@ import { profileSchema, type ProfileFormData } from '../schemas';
 import { useSignupStore } from '@/store/signupStore';
 import { Step } from '../constants';
 import { ProfileImageOverlay } from './ProfileImageOverlay';
+import authService from '@/services/auth';
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
+type NicknameCheckStatus = 'idle' | 'checking' | 'available' | 'unavailable' | 'error';
+
 export const ProfileStep = () => {
   const router = useRouter();
-  const { update, nickname: defaultNickname, bio: defaultBio, profileImage: defaultProfileImage } = useSignupStore();
+  const {
+    update,
+    nickname: defaultNickname,
+    bio: defaultBio,
+    profileImage: defaultProfileImage,
+  } = useSignupStore();
+  const defaultProfileImageFile =
+    defaultProfileImage.kind === 'uploaded' ? defaultProfileImage.file : null;
 
   const [selectedProfileImageIndex, setSelectedProfileImageIndex] = useState<number | null>(
     defaultProfileImage.kind === 'default' ? defaultProfileImage.index : null,
@@ -27,15 +37,17 @@ export const ProfileStep = () => {
   const [profileImagePreviewUrl, setProfileImagePreviewUrl] = useState<string | null>(null);
   const [profileImageError, setProfileImageError] = useState<string | null>(null);
   const profileImageInputRef = useRef<HTMLInputElement>(null);
+  const [nicknameCheckStatus, setNicknameCheckStatus] = useState<NicknameCheckStatus>('idle');
+  const isNicknameChecking = nicknameCheckStatus === 'checking';
 
   useEffect(() => {
-    if (defaultProfileImage.kind === 'uploaded') {
-      const url = URL.createObjectURL(defaultProfileImage.file);
-      setProfileImageFile(defaultProfileImage.file);
-      setProfileImagePreviewUrl(url);
-      return () => URL.revokeObjectURL(url);
-    }
-  }, []);
+    if (!defaultProfileImageFile) return;
+
+    const url = URL.createObjectURL(defaultProfileImageFile);
+    setProfileImageFile(defaultProfileImageFile);
+    setProfileImagePreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [defaultProfileImageFile]);
 
   const handleProfileImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -67,14 +79,51 @@ export const ProfileStep = () => {
     formState: { errors },
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
-    mode: 'onTouched',
+    mode: 'onChange',
     defaultValues: {
       nickname: defaultNickname,
       bio: defaultBio,
     },
   });
 
+  const handleCheckNickname = async (nickname: string) => {
+    setNicknameCheckStatus('checking');
+    let nextStatus: NicknameCheckStatus = 'error';
+
+    try {
+      const result = await authService.checkNickname(nickname);
+      if (result.isSuccess) {
+        nextStatus = result.data.available ? 'available' : 'unavailable';
+      }
+    } catch {
+      nextStatus = 'error';
+    } finally {
+      setNicknameCheckStatus(nextStatus);
+    }
+  };
+
+  const getNicknameFeedback = (
+    fieldState: ControllerFieldState,
+    nicknameCheckStatus: NicknameCheckStatus,
+  ): { state: 'error' | 'success' | 'default'; message?: string } => {
+    if (fieldState.isTouched && fieldState.error) {
+      return { state: 'error', message: fieldState.error.message };
+    }
+    switch (nicknameCheckStatus) {
+      case 'available':
+        return { state: 'success', message: '사용 가능한 닉네임이에요.' };
+      case 'unavailable':
+        return { state: 'error', message: '이미 사용 중인 닉네임이에요.' };
+      case 'error':
+        return { state: 'error', message: '오류가 발생했어요. 나중에 다시 시도해주세요.' };
+      case 'checking':
+      case 'idle':
+        return { state: 'default' };
+    }
+  };
+
   const onSubmit = (data: ProfileFormData) => {
+    if (nicknameCheckStatus !== 'available') return;
     const profileImage =
       profileImageFile !== null
         ? { kind: 'uploaded' as const, file: profileImageFile }
@@ -108,19 +157,40 @@ export const ProfileStep = () => {
         <Controller
           name="nickname"
           control={control}
-          render={({ field, fieldState }) => (
-            <Input
-              id="nickname"
-              type="text"
-              placeholder="닉네임을 입력하세요."
-              value={field.value}
-              onChange={field.onChange}
-              onBlur={field.onBlur}
-              state={fieldState.isTouched && fieldState.error ? 'error' : 'default'}
-              message={fieldState.isTouched ? fieldState.error?.message : undefined}
-              className="mb-5"
-            />
-          )}
+          render={({ field, fieldState }) => {
+            const nicknameInputFeedback = getNicknameFeedback(fieldState, nicknameCheckStatus);
+
+            return (
+              <Input
+                id="nickname"
+                type="text"
+                placeholder="닉네임을 입력하세요."
+                value={field.value}
+                onChange={(e) => {
+                  field.onChange(e);
+                  setNicknameCheckStatus('idle');
+                }}
+                onBlur={field.onBlur}
+                readOnly={isNicknameChecking}
+                clearable={!isNicknameChecking}
+                state={nicknameInputFeedback.state}
+                message={nicknameInputFeedback.message}
+                suffix={
+                  <Button
+                    type="button"
+                    size="xs"
+                    onClick={() => handleCheckNickname(field.value)}
+                    disabled={!!fieldState.error || !field.value || isNicknameChecking}
+                    isLoading={isNicknameChecking}
+                    className="-mr-1.5 w-16.5"
+                  >
+                    중복 확인
+                  </Button>
+                }
+                className="mb-5"
+              />
+            );
+          }}
         />
 
         <label htmlFor="bio" className="mb-1 block text-lg font-semibold">
@@ -216,8 +286,7 @@ export const ProfileStep = () => {
         <Button
           type="submit"
           className="flex-1"
-          disabled={Boolean(errors.nickname)}
-          onClick={() => router.push(`/signup?step=${Step.GENRES}`)}
+          disabled={Boolean(errors.nickname) || nicknameCheckStatus !== 'available'}
         >
           다음
         </Button>

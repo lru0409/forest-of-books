@@ -12,7 +12,12 @@ import { Step } from '../constants';
 
 export const EmailPasswordStep = () => {
   const router = useRouter();
-  const { update, email: defaultEmail, password: defaultPassword, confirmPassword: defaultConfirmPassword } = useSignupStore();
+  const {
+    update,
+    email: defaultEmail,
+    password: defaultPassword,
+    confirmPassword: defaultConfirmPassword,
+  } = useSignupStore();
 
   const {
     control,
@@ -31,7 +36,7 @@ export const EmailPasswordStep = () => {
     },
   });
 
-  const password = watch('password');
+  const [email, password, confirmPassword] = watch(['email', 'password', 'confirmPassword']);
   useEffect(
     function validateConfirmPasswordOnPasswordChange() {
       if (getFieldState('password').isTouched) {
@@ -67,8 +72,8 @@ export const EmailPasswordStep = () => {
               maxLength={254}
               onChange={field.onChange}
               onBlur={field.onBlur}
-              state={fieldState.isTouched && fieldState.error ? 'error' : 'default'}
-              message={fieldState.isTouched ? fieldState.error?.message : undefined}
+              state={fieldState.error ? 'error' : 'default'}
+              message={fieldState.error?.message}
               className="mb-5"
             />
           )}
@@ -89,8 +94,8 @@ export const EmailPasswordStep = () => {
               value={field.value}
               onChange={field.onChange}
               onBlur={field.onBlur}
-              state={fieldState.isTouched && fieldState.error ? 'error' : 'default'}
-              message={fieldState.isTouched ? fieldState.error?.message : undefined}
+              state={fieldState.error ? 'error' : 'default'}
+              message={fieldState.error?.message}
               className="mb-2"
             />
           )}
@@ -106,8 +111,8 @@ export const EmailPasswordStep = () => {
               value={field.value}
               onChange={field.onChange}
               onBlur={field.onBlur}
-              state={fieldState.isTouched && fieldState.error ? 'error' : 'default'}
-              message={fieldState.isTouched ? fieldState.error?.message : undefined}
+              state={fieldState.error ? 'error' : 'default'}
+              message={fieldState.error?.message}
               className="mb-2"
             />
           )}
@@ -121,7 +126,12 @@ export const EmailPasswordStep = () => {
         <Button
           type="submit"
           className="flex-1"
-          disabled={Boolean(errors.email || errors.password || errors.confirmPassword)}
+          disabled={
+            Boolean(errors.email || errors.password || errors.confirmPassword) ||
+            !email ||
+            !password ||
+            !confirmPassword
+          }
         >
           다음
         </Button>

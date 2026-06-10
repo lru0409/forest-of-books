@@ -45,7 +45,16 @@ async function generalRegister(payload: RegisterPayload): Promise<ApiResponse<{ 
   return { isSuccess: true, statusCode: res.status, data: (await res.json()) as { token: string } };
 }
 
+async function checkNickname(nickname: string): Promise<ApiResponse<{ available: boolean }>> {
+  const res = await fetch(`${API_URL}/auth/check-nickname?nickname=${encodeURIComponent(nickname)}`);
+  if (!res.ok) {
+    return { isSuccess: false, statusCode: res.status };
+  }
+  return { isSuccess: true, statusCode: res.status, data: (await res.json()) as { available: boolean } };
+}
+
 export default {
   socialRegister,
   generalRegister,
+  checkNickname,
 };
