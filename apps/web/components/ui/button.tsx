@@ -41,6 +41,13 @@ const buttonVariants = cva(
   },
 );
 
+const loaderSizeMap: Partial<
+  Record<NonNullable<VariantProps<typeof buttonVariants>['size']>, string>
+> = {
+  xs: 'size-3',
+  default: 'size-4.5',
+};
+
 function Button({
   className,
   variant = 'default',
@@ -66,7 +73,14 @@ function Button({
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     >
-      {loading ? <LoaderCircle className="size-4.5 animate-spin" strokeWidth={4} /> : children}
+      {loading ? (
+        <LoaderCircle
+          className={cn(loaderSizeMap[size ?? 'default'], 'animate-spin')}
+          strokeWidth={4}
+        />
+      ) : (
+        children
+      )}
     </Comp>
   );
 }
