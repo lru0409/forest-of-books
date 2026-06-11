@@ -29,14 +29,28 @@ enum Genre {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String?   @unique
-  password      String?
-  nickname      String    @unique
-  bio           String
-  profileImage  String?
-  naverId       String?   @unique
+  id              String   @id @default(cuid())
+  email           String?  @unique
+  password        String?
+  nickname        String   @unique
+  bio             String
+  profileImage    String?
+  naverId         String?  @unique
   preferredGenres Genre[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model EmailVerificationCode {
+  id           String    @id @default(cuid())
+  email        String
+  codeHash     String
+  expiresAt    DateTime
+  verifiedAt   DateTime?
+  consumedAt   DateTime?
+  attemptCount Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([email, expiresAt, consumedAt])
 }
