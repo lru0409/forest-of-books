@@ -8,17 +8,28 @@ import {
   Body,
   Query,
   UnauthorizedException,
+  HttpCode,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
-import { SocialRegisterDto } from './dto/social-register.dto';
-import { RegisterDto } from './dto/register.dto';
-import { CheckNicknameDto } from './dto/check-nickname.dto';
+import { EmailVerificationService } from './email-verification.service';
+import {
+  CheckNicknameDto,
+  RegisterDto,
+  SendEmailVerificationCodeDto,
+  SocialRegisterDto,
+  VerifyEmailCodeDto,
+} from './dto';
+
+// TODO: 테스트 작성
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private emailVerificationService: EmailVerificationService,
+  ) {}
 
   @Get('naver')
   @UseGuards(AuthGuard('naver'))
@@ -51,6 +62,20 @@ export class AuthController {
     res.redirect(`${frontendUrl}/signup?step=2&social_login=true`);
   }
 
+  @Post('email-verifications')
+  @HttpCode(204)
+  async sendEmailVerificationCode(@Body() body: SendEmailVerificationCodeDto) {
+    await this.emailVerificationService.sendCode(body.email);
+    return null;
+  }
+
+  @Post('email-verifications/verify')
+  @HttpCode(204)
+  async verifyEmailCode(@Body() body: VerifyEmailCodeDto) {
+    await this.emailVerificationService.verifyCode(body.email, body.code);
+    return null;
+  }
+
   @Get('check-nickname')
   async checkNickname(@Query() query: CheckNicknameDto) {
     const existingNicknameUser = await this.authService.findUserByNickname(query.nickname);
@@ -60,7 +85,7 @@ export class AuthController {
   @Post('social/register')
   async socialRegister(@Body() body: SocialRegisterDto, @Req() req: Request, @Res() res: Response) {
     const socialPendingToken = req.cookies['social_pending_token'];
-    if (!socialPendingToken) throw new UnauthorizedException();
+    if (typeof socialPendingToken !== 'string') throw new UnauthorizedException();
     res.clearCookie('social_pending_token');
     const token = await this.authService.socialRegister(socialPendingToken, body);
     return res.json({ token });

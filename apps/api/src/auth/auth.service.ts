@@ -1,19 +1,31 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 import { Genre, prisma } from '@repo/db';
+import { EmailVerificationService } from './email-verification.service';
 
 @Injectable()
 export class AuthService {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private jwtService: JwtService,
+    private emailVerificationService: EmailVerificationService,
+  ) {}
 
   issueToken(userId: string): string {
     return this.jwtService.sign({ sub: userId });
   }
 
   async findUserByEmail(email: string) {
-    return prisma.user.findUnique({ where: { email } });
+    const normalizedEmail = this.emailVerificationService.normalizeEmail(email);
+    return prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
   }
 
   async findUserByNaverId(naverId: string) {
@@ -70,24 +82,39 @@ export class AuthService {
     bio: string;
     preferredGenres: Genre[];
   }) {
-    const existingEmailUser = await this.findUserByEmail(data.email);
+    const normalizedEmail = this.emailVerificationService.normalizeEmail(data.email);
+    const existingEmailUser = await this.findUserByEmail(normalizedEmail);
     if (existingEmailUser) {
       throw new ConflictException('이미 가입된 이메일입니다.');
+    }
+
+    const emailVerificationCode =
+      await this.emailVerificationService.findValidVerifiedCode(normalizedEmail);
+    if (!emailVerificationCode) {
+      throw new BadRequestException('이메일 인증이 필요합니다.');
     }
 
     const existingNicknameUser = await this.findUserByNickname(data.nickname);
     if (existingNicknameUser) throw new ConflictException('이미 사용 중인 닉네임입니다.');
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
-    const user = await prisma.user.create({
-      data: {
-        email: data.email,
-        password: hashedPassword,
-        nickname: data.nickname,
-        bio: data.bio,
-        preferredGenres: data.preferredGenres,
-      },
+    const user = await prisma.$transaction(async (tx) => {
+      const createdUser = await tx.user.create({
+        data: {
+          email: normalizedEmail,
+          password: hashedPassword,
+          nickname: data.nickname,
+          bio: data.bio,
+          preferredGenres: data.preferredGenres,
+        },
+      });
+      await tx.emailVerificationCode.update({
+        where: { id: emailVerificationCode.id },
+        data: { consumedAt: new Date() },
+      });
+      return createdUser;
     });
+
     return this.issueToken(user.id);
   }
 }
