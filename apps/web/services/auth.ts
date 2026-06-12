@@ -46,15 +46,64 @@ async function generalRegister(payload: RegisterPayload): Promise<ApiResponse<{ 
 }
 
 async function checkNickname(nickname: string): Promise<ApiResponse<{ available: boolean }>> {
-  const res = await fetch(`${API_URL}/auth/check-nickname?nickname=${encodeURIComponent(nickname)}`);
+  const res = await fetch(
+    `${API_URL}/auth/check-nickname?nickname=${encodeURIComponent(nickname)}`,
+  );
   if (!res.ok) {
     return { isSuccess: false, statusCode: res.status };
   }
-  return { isSuccess: true, statusCode: res.status, data: (await res.json()) as { available: boolean } };
+  return {
+    isSuccess: true,
+    statusCode: res.status,
+    data: (await res.json()) as { available: boolean },
+  };
+}
+
+async function sendEmailVerificationCode(email: string): Promise<ApiResponse> {
+  const res = await fetch(`${API_URL}/auth/email-verifications`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) {
+    return { isSuccess: false, statusCode: res.status };
+  }
+  return { isSuccess: true, statusCode: res.status };
+}
+
+interface EmailVerificationCodeMismatchData {
+  attemptCount: number;
+  maxAttempts: number;
+}
+
+async function verifyEmailCode(
+  email: string,
+  code: string,
+): Promise<ApiResponse<undefined, EmailVerificationCodeMismatchData>> {
+  const res = await fetch(`${API_URL}/auth/email-verifications/verify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, code }),
+  });
+  if (!res.ok) {
+    const body = (await res.json()) as {
+      errorCode?: string;
+      data?: EmailVerificationCodeMismatchData;
+    };
+    return {
+      isSuccess: false,
+      statusCode: res.status,
+      errorCode: body.errorCode,
+      data: body.data,
+    };
+  }
+  return { isSuccess: true, statusCode: res.status };
 }
 
 export default {
   socialRegister,
   generalRegister,
   checkNickname,
+  sendEmailVerificationCode,
+  verifyEmailCode,
 };

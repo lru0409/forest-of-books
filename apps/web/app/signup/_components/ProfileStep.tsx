@@ -23,6 +23,7 @@ export const ProfileStep = () => {
   const {
     update,
     nickname: defaultNickname,
+    nicknameVerified: defaultNicknameVerified,
     bio: defaultBio,
     profileImage: defaultProfileImage,
   } = useSignupStore();
@@ -37,7 +38,9 @@ export const ProfileStep = () => {
   const [profileImagePreviewUrl, setProfileImagePreviewUrl] = useState<string | null>(null);
   const [profileImageError, setProfileImageError] = useState<string | null>(null);
   const profileImageInputRef = useRef<HTMLInputElement>(null);
-  const [nicknameCheckStatus, setNicknameCheckStatus] = useState<NicknameCheckStatus>('idle');
+  const [nicknameCheckStatus, setNicknameCheckStatus] = useState<NicknameCheckStatus>(
+    defaultNicknameVerified ? 'available' : 'idle',
+  );
   const isNicknameChecking = nicknameCheckStatus === 'checking';
 
   useEffect(() => {
@@ -99,6 +102,7 @@ export const ProfileStep = () => {
       nextStatus = 'error';
     } finally {
       setNicknameCheckStatus(nextStatus);
+      update({ nicknameVerified: nextStatus === 'available' });
     }
   };
 
@@ -169,6 +173,7 @@ export const ProfileStep = () => {
                 onChange={(e) => {
                   field.onChange(e);
                   setNicknameCheckStatus('idle');
+                  update({ nicknameVerified: false });
                 }}
                 onBlur={field.onBlur}
                 readOnly={isNicknameChecking}
