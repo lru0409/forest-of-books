@@ -6,12 +6,14 @@ import { GENRES } from '@/lib';
 interface SignupData {
   // Email Password Step
   email: string;
+  emailVerified: boolean;
   password: string;
   confirmPassword: string;
   // Social Login Step
   isSocialLogin: boolean;
   // Profile Step
   nickname: string;
+  nicknameVerified: boolean;
   bio: string;
   profileImage: { kind: 'default'; index: number } | { kind: 'uploaded'; file: File };
   // Genres Step
@@ -25,20 +27,24 @@ interface SignupActions {
 
 const partializeSignupData = (state: SignupData & SignupActions): Partial<SignupData> => ({
   email: state.email,
+  emailVerified: state.emailVerified,
   password: state.password,
   confirmPassword: state.confirmPassword,
   isSocialLogin: state.isSocialLogin,
   nickname: state.nickname,
+  nicknameVerified: state.nicknameVerified,
   bio: state.bio,
   genres: state.genres,
 });
 
 const initialState: SignupData = {
   email: '',
+  emailVerified: false,
   password: '',
   confirmPassword: '',
   isSocialLogin: false,
   nickname: '',
+  nicknameVerified: false,
   bio: '',
   profileImage: { kind: 'default', index: 0 },
   genres: [],

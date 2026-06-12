@@ -13,9 +13,6 @@ import { EmailPasswordStep, GenresStep, ProfileStep, ProgressBar } from './_comp
 import { Step, TOTAL_STEPS } from './constants';
 import { emailPasswordSchema, profileSchema } from './schemas';
 
-// TODO: 이메일 코드 확인 + 이메일 중복 확인
-// TODO: 닉네임 중복 확인
-
 export default function SignUpPage() {
   return (
     <Suspense>
@@ -28,8 +25,19 @@ function SignUpContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { openDialog, closeDialog } = useDialog();
-  const { email, password, confirmPassword, nickname, bio, genres, isSocialLogin, update, reset } =
-    useSignupStore();
+  const {
+    email,
+    emailVerified,
+    password,
+    confirmPassword,
+    nickname,
+    nicknameVerified,
+    bio,
+    genres,
+    isSocialLogin,
+    update,
+    reset,
+  } = useSignupStore();
   const { setToken } = useAuthStore();
 
   const stepParam = searchParams.get('step') ?? '1';
@@ -41,13 +49,16 @@ function SignUpContent() {
 
   const canProceedToProfileStep =
     isSocialLogin ||
-    emailPasswordSchema.safeParse({
-      email,
-      password,
-      confirmPassword,
-    }).success;
+    (emailVerified &&
+      emailPasswordSchema.safeParse({
+        email,
+        password,
+        confirmPassword,
+      }).success);
   const canProceedToGenresStep =
-    canProceedToProfileStep && profileSchema.safeParse({ nickname, bio }).success;
+    canProceedToProfileStep &&
+    nicknameVerified &&
+    profileSchema.safeParse({ nickname, bio }).success;
 
   useEffect(
     function detectSocialLoginRedirect() {
