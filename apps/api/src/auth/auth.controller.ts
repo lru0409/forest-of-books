@@ -37,22 +37,60 @@ export class AuthController {
     // Passport가 네이버 로그인 페이지로 리다이렉트 처리
   }
 
+  @Get('kakao')
+  @UseGuards(AuthGuard('kakao'))
+  kakaoLogin() {
+    // Passport가 카카오 로그인 페이지로 리다이렉트 처리
+  }
+
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  googleLogin() {
+    // Passport가 구글 로그인 페이지로 리다이렉트 처리
+  }
+
   @Get('naver/callback')
   @UseGuards(AuthGuard('naver'))
   async naverCallback(@Req() req: Request, @Res() res: Response) {
-    const profile = req.user as { naverId: string };
+    const { naverId } = req.user as { naverId: string };
+    return this.handleSocialCallback(res, { naverId }, () =>
+      this.authService.findUserByNaverId(naverId),
+    );
+  }
+
+  @Get('kakao/callback')
+  @UseGuards(AuthGuard('kakao'))
+  async kakaoCallback(@Req() req: Request, @Res() res: Response) {
+    const { kakaoId } = req.user as { kakaoId: string };
+    return this.handleSocialCallback(res, { kakaoId }, () =>
+      this.authService.findUserByKakaoId(kakaoId),
+    );
+  }
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleCallback(@Req() req: Request, @Res() res: Response) {
+    const { googleId } = req.user as { googleId: string };
+    return this.handleSocialCallback(res, { googleId }, () =>
+      this.authService.findUserByGoogleId(googleId),
+    );
+  }
+
+  private async handleSocialCallback(
+    res: Response,
+    profile: { naverId?: string; kakaoId?: string; googleId?: string },
+    findExistingUser: () => Promise<{ id: string } | null>,
+  ) {
     const frontendUrl = process.env.API_FRONTEND_URL ?? 'http://localhost:3000';
 
-    const existingNaverUser = await this.authService.findUserByNaverId(profile.naverId);
-    if (existingNaverUser) {
-      const token = this.authService.issueToken(existingNaverUser.id);
+    const existingUser = await findExistingUser();
+    if (existingUser) {
+      const token = this.authService.issueToken(existingUser.id);
       res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
       return;
     }
 
-    const socialPendingToken = this.authService.issueSocialPendingToken({
-      naverId: profile.naverId,
-    });
+    const socialPendingToken = this.authService.issueSocialPendingToken(profile);
     res.cookie('social_pending_token', socialPendingToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

@@ -5,6 +5,8 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { EmailVerificationService } from './email-verification.service';
 import { NaverStrategy } from './strategies/naver.strategy';
+import { KakaoStrategy } from './strategies/kakao.strategy';
+import { GoogleStrategy } from './strategies/google.strategy';
 
 @Module({
   imports: [
@@ -19,6 +21,6 @@ import { NaverStrategy } from './strategies/naver.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, EmailVerificationService, NaverStrategy],
+  providers: [AuthService, EmailVerificationService, NaverStrategy, KakaoStrategy, GoogleStrategy],
 })
 export class AuthModule {}
