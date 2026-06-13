@@ -36,6 +36,8 @@ model User {
   bio             String
   profileImage    String?
   naverId         String?  @unique
+  kakaoId         String?  @unique
+  googleId        String?  @unique
   preferredGenres Genre[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

@@ -26,7 +26,13 @@
         "API_JWT_SECRET",
         "API_NAVER_CLIENT_ID",
         "API_NAVER_CLIENT_SECRET",
-        "API_NAVER_CALLBACK_URL"
+        "API_NAVER_CALLBACK_URL",
+        "API_KAKAO_CLIENT_ID",
+        "API_KAKAO_CLIENT_SECRET",
+        "API_KAKAO_CALLBACK_URL",
+        "API_GOOGLE_CLIENT_ID",
+        "API_GOOGLE_CLIENT_SECRET",
+        "API_GOOGLE_CALLBACK_URL"
       ]
     }
   }

@@ -32,12 +32,24 @@ export class AuthService {
     return prisma.user.findUnique({ where: { naverId } });
   }
 
+  async findUserByKakaoId(kakaoId: string) {
+    return prisma.user.findUnique({ where: { kakaoId } });
+  }
+
+  async findUserByGoogleId(googleId: string) {
+    return prisma.user.findUnique({ where: { googleId } });
+  }
+
   async findUserByNickname(nickname: string) {
     return prisma.user.findUnique({ where: { nickname } });
   }
 
   // 소셜 로그인 신규 유저용 pending token 발급
-  issueSocialPendingToken(profile: { naverId: string }): string {
+  issueSocialPendingToken(profile: {
+    naverId?: string;
+    kakaoId?: string;
+    googleId?: string;
+  }): string {
     return this.jwtService.sign({ ...profile }, { expiresIn: '24h' });
   }
 
@@ -46,26 +58,55 @@ export class AuthService {
     socialPendingToken: string,
     data: { nickname: string; bio: string; profileImageUrl?: string; preferredGenres: Genre[] },
   ) {
-    let payload: { naverId: string };
+    let payload: { naverId?: string; kakaoId?: string; googleId?: string };
     try {
-      payload = this.jwtService.verify<{ naverId: string }>(socialPendingToken);
+      payload = this.jwtService.verify<{ naverId?: string; kakaoId?: string; googleId?: string }>(
+        socialPendingToken,
+      );
     } catch {
       throw new UnauthorizedException();
     }
-    if (!payload.naverId) throw new UnauthorizedException();
+    if (!payload.naverId && !payload.kakaoId && !payload.googleId)
+      throw new UnauthorizedException();
 
     // 이미 가입된 경우
-    const existingNaverUser = await this.findUserByNaverId(payload.naverId);
-    if (existingNaverUser) throw new ConflictException('이미 가입된 네이버 계정입니다.');
-
-    // TODO: kakao, google
+    if (payload.naverId) {
+      const existingNaverUser = await this.findUserByNaverId(payload.naverId);
+      if (existingNaverUser)
+        throw new ConflictException({
+          errorCode: 'NAVER_ACCOUNT_ALREADY_EXISTS',
+          message: '이미 가입된 네이버 계정입니다.',
+        });
+    }
+    if (payload.kakaoId) {
+      const existingKakaoUser = await this.findUserByKakaoId(payload.kakaoId);
+      if (existingKakaoUser)
+        throw new ConflictException({
+          errorCode: 'KAKAO_ACCOUNT_ALREADY_EXISTS',
+          message: '이미 가입된 카카오 계정입니다.',
+        });
+    }
+    if (payload.googleId) {
+      const existingGoogleUser = await this.findUserByGoogleId(payload.googleId);
+      if (existingGoogleUser)
+        throw new ConflictException({
+          errorCode: 'GOOGLE_ACCOUNT_ALREADY_EXISTS',
+          message: '이미 가입된 구글 계정입니다.',
+        });
+    }
 
     const existingNicknameUser = await this.findUserByNickname(data.nickname);
-    if (existingNicknameUser) throw new ConflictException('이미 사용 중인 닉네임입니다.');
+    if (existingNicknameUser)
+      throw new ConflictException({
+        errorCode: 'NICKNAME_ALREADY_EXISTS',
+        message: '이미 사용 중인 닉네임입니다.',
+      });
 
     const user = await prisma.user.create({
       data: {
         naverId: payload.naverId,
+        kakaoId: payload.kakaoId,
+        googleId: payload.googleId,
         nickname: data.nickname,
         bio: data.bio,
         preferredGenres: data.preferredGenres,
@@ -85,17 +126,27 @@ export class AuthService {
     const normalizedEmail = this.emailVerificationService.normalizeEmail(data.email);
     const existingEmailUser = await this.findUserByEmail(normalizedEmail);
     if (existingEmailUser) {
-      throw new ConflictException('이미 가입된 이메일입니다.');
+      throw new ConflictException({
+        errorCode: 'EMAIL_ALREADY_EXISTS',
+        message: '이미 가입된 이메일입니다.',
+      });
     }
 
     const emailVerificationCode =
       await this.emailVerificationService.findValidVerifiedCode(normalizedEmail);
     if (!emailVerificationCode) {
-      throw new BadRequestException('이메일 인증이 필요합니다.');
+      throw new BadRequestException({
+        errorCode: 'EMAIL_NOT_VERIFIED',
+        message: '이메일 인증이 필요합니다.',
+      });
     }
 
     const existingNicknameUser = await this.findUserByNickname(data.nickname);
-    if (existingNicknameUser) throw new ConflictException('이미 사용 중인 닉네임입니다.');
+    if (existingNicknameUser)
+      throw new ConflictException({
+        errorCode: 'NICKNAME_ALREADY_EXISTS',
+        message: '이미 사용 중인 닉네임입니다.',
+      });
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const user = await prisma.$transaction(async (tx) => {
