@@ -1,10 +1,20 @@
+'use client';
+
+import { useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
 import { Container } from '@/components/layout';
 import { Button } from '@/components/ui';
+import { useSignupStore } from '@/store/signupStore';
 
 export default function SignupCompletePage() {
+  const reset = useSignupStore((state) => state.reset);
+
+  useEffect(() => {
+    reset();
+  }, [reset]);
+
   return (
     <Container className="flex justify-center">
       <div className="flex w-125 min-w-80 flex-col">
