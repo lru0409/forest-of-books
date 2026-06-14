@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Container, Modal } from '@/components/layout';
@@ -12,6 +12,7 @@ import { useDialog } from '@/context/dialog';
 import { EmailPasswordStep, GenresStep, ProfileStep, ProgressBar } from './_components';
 import { Step, TOTAL_STEPS } from './constants';
 import { emailPasswordSchema, profileSchema } from './schemas';
+import { type Genre } from '@/lib';
 
 export default function SignUpPage() {
   return (
@@ -33,7 +34,6 @@ function SignUpContent() {
     nickname,
     nicknameVerified,
     bio,
-    genres,
     isSocialLogin,
     update,
     reset,
@@ -45,7 +45,8 @@ function SignUpContent() {
 
   const [hasHydrated, setHasHydrated] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const progressResolveRef = useRef<(() => void) | null>(null);
 
   const canProceedToProfileStep =
     isSocialLogin ||
@@ -81,7 +82,7 @@ function SignUpContent() {
 
   useEffect(
     function redirectToValidStep() {
-      if (!hasHydrated || isCompleted) return;
+      if (!hasHydrated) return;
       if (step === Step.PROFILE && !canProceedToProfileStep) {
         router.replace(`/signup?step=${Step.EMAIL_PASSWORD}`);
       } else if (step === Step.GENRES && !canProceedToGenresStep) {
@@ -90,30 +91,29 @@ function SignUpContent() {
         );
       }
     },
-    [step, canProceedToProfileStep, canProceedToGenresStep, router, hasHydrated, isCompleted],
+    [step, canProceedToProfileStep, canProceedToGenresStep, router, hasHydrated],
   );
 
-  useEffect(
-    function redirectAfterComplete() {
-      if (isCompleted) {
-        const timeout = setTimeout(() => {
-          router.push('/signup/complete');
-          reset();
-        }, 500);
-        return () => clearTimeout(timeout);
-      }
-    },
-    [isCompleted, router, reset],
-  );
+  const handleSubmit = async (genres: Genre[]) => {
+    setIsSubmitting(true);
+    setIsCompleting(true);
+    const progressPromise = new Promise<void>((resolve) => {
+      progressResolveRef.current = resolve;
+    });
+    const apiPromise = isSocialLogin
+      ? AuthService.socialRegister({ nickname, bio, preferredGenres: genres })
+      : AuthService.generalRegister({ email, password, nickname, bio, preferredGenres: genres });
+    // api 응답 수신 && progress bar 끝까지 진행 -> 이후 액션 수행
+    const [result] = await Promise.all([apiPromise, progressPromise]);
+    setIsSubmitting(false);
 
-  const handleSocialRegister = async (): Promise<string | null> => {
-    const result = await AuthService.socialRegister({ nickname, bio, preferredGenres: genres });
     if (result.isSuccess) {
-      return result.data.token;
+      setToken(result.data.token);
+      router.push('/signup/complete');
+      return;
     }
-    // TODO: 닉네임 중복 케이스(409) 처리 필요
     // 소셜 로그인 pending token 만료
-    if (result.statusCode === 401) {
+    if (isSocialLogin && result.statusCode === 401) {
       openDialog(
         <Modal
           title={'소셜 로그인 세션이 만료되었어요.\n소셜 로그인부터 다시 시작해 주세요.'}
@@ -131,55 +131,29 @@ function SignUpContent() {
           showCloseButton={false}
         />,
       );
-      return null;
+      return;
     }
-    // unknown error
-    openDialog(
-      <Modal
-        title={'오류가 발생했습니다.\n잠시 후 다시 시도해주세요.'}
-        buttons={[
-          <Button key="close" onClick={closeDialog}>
-            확인
-          </Button>,
-        ]}
-        showCloseButton={false}
-      />,
-    );
-    return null;
-  };
-
-  const handleGeneralRegister = async (): Promise<string | null> => {
-    const result = await AuthService.generalRegister({
-      email,
-      password,
-      nickname,
-      bio,
-      preferredGenres: genres,
-    });
-    if (result.isSuccess) {
-      return result.data.token;
-    }
-    // 이미 가입된 계정
-    // TODO: 닉네임 또는 이메일 중복 케이스
-    if (result.statusCode === 409) {
+    // 닉네임 중복
+    if (result.statusCode === 409 && result.errorCode === 'NICKNAME_ALREADY_EXISTS') {
       openDialog(
         <Modal
-          title={'이미 가입된 이메일이에요.\n로그인해 주세요.'}
+          title={'이미 사용 중인 닉네임이에요.\n다른 닉네임을 입력해 주세요.'}
           buttons={[
             <Button
-              key="login"
+              key="nickname"
               onClick={() => {
-                router.push('/signin');
+                update({ nicknameVerified: false });
+                router.push(`/signup?step=${Step.PROFILE}`);
                 closeDialog();
               }}
             >
-              로그인으로 이동
+              닉네임 다시 입력하기
             </Button>,
           ]}
           showCloseButton={false}
         />,
       );
-      return null;
+      return;
     }
     // unknown error
     openDialog(
@@ -193,30 +167,19 @@ function SignUpContent() {
         showCloseButton={false}
       />,
     );
-    return null;
   };
 
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-      const token = isSocialLogin ? await handleSocialRegister() : await handleGeneralRegister();
-      if (token) {
-        setToken(token);
-        setIsCompleted(true);
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  if (step === Step.PROFILE && !isCompleted && (!hasHydrated || !canProceedToProfileStep))
-    return null;
-  if (step === Step.GENRES && !isCompleted && (!hasHydrated || !canProceedToGenresStep))
-    return null;
+  if (step === Step.PROFILE && (!hasHydrated || !canProceedToProfileStep)) return null;
+  if (step === Step.GENRES && (!hasHydrated || !canProceedToGenresStep)) return null;
 
   return (
     <Container className="relative flex min-h-170 justify-center">
-      <ProgressBar step={step} total={TOTAL_STEPS} isCompleted={isCompleted} />
+      <ProgressBar
+        step={step}
+        total={TOTAL_STEPS}
+        isCompleting={isCompleting}
+        onComplete={() => progressResolveRef.current?.()}
+      />
       <div className="flex w-125 min-w-80 pt-16 pb-10">
         {step === Step.EMAIL_PASSWORD && <EmailPasswordStep />}
         {step === Step.PROFILE && <ProfileStep />}

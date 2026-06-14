@@ -19,7 +19,8 @@ async function socialRegister(
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
-    return { isSuccess: false, statusCode: res.status };
+    const body = (await res.json().catch(() => ({}))) as { errorCode?: string };
+    return { isSuccess: false, statusCode: res.status, errorCode: body.errorCode };
   }
   return { isSuccess: true, statusCode: res.status, data: (await res.json()) as { token: string } };
 }
@@ -40,7 +41,8 @@ async function generalRegister(payload: RegisterPayload): Promise<ApiResponse<{ 
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
-    return { isSuccess: false, statusCode: res.status };
+    const body = (await res.json().catch(() => ({}))) as { errorCode?: string };
+    return { isSuccess: false, statusCode: res.status, errorCode: body.errorCode };
   }
   return { isSuccess: true, statusCode: res.status, data: (await res.json()) as { token: string } };
 }

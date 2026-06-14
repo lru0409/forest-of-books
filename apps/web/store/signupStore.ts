@@ -1,8 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
-import { GENRES } from '@/lib';
-
 interface SignupData {
   // Email Password Step
   email: string;
@@ -16,8 +14,6 @@ interface SignupData {
   nicknameVerified: boolean;
   bio: string;
   profileImage: { kind: 'default'; index: number } | { kind: 'uploaded'; file: File };
-  // Genres Step
-  genres: (typeof GENRES)[number][];
 }
 
 interface SignupActions {
@@ -34,7 +30,6 @@ const partializeSignupData = (state: SignupData & SignupActions): Partial<Signup
   nickname: state.nickname,
   nicknameVerified: state.nicknameVerified,
   bio: state.bio,
-  genres: state.genres,
 });
 
 const initialState: SignupData = {
@@ -47,7 +42,6 @@ const initialState: SignupData = {
   nicknameVerified: false,
   bio: '',
   profileImage: { kind: 'default', index: 0 },
-  genres: [],
 };
 
 export const useSignupStore = create<SignupData & SignupActions>()(

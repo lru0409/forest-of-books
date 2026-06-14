@@ -5,17 +5,15 @@ import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui';
 import { GENRE_LABELS, GENRES, type Genre } from '@/lib';
-import { useSignupStore } from '@/store/signupStore';
 
 export const GenresStep = ({
   onComplete,
   isSubmitting,
 }: {
-  onComplete: () => void;
+  onComplete: (genres: Genre[]) => void;
   isSubmitting?: boolean;
 }) => {
   const router = useRouter();
-  const { update } = useSignupStore();
 
   const [selectedGenres, setSelectedGenres] = useState<Genre[]>([]);
 
@@ -53,9 +51,9 @@ export const GenresStep = ({
         <Button
           className="flex-1"
           disabled={isSubmitting}
+          isLoading={isSubmitting}
           onClick={() => {
-            update({ genres: selectedGenres });
-            onComplete();
+            onComplete(selectedGenres);
           }}
         >
           완료
