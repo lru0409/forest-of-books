@@ -1,12 +1,4 @@
-import {
-  IsString,
-  IsOptional,
-  IsArray,
-  IsEnum,
-  MinLength,
-  MaxLength,
-  Matches,
-} from 'class-validator';
+import { IsString, IsArray, IsEnum, IsUrl, MinLength, MaxLength, Matches } from 'class-validator';
 
 import { Genre } from '@repo/db';
 
@@ -23,9 +15,8 @@ export class SocialRegisterDto {
   @MaxLength(160)
   bio!: string;
 
-  // @IsOptional()
-  // @IsString()
-  // profileImageUrl?: string;
+  @IsUrl()
+  profileImageUrl?: string;
 
   @IsArray()
   @IsEnum(Genre, { each: true })

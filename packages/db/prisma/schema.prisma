@@ -34,7 +34,7 @@ model User {
   password        String?
   nickname        String   @unique
   bio             String
-  profileImage    String?
+  profileImage    String
   naverId         String?  @unique
   kakaoId         String?  @unique
   googleId        String?  @unique

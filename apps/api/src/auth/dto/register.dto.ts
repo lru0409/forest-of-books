@@ -1,9 +1,9 @@
 import {
   IsString,
-  IsOptional,
   IsArray,
   IsEnum,
   IsEmail,
+  IsUrl,
   MinLength,
   MaxLength,
   Matches,
@@ -35,9 +35,8 @@ export class RegisterDto {
   @MaxLength(160)
   bio!: string;
 
-  // @IsOptional()
-  // @IsString()
-  // profileImageUrl?: string;
+  @IsUrl()
+  profileImageUrl!: string;
 
   @IsArray()
   @IsEnum(Genre, { each: true })

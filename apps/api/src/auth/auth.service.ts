@@ -56,7 +56,7 @@ export class AuthService {
   // 소셜 로그인 회원가입 (pending token 검증 후 유저 생성)
   async socialRegister(
     socialPendingToken: string,
-    data: { nickname: string; bio: string; profileImageUrl?: string; preferredGenres: Genre[] },
+    data: { nickname: string; bio: string; profileImageUrl: string; preferredGenres: Genre[] },
   ) {
     let payload: { naverId?: string; kakaoId?: string; googleId?: string };
     try {
@@ -109,6 +109,7 @@ export class AuthService {
         googleId: payload.googleId,
         nickname: data.nickname,
         bio: data.bio,
+        profileImage: data.profileImageUrl,
         preferredGenres: data.preferredGenres,
       },
     });
@@ -121,6 +122,7 @@ export class AuthService {
     password: string;
     nickname: string;
     bio: string;
+    profileImageUrl: string;
     preferredGenres: Genre[];
   }) {
     const normalizedEmail = this.emailVerificationService.normalizeEmail(data.email);
@@ -156,6 +158,7 @@ export class AuthService {
           password: hashedPassword,
           nickname: data.nickname,
           bio: data.bio,
+          profileImage: data.profileImageUrl,
           preferredGenres: data.preferredGenres,
         },
       });
