@@ -137,7 +137,6 @@ export const EmailPasswordStep = () => {
   );
 
   const handleSendEmailVerificationCode = async (email: string) => {
-    update({ emailVerified: false });
     setEmailVerificationCode('');
     setEmailCodeSendStatus('sending');
     setEmailCodeVerifyStatus('idle');
@@ -182,17 +181,15 @@ export const EmailPasswordStep = () => {
         setEmailCodeVerifyStatus('failed');
       }
       setEmailCodeVerifyAttempt(emailCodeVerifyAttempt);
-      update({ emailVerified: result.isSuccess });
     } catch {
       setEmailCodeVerifyStatus('failed');
       setEmailCodeVerifyAttempt(null);
-      update({ emailVerified: false });
     }
   };
 
   const onSubmit = (data: EmailPasswordFormData) => {
     if (emailCodeVerifyStatus !== 'verified') return;
-    update({ ...data });
+    update({ ...data, emailVerified: true });
     router.push(`/signup?step=${Step.PROFILE}`);
   };
 
@@ -224,7 +221,6 @@ export const EmailPasswordStep = () => {
                   setEmailCodeVerifyStatus('idle');
                   setEmailCodeVerifyAttempt(null);
                   setEmailVerificationCode('');
-                  update({ emailVerified: false });
                 }}
                 onBlur={field.onBlur}
                 readOnly={
