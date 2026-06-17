@@ -34,9 +34,9 @@ function SignUpContent() {
     nickname,
     nicknameVerified,
     bio,
+    profileImageUrl,
     isSocialLogin,
     update,
-    reset,
   } = useSignupStore();
   const { setToken } = useAuthStore();
 
@@ -100,9 +100,10 @@ function SignUpContent() {
     const progressPromise = new Promise<void>((resolve) => {
       progressResolveRef.current = resolve;
     });
+    const commonPayload = { nickname, bio, profileImageUrl, preferredGenres: genres };
     const apiPromise = isSocialLogin
-      ? AuthService.socialRegister({ nickname, bio, preferredGenres: genres })
-      : AuthService.generalRegister({ email, password, nickname, bio, preferredGenres: genres });
+      ? AuthService.socialRegister(commonPayload)
+      : AuthService.generalRegister({ email, password, ...commonPayload });
     // api 응답 수신 && progress bar 끝까지 진행 -> 이후 액션 수행
     const [result] = await Promise.all([apiPromise, progressPromise]);
     setIsSubmitting(false);

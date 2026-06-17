@@ -16,7 +16,7 @@ export class SocialRegisterDto {
   bio!: string;
 
   @IsUrl()
-  profileImageUrl?: string;
+  profileImageUrl!: string;
 
   @IsArray()
   @IsEnum(Genre, { each: true })

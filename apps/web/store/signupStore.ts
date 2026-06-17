@@ -13,7 +13,7 @@ interface SignupData {
   nickname: string;
   nicknameVerified: boolean;
   bio: string;
-  profileImage: { kind: 'default'; index: number } | { kind: 'uploaded'; file: File };
+  profileImageUrl: string;
 }
 
 interface SignupActions {
@@ -30,6 +30,7 @@ const partializeSignupData = (state: SignupData & SignupActions): Partial<Signup
   nickname: state.nickname,
   nicknameVerified: state.nicknameVerified,
   bio: state.bio,
+  profileImageUrl: state.profileImageUrl,
 });
 
 const initialState: SignupData = {
@@ -41,7 +42,7 @@ const initialState: SignupData = {
   nickname: '',
   nicknameVerified: false,
   bio: '',
-  profileImage: { kind: 'default', index: 0 },
+  profileImageUrl: '',
 };
 
 export const useSignupStore = create<SignupData & SignupActions>()(
