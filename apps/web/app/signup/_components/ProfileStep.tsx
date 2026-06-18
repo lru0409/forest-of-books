@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+
 import { useForm, Controller, type ControllerFieldState } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -25,56 +25,21 @@ export const ProfileStep = () => {
     nickname: defaultNickname,
     nicknameVerified: defaultNicknameVerified,
     bio: defaultBio,
-    profileImage: defaultProfileImage,
+    profileImageUrl,
   } = useSignupStore();
-  const defaultProfileImageFile =
-    defaultProfileImage.kind === 'uploaded' ? defaultProfileImage.file : null;
 
-  const [selectedProfileImageIndex, setSelectedProfileImageIndex] = useState<number | null>(
-    defaultProfileImage.kind === 'default' ? defaultProfileImage.index : null,
-  );
   const [isProfileImageOverlayOpen, setIsProfileImageOverlayOpen] = useState(false);
-  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
-  const [profileImagePreviewUrl, setProfileImagePreviewUrl] = useState<string | null>(null);
-  const [profileImageError, setProfileImageError] = useState<string | null>(null);
+  const [displayProfileImageUrl, setDisplayProfileImageUrl] = useState<string>(
+    profileImageUrl || '/images/profile-defaults/1.png',
+  );
+  const [profileImageErrorMessage, setProfileImageErrorMessage] = useState<string | null>(null);
+  const [isProfileImageUploading, setIsProfileImageUploading] = useState(false);
   const profileImageInputRef = useRef<HTMLInputElement>(null);
+
   const [nicknameCheckStatus, setNicknameCheckStatus] = useState<NicknameCheckStatus>(
     defaultNicknameVerified ? 'available' : 'idle',
   );
   const isNicknameChecking = nicknameCheckStatus === 'checking';
-
-  useEffect(() => {
-    if (!defaultProfileImageFile) return;
-
-    const url = URL.createObjectURL(defaultProfileImageFile);
-    setProfileImageFile(defaultProfileImageFile);
-    setProfileImagePreviewUrl(url);
-    return () => URL.revokeObjectURL(url);
-  }, [defaultProfileImageFile]);
-
-  const handleProfileImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!ACCEPTED_TYPES.includes(file.type)) {
-      setProfileImageError('JPG, PNG, WEBP, GIF 형식만 업로드할 수 있어요.');
-      return;
-    }
-    if (file.size > MAX_FILE_SIZE) {
-      setProfileImageError('5MB 이하의 파일만 업로드할 수 있어요.');
-      return;
-    }
-
-    setProfileImageError(null);
-    if (profileImagePreviewUrl) URL.revokeObjectURL(profileImagePreviewUrl);
-
-    const previewUrl = URL.createObjectURL(file);
-    setProfileImageFile(file);
-    setProfileImagePreviewUrl(previewUrl);
-    setSelectedProfileImageIndex(null);
-
-    e.target.value = '';
-  };
 
   const {
     control,
@@ -102,7 +67,6 @@ export const ProfileStep = () => {
       nextStatus = 'error';
     } finally {
       setNicknameCheckStatus(nextStatus);
-      update({ nicknameVerified: nextStatus === 'available' });
     }
   };
 
@@ -126,24 +90,69 @@ export const ProfileStep = () => {
     }
   };
 
-  const onSubmit = (data: ProfileFormData) => {
-    if (nicknameCheckStatus !== 'available') return;
-    const profileImage =
-      profileImageFile !== null
-        ? { kind: 'uploaded' as const, file: profileImageFile }
-        : { kind: 'default' as const, index: selectedProfileImageIndex ?? 0 };
-    update({ ...data, profileImage });
-    router.push(`/signup?step=${Step.GENRES}`);
-  };
+  const selectedDefaultProfileImageIndex = useMemo(() => {
+    const match = displayProfileImageUrl.match(/profile-defaults\/(\d+)\.png$/);
+    if (!match?.[1]) {
+      return null;
+    }
+    return parseInt(match[1], 10) - 1;
+  }, [displayProfileImageUrl]);
 
   const handleSelectDefaultImage = (index: number) => {
-    if (profileImagePreviewUrl) {
-      URL.revokeObjectURL(profileImagePreviewUrl);
-      setProfileImagePreviewUrl(null);
+    if (displayProfileImageUrl && displayProfileImageUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(displayProfileImageUrl);
     }
-    setProfileImageFile(null);
-    setSelectedProfileImageIndex(index);
+    const url = `/images/profile-defaults/${index + 1}.png`;
+    setDisplayProfileImageUrl(url);
+    update({ profileImageUrl: url });
     setIsProfileImageOverlayOpen(false);
+  };
+
+  const handleProfileImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      setProfileImageErrorMessage('JPG, PNG, WEBP, GIF 형식만 업로드할 수 있어요.');
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      setProfileImageErrorMessage('5MB 이하의 파일만 업로드할 수 있어요.');
+      return;
+    }
+
+    setProfileImageErrorMessage(null);
+    setIsProfileImageUploading(true);
+
+    const prevDisplayImageUrl = displayProfileImageUrl;
+    const nextDisplayImageUrl = URL.createObjectURL(file);
+    setDisplayProfileImageUrl(nextDisplayImageUrl);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const result = await authService.uploadProfileImage(formData);
+      if (result.isSuccess) {
+        if (prevDisplayImageUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(prevDisplayImageUrl);
+        }
+        update({ profileImageUrl: result.data.url });
+        return;
+      }
+    } catch {
+      setProfileImageErrorMessage('프로필 이미지 업로드에 실패했어요. 나중에 다시 시도해주세요.');
+      URL.revokeObjectURL(nextDisplayImageUrl);
+      setDisplayProfileImageUrl(prevDisplayImageUrl);
+    } finally {
+      setIsProfileImageUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const onSubmit = (data: ProfileFormData) => {
+    if (nicknameCheckStatus !== 'available') return;
+    update({ ...data, nicknameVerified: true });
+    router.push(`/signup?step=${Step.GENRES}`);
   };
 
   return (
@@ -173,7 +182,6 @@ export const ProfileStep = () => {
                 onChange={(e) => {
                   field.onChange(e);
                   setNicknameCheckStatus('idle');
-                  update({ nicknameVerified: false });
                 }}
                 onBlur={field.onBlur}
                 readOnly={isNicknameChecking}
@@ -230,25 +238,18 @@ export const ProfileStep = () => {
 
         <div className="mb-14 flex flex-col items-center">
           <div className="bg-primary/70 border-primary mb-4 size-35 overflow-hidden rounded-full border-2">
-            {profileImagePreviewUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={profileImagePreviewUrl}
-                alt="업로드한 프로필 이미지"
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <Image
-                src={`/images/profile-defaults/${(selectedProfileImageIndex ?? 0) + 1}.png`}
-                alt="기본 프로필 이미지"
-                width={140}
-                height={140}
-              />
-            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={displayProfileImageUrl}
+              alt="프로필 이미지"
+              className="h-full w-full object-cover"
+            />
           </div>
           <Button
+            type="button"
             size="sm"
-            className="mb-2 w-50"
+            className="mb-2 h-10.5 w-50"
+            disabled={isProfileImageUploading}
             onClick={() => setIsProfileImageOverlayOpen(true)}
           >
             기본 프로필 이미지 선택
@@ -257,13 +258,15 @@ export const ProfileStep = () => {
             type="button"
             size="sm"
             variant="outline"
-            className="w-50"
+            className="h-10.5 w-50"
+            disabled={isProfileImageUploading}
+            isLoading={isProfileImageUploading}
             onClick={() => profileImageInputRef.current?.click()}
           >
             직접 업로드
           </Button>
-          {profileImageError && (
-            <p className="text-destructive mt-2 text-sm">{profileImageError}</p>
+          {profileImageErrorMessage && (
+            <p className="text-destructive mt-2 text-sm">{profileImageErrorMessage}</p>
           )}
           <input
             ref={profileImageInputRef}
@@ -280,7 +283,7 @@ export const ProfileStep = () => {
         <ProfileImageOverlay
           onClose={() => setIsProfileImageOverlayOpen(false)}
           onSelect={handleSelectDefaultImage}
-          selectedIndex={selectedProfileImageIndex}
+          selectedIndex={selectedDefaultProfileImageIndex}
         />
       )}
 
@@ -291,7 +294,11 @@ export const ProfileStep = () => {
         <Button
           type="submit"
           className="flex-1"
-          disabled={Boolean(errors.nickname) || nicknameCheckStatus !== 'available'}
+          disabled={
+            Boolean(errors.nickname) ||
+            nicknameCheckStatus !== 'available' ||
+            isProfileImageUploading
+          }
         >
           다음
         </Button>
