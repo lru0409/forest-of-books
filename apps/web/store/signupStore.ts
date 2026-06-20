@@ -55,7 +55,6 @@ export const useSignupStore = create<SignupData & SignupActions>()(
     {
       name: 'signup',
       storage: createJSONStorage(() => sessionStorage),
-      // TODO: profileImage는 즉시 서버 업로드 및 URL 받아서 사용 + BE 업로드 엔드포인트 개발 및 고아 파일 정리 로직 구현
       partialize: partializeSignupData,
     },
   ),
