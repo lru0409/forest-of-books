@@ -10,7 +10,7 @@ import * as bcrypt from 'bcrypt';
 import { randomInt } from 'crypto';
 import nodemailer from 'nodemailer';
 
-import { prisma } from '@repo/db';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 const EMAIL_VERIFICATION_CODE_EXPIRES_IN_MS = 10 * 60 * 1000; // 10분
 const EMAIL_VERIFICATION_CODE_MAX_ATTEMPTS = 5;
@@ -18,7 +18,10 @@ const EMAIL_VERIFICATION_CODE_LENGTH = 6;
 
 @Injectable()
 export class EmailVerificationService {
-  constructor(private configService: ConfigService) {}
+  constructor(
+    private configService: ConfigService,
+    private prisma: PrismaService,
+  ) {}
 
   normalizeEmail(email: string) {
     return email.trim().toLowerCase();
@@ -58,7 +61,7 @@ export class EmailVerificationService {
 
   async sendCode(email: string) {
     const normalizedEmail = this.normalizeEmail(email);
-    const existingEmailUser = await prisma.user.findUnique({
+    const existingEmailUser = await this.prisma.user.findUnique({
       where: { email: normalizedEmail },
     });
     if (existingEmailUser) {
@@ -69,7 +72,7 @@ export class EmailVerificationService {
     const code = this.generateEmailVerificationCode();
     const codeHash = await bcrypt.hash(code, 10);
 
-    await prisma.emailVerificationCode.updateMany({
+    await this.prisma.emailVerificationCode.updateMany({
       where: {
         email: normalizedEmail,
         consumedAt: null,
@@ -77,7 +80,7 @@ export class EmailVerificationService {
       data: { consumedAt: now },
     });
 
-    const emailVerificationCode = await prisma.emailVerificationCode.create({
+    const emailVerificationCode = await this.prisma.emailVerificationCode.create({
       data: {
         email: normalizedEmail,
         codeHash,
@@ -88,7 +91,7 @@ export class EmailVerificationService {
     try {
       await this.sendVerificationEmail(normalizedEmail, code);
     } catch (error) {
-      await prisma.emailVerificationCode.update({
+      await this.prisma.emailVerificationCode.update({
         where: { id: emailVerificationCode.id },
         data: { consumedAt: new Date() },
       });
@@ -104,7 +107,7 @@ export class EmailVerificationService {
 
     // 유효한 이메일 인증 코드를 찾을 수 없는 경우
     const normalizedEmail = this.normalizeEmail(email);
-    const emailVerificationCode = await prisma.emailVerificationCode.findFirst({
+    const emailVerificationCode = await this.prisma.emailVerificationCode.findFirst({
       where: {
         email: normalizedEmail,
         consumedAt: null,
@@ -121,7 +124,7 @@ export class EmailVerificationService {
 
     // 이메일 인증 코드가 만료된 경우
     if (emailVerificationCode.expiresAt <= now) {
-      await prisma.emailVerificationCode.update({
+      await this.prisma.emailVerificationCode.update({
         where: { id: emailVerificationCode.id },
         data: { consumedAt: now },
       });
@@ -132,7 +135,7 @@ export class EmailVerificationService {
     const isCodeValid = await bcrypt.compare(code, emailVerificationCode.codeHash);
     if (!isCodeValid) {
       const nextAttemptCount = emailVerificationCode.attemptCount + 1;
-      await prisma.emailVerificationCode.update({
+      await this.prisma.emailVerificationCode.update({
         where: { id: emailVerificationCode.id },
         data: {
           attemptCount: nextAttemptCount,
@@ -150,14 +153,14 @@ export class EmailVerificationService {
     }
 
     // 인증 코드가 검증된 경우
-    await prisma.emailVerificationCode.update({
+    await this.prisma.emailVerificationCode.update({
       where: { id: emailVerificationCode.id },
       data: { verifiedAt: now },
     });
   }
 
   async findValidVerifiedCode(email: string) {
-    return prisma.emailVerificationCode.findFirst({
+    return this.prisma.emailVerificationCode.findFirst({
       where: {
         email: this.normalizeEmail(email),
         verifiedAt: { not: null },

@@ -7,14 +7,16 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
-import { Genre, prisma } from '@repo/db';
+import { Genre } from '@repo/db';
 import { EmailVerificationService } from './email-verification.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
     private emailVerificationService: EmailVerificationService,
+    private prisma: PrismaService,
   ) {}
 
   issueToken(userId: string): string {
@@ -23,25 +25,25 @@ export class AuthService {
 
   async findUserByEmail(email: string) {
     const normalizedEmail = this.emailVerificationService.normalizeEmail(email);
-    return prisma.user.findUnique({
+    return this.prisma.user.findUnique({
       where: { email: normalizedEmail },
     });
   }
 
   async findUserByNaverId(naverId: string) {
-    return prisma.user.findUnique({ where: { naverId } });
+    return this.prisma.user.findUnique({ where: { naverId } });
   }
 
   async findUserByKakaoId(kakaoId: string) {
-    return prisma.user.findUnique({ where: { kakaoId } });
+    return this.prisma.user.findUnique({ where: { kakaoId } });
   }
 
   async findUserByGoogleId(googleId: string) {
-    return prisma.user.findUnique({ where: { googleId } });
+    return this.prisma.user.findUnique({ where: { googleId } });
   }
 
   async findUserByNickname(nickname: string) {
-    return prisma.user.findUnique({ where: { nickname } });
+    return this.prisma.user.findUnique({ where: { nickname } });
   }
 
   // 소셜 로그인 신규 유저용 pending token 발급
@@ -102,7 +104,7 @@ export class AuthService {
         message: '이미 사용 중인 닉네임입니다.',
       });
 
-    const user = await prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         naverId: payload.naverId,
         kakaoId: payload.kakaoId,
@@ -151,7 +153,7 @@ export class AuthService {
       });
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
-    const user = await prisma.$transaction(async (tx) => {
+    const user = await this.prisma.$transaction(async (tx) => {
       const createdUser = await tx.user.create({
         data: {
           email: normalizedEmail,
