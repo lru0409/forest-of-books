@@ -4,6 +4,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UploadModule } from './upload/upload.module';
 
@@ -11,6 +12,7 @@ import { UploadModule } from './upload/upload.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
+    PrismaModule,
     AuthModule,
     UploadModule,
   ],
