@@ -1,12 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm, Controller, type ControllerFieldState } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 
 import { Button, Input } from '@/components/ui';
-import { emailPasswordSchema, type EmailPasswordFormData } from '../schemas';
 import { useSignupStore } from '@/store/signupStore';
 import { Step } from '../constants';
 import authService from '@/services/auth';
@@ -41,6 +38,8 @@ export const EmailPasswordStep = () => {
     confirmPassword: defaultConfirmPassword,
     emailVerified: defaultEmailVerified,
   } = useSignupStore();
+
+  const [email, setEmail] = useState(defaultEmail);
   const [emailCodeSendStatus, setEmailCodeSendStatus] = useState<EmailCodeSendStatus>('idle');
   const [emailCodeVerifyStatus, setEmailCodeVerifyStatus] = useState<EmailCodeVerifyStatus>(
     defaultEmailVerified ? 'verified' : 'idle',
@@ -48,16 +47,24 @@ export const EmailPasswordStep = () => {
   const [emailVerificationCode, setEmailVerificationCode] = useState('');
   const [emailCodeVerifyAttempt, setEmailCodeVerifyAttempt] =
     useState<EmailCodeVerifyAttempt | null>(null);
+
+  const [password, setPassword] = useState(defaultPassword);
+  const [confirmPassword, setConfirmPassword] = useState(defaultConfirmPassword);
+
+  const [touched, setTouched] = useState({
+    email: false,
+    password: false,
+    confirmPassword: false,
+  });
+
   const isEmailCodeVerifyAttemptExceeded =
     emailCodeVerifyAttempt !== null &&
     emailCodeVerifyAttempt.attemptCount >= emailCodeVerifyAttempt.maxAttempts;
 
-  const getEmailFeedback = (
-    fieldState: ControllerFieldState,
-  ): { state: 'error' | 'success' | 'default'; message?: string } => {
-    if (fieldState.isTouched && fieldState.error) {
-      return { state: 'error', message: fieldState.error.message };
-    }
+  const isEmailValid = email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const emailFeedback = ((): { state: 'error' | 'success' | 'default'; message?: string } => {
+    if (!email) return { state: 'error', message: '이메일을 입력해 주세요.' };
+    if (!isEmailValid) return { state: 'error', message: '올바른 이메일 형식을 입력해 주세요.' };
 
     switch (emailCodeSendStatus) {
       case 'invalidEmail':
@@ -74,9 +81,9 @@ export const EmailPasswordStep = () => {
       case 'sent':
         return { state: 'default' };
     }
-  };
+  })();
 
-  const getEmailCodeFeedback = (): {
+  const emailCodeFeedback = ((): {
     state: 'error' | 'success' | 'default';
     message?: string;
   } => {
@@ -105,36 +112,24 @@ export const EmailPasswordStep = () => {
       case 'verifying':
         return { state: 'default' };
     }
-  };
-  const emailCodeFeedback = getEmailCodeFeedback();
+  })();
 
-  const {
-    control,
-    handleSubmit,
-    watch,
-    trigger,
-    getFieldState,
-    formState: { errors },
-  } = useForm<EmailPasswordFormData>({
-    resolver: zodResolver(emailPasswordSchema),
-    mode: 'onChange',
-    defaultValues: {
-      email: defaultEmail,
-      password: defaultPassword,
-      confirmPassword: defaultConfirmPassword,
-    },
-  });
+  const passwordFeedback = ((): { state: 'error' | 'success' | 'default'; message?: string } => {
+    if (!password) return { state: 'error', message: '비밀번호를 입력해 주세요.' };
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,16}$/.test(password))
+      return { state: 'error', message: '8~16자의 영문 대소문자, 숫자, 특수문자를 조합해 주세요.' };
+    return { state: 'default' };
+  })();
 
-  const [email, password, confirmPassword] = watch(['email', 'password', 'confirmPassword']);
-
-  useEffect(
-    function validateConfirmPasswordOnPasswordChange() {
-      if (getFieldState('password').isTouched) {
-        trigger('confirmPassword');
-      }
-    },
-    [password, trigger, getFieldState],
-  );
+  const confirmPasswordFeedback = ((): {
+    state: 'error' | 'success' | 'default';
+    message?: string;
+  } => {
+    if (!confirmPassword) return { state: 'error', message: '비밀번호를 한 번 더 입력해 주세요.' };
+    if (password !== confirmPassword)
+      return { state: 'error', message: '비밀번호가 일치하지 않습니다.' };
+    return { state: 'default' };
+  })();
 
   const handleSendEmailVerificationCode = async (email: string) => {
     setEmailVerificationCode('');
@@ -187,14 +182,15 @@ export const EmailPasswordStep = () => {
     }
   };
 
-  const onSubmit = (data: EmailPasswordFormData) => {
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     if (emailCodeVerifyStatus !== 'verified') return;
-    update({ ...data, emailVerified: true });
+    update({ email, password, confirmPassword, emailVerified: true });
     router.push(`/signup?step=${Step.PROFILE}`);
   };
 
   return (
-    <form className="flex flex-1 flex-col justify-between" onSubmit={handleSubmit(onSubmit)}>
+    <form className="flex flex-1 flex-col justify-between" onSubmit={onSubmit}>
       <div>
         <h1 className="mb-2 text-3xl font-bold">계정 만들기</h1>
         <p className="text-secondary mb-8 text-base">이메일과 비밀번호를 입력해 주세요.</p>
@@ -202,61 +198,46 @@ export const EmailPasswordStep = () => {
         <label htmlFor="email" className="mb-2 block text-lg font-semibold">
           이메일
         </label>
-        <Controller
-          name="email"
-          control={control}
-          render={({ field, fieldState }) => {
-            const emailFeedback = getEmailFeedback(fieldState);
-
-            return (
-              <Input
-                id="email"
-                type="email"
-                placeholder="이메일을 입력하세요."
-                value={field.value}
-                maxLength={254}
-                onChange={(e) => {
-                  field.onChange(e);
-                  setEmailCodeSendStatus('idle');
-                  setEmailCodeVerifyStatus('idle');
-                  setEmailCodeVerifyAttempt(null);
-                  setEmailVerificationCode('');
-                }}
-                onBlur={field.onBlur}
-                readOnly={
-                  emailCodeSendStatus === 'sending' || emailCodeVerifyStatus === 'verifying'
-                }
-                clearable={
-                  emailCodeSendStatus !== 'sending' && emailCodeVerifyStatus !== 'verifying'
-                }
-                state={emailFeedback.state}
-                message={emailFeedback.message}
-                suffix={
-                  <Button
-                    type="button"
-                    size="xs"
-                    onClick={() => handleSendEmailVerificationCode(field.value)}
-                    disabled={
-                      !!fieldState.error ||
-                      !field.value ||
-                      emailCodeSendStatus === 'sending' ||
-                      emailCodeVerifyStatus === 'verifying' ||
-                      emailCodeVerifyStatus === 'verified' ||
-                      (emailCodeSendStatus === 'sent' &&
-                        emailCodeVerifyStatus !== 'expired' &&
-                        emailCodeVerifyStatus !== 'failed' &&
-                        !isEmailCodeVerifyAttemptExceeded)
-                    }
-                    isLoading={emailCodeSendStatus === 'sending'}
-                    className="-mr-1.5 w-16.5"
-                  >
-                    {emailCodeVerifyStatus === 'verified' ? '인증 완료' : '인증 요청'}
-                  </Button>
-                }
-                className="mb-2"
-              />
-            );
+        <Input
+          id="email"
+          type="email"
+          placeholder="이메일을 입력하세요."
+          value={email}
+          maxLength={254}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setEmailCodeSendStatus('idle');
+            setEmailCodeVerifyStatus('idle');
+            setEmailCodeVerifyAttempt(null);
+            setEmailVerificationCode('');
           }}
+          onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
+          readOnly={emailCodeSendStatus === 'sending' || emailCodeVerifyStatus === 'verifying'}
+          clearable={emailCodeSendStatus !== 'sending' && emailCodeVerifyStatus !== 'verifying'}
+          state={touched.email ? emailFeedback.state : 'default'}
+          message={touched.email ? emailFeedback.message : undefined}
+          suffix={
+            <Button
+              type="button"
+              size="xs"
+              onClick={() => handleSendEmailVerificationCode(email)}
+              disabled={
+                !isEmailValid ||
+                emailCodeSendStatus === 'sending' ||
+                emailCodeVerifyStatus === 'verifying' ||
+                emailCodeVerifyStatus === 'verified' ||
+                (emailCodeSendStatus === 'sent' &&
+                  emailCodeVerifyStatus !== 'expired' &&
+                  emailCodeVerifyStatus !== 'failed' &&
+                  !isEmailCodeVerifyAttemptExceeded)
+              }
+              isLoading={emailCodeSendStatus === 'sending'}
+              className="-mr-1.5 w-16.5"
+            >
+              {emailCodeVerifyStatus === 'verified' ? '인증 완료' : '인증 요청'}
+            </Button>
+          }
+          className="mb-2"
         />
 
         <div
@@ -314,39 +295,27 @@ export const EmailPasswordStep = () => {
           비밀번호
         </label>
         <p className="text-secondary mb-2 text-sm">* 8~16자의 영문 대소문자, 숫자, 특수문자 조합</p>
-        <Controller
-          name="password"
-          control={control}
-          render={({ field, fieldState }) => (
-            <Input
-              id="password"
-              type="password"
-              placeholder="비밀번호를 입력하세요."
-              value={field.value}
-              onChange={field.onChange}
-              onBlur={field.onBlur}
-              state={fieldState.isTouched && fieldState.error ? 'error' : 'default'}
-              message={fieldState.isTouched ? fieldState.error?.message : undefined}
-              className="mb-2"
-            />
-          )}
+        <Input
+          id="password"
+          type="password"
+          placeholder="비밀번호를 입력하세요."
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
+          state={touched.password ? passwordFeedback.state : 'default'}
+          message={touched.password ? passwordFeedback.message : undefined}
+          className="mb-2"
         />
-        <Controller
-          name="confirmPassword"
-          control={control}
-          render={({ field, fieldState }) => (
-            <Input
-              id="confirmPassword"
-              type="password"
-              placeholder="비밀번호를 한 번 더 입력하세요."
-              value={field.value}
-              onChange={field.onChange}
-              onBlur={field.onBlur}
-              state={fieldState.isTouched && fieldState.error ? 'error' : 'default'}
-              message={fieldState.isTouched ? fieldState.error?.message : undefined}
-              className="mb-2"
-            />
-          )}
+        <Input
+          id="confirmPassword"
+          type="password"
+          placeholder="비밀번호를 한 번 더 입력하세요."
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          onBlur={() => setTouched((prev) => ({ ...prev, confirmPassword: true }))}
+          state={touched.confirmPassword ? confirmPasswordFeedback.state : 'default'}
+          message={touched.confirmPassword ? confirmPasswordFeedback.message : undefined}
+          className="mb-2"
         />
       </div>
 
@@ -358,11 +327,9 @@ export const EmailPasswordStep = () => {
           type="submit"
           className="flex-1"
           disabled={
-            Boolean(errors.email || errors.password || errors.confirmPassword) ||
-            !email ||
-            !password ||
-            !confirmPassword ||
-            emailCodeVerifyStatus !== 'verified'
+            emailCodeVerifyStatus !== 'verified' ||
+            passwordFeedback.state === 'error' ||
+            confirmPasswordFeedback.state === 'error'
           }
         >
           다음
