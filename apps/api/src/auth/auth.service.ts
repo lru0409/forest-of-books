@@ -23,7 +23,7 @@ export class AuthService {
     return this.jwtService.sign({ sub: userId });
   }
 
-  async findUserByEmail(email: string) {
+  private async findUserByEmail(email: string) {
     const normalizedEmail = this.emailVerificationService.normalizeEmail(email);
     return this.prisma.user.findUnique({
       where: { email: normalizedEmail },
