@@ -85,34 +85,6 @@ describe('AuthService', () => {
   });
 
   // ─────────────────────────────────────────────
-  // findUserByEmail
-  // ─────────────────────────────────────────────
-  describe('findUserByEmail', () => {
-    it('이메일 정규화 후 prisma 조회', async () => {
-      const user = { id: 'u1', email: 'test@example.com' };
-      mockPrisma.user.findUnique.mockResolvedValue(user);
-
-      const result = await service.findUserByEmail('  TEST@Example.COM  ');
-
-      expect(mockEmailVerificationService.normalizeEmail).toHaveBeenCalledWith(
-        '  TEST@Example.COM  ',
-      );
-      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
-        where: { email: 'test@example.com' },
-      });
-      expect(result).toEqual(user);
-    });
-
-    it('존재하지 않는 이메일이면 null 반환', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue(null);
-
-      const result = await service.findUserByEmail('none@example.com');
-
-      expect(result).toBeNull();
-    });
-  });
-
-  // ─────────────────────────────────────────────
   // issueSocialPendingToken
   // ─────────────────────────────────────────────
   describe('issueSocialPendingToken', () => {
