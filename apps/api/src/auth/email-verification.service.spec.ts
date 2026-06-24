@@ -106,12 +106,10 @@ describe('EmailVerificationService', () => {
 
       await service.sendCode('test@example.com');
 
-      expect(mockPrisma.emailVerificationCode.updateMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({ email: 'test@example.com', consumedAt: null }),
-          data: expect.objectContaining({ consumedAt: expect.any(Date) }),
-        }),
-      );
+      expect(mockPrisma.emailVerificationCode.updateMany).toHaveBeenCalledWith({
+        where: { email: 'test@example.com', consumedAt: null },
+        data: { consumedAt: expect.any(Date) },
+      });
       expect(mockPrisma.emailVerificationCode.create).toHaveBeenCalledTimes(1);
     });
 
@@ -139,9 +137,10 @@ describe('EmailVerificationService', () => {
         InternalServerErrorException,
       );
 
-      expect(mockPrisma.emailVerificationCode.update).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { id: 42 } }),
-      );
+      expect(mockPrisma.emailVerificationCode.update).toHaveBeenCalledWith({
+        where: { id: 42 },
+        data: { consumedAt: expect.any(Date) },
+      });
     });
   });
 
@@ -164,11 +163,10 @@ describe('EmailVerificationService', () => {
 
       await expect(service.verifyCode('test@example.com', '123456')).rejects.toThrow(GoneException);
 
-      expect(mockPrisma.emailVerificationCode.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({ consumedAt: expect.any(Date) }),
-        }),
-      );
+      expect(mockPrisma.emailVerificationCode.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { consumedAt: expect.any(Date) },
+      });
     });
 
     it('코드 불일치 시 BadRequestException + attemptCount 1 증가', async () => {
@@ -181,11 +179,10 @@ describe('EmailVerificationService', () => {
         BadRequestException,
       );
 
-      expect(mockPrisma.emailVerificationCode.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({ attemptCount: 3 }), // 2 + 1
-        }),
-      );
+      expect(mockPrisma.emailVerificationCode.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { attemptCount: 3 },
+      });
     });
 
     it('5회 시도 도달 시 코드도 함께 소비 처리', async () => {
@@ -198,11 +195,10 @@ describe('EmailVerificationService', () => {
         BadRequestException,
       );
 
-      expect(mockPrisma.emailVerificationCode.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({ attemptCount: 5, consumedAt: expect.any(Date) }),
-        }),
-      );
+      expect(mockPrisma.emailVerificationCode.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { attemptCount: 5, consumedAt: expect.any(Date) },
+      });
     });
 
     it('코드 일치 시 verifiedAt 설정', async () => {
@@ -214,11 +210,10 @@ describe('EmailVerificationService', () => {
 
       await service.verifyCode('test@example.com', validCode);
 
-      expect(mockPrisma.emailVerificationCode.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({ verifiedAt: expect.any(Date) }),
-        }),
-      );
+      expect(mockPrisma.emailVerificationCode.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { verifiedAt: expect.any(Date) },
+      });
     });
   });
 
@@ -233,15 +228,15 @@ describe('EmailVerificationService', () => {
       const result = await service.findValidVerifiedCode('test@example.com');
 
       expect(result).toEqual(code);
-      expect(mockPrisma.emailVerificationCode.findFirst).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            verifiedAt: { not: null },
-            consumedAt: null,
-            expiresAt: { gt: expect.any(Date) },
-          }),
-        }),
-      );
+      expect(mockPrisma.emailVerificationCode.findFirst).toHaveBeenCalledWith({
+        where: {
+          email: 'test@example.com',
+          verifiedAt: { not: null },
+          consumedAt: null,
+          expiresAt: { gt: expect.any(Date) },
+        },
+        orderBy: { verifiedAt: 'desc' },
+      });
     });
 
     it('해당 코드 없으면 null 반환', async () => {
