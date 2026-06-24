@@ -11,7 +11,6 @@ import { useAuthStore } from '@/store/authStore';
 import { useDialog } from '@/context/dialog';
 import { EmailPasswordStep, GenresStep, ProfileStep, ProgressBar } from './_components';
 import { Step, TOTAL_STEPS } from './constants';
-import { emailPasswordSchema, profileSchema } from './schemas';
 import { type Genre } from '@/lib';
 
 export default function SignUpPage() {
@@ -51,15 +50,14 @@ function SignUpContent() {
   const canProceedToProfileStep =
     isSocialLogin ||
     (emailVerified &&
-      emailPasswordSchema.safeParse({
-        email,
-        password,
-        confirmPassword,
-      }).success);
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,16}$/.test(password) &&
+      password === confirmPassword);
   const canProceedToGenresStep =
     canProceedToProfileStep &&
     nicknameVerified &&
-    profileSchema.safeParse({ nickname, bio }).success;
+    /^[가-힣a-zA-Z0-9]{2,12}$/.test(nickname) &&
+    bio.length <= 160;
 
   useEffect(
     function detectSocialLoginRedirect() {

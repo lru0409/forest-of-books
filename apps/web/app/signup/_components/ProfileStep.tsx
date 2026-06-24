@@ -3,11 +3,7 @@
 import { useState, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { useForm, Controller, type ControllerFieldState } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-
 import { Button, Input, Textarea } from '@/components/ui';
-import { profileSchema, type ProfileFormData } from '../schemas';
 import { useSignupStore } from '@/store/signupStore';
 import { Step } from '../constants';
 import { ProfileImageOverlay } from './ProfileImageOverlay';
@@ -28,6 +24,10 @@ export const ProfileStep = () => {
     profileImageUrl,
   } = useSignupStore();
 
+  const [nickname, setNickname] = useState(defaultNickname);
+  const [bio, setBio] = useState(defaultBio);
+  const [touched, setTouched] = useState({ nickname: false, bio: false });
+
   const [isProfileImageOverlayOpen, setIsProfileImageOverlayOpen] = useState(false);
   const [displayProfileImageUrl, setDisplayProfileImageUrl] = useState<string>(
     profileImageUrl || '/images/profile-defaults/1.png',
@@ -40,19 +40,28 @@ export const ProfileStep = () => {
     defaultNicknameVerified ? 'available' : 'idle',
   );
   const isNicknameChecking = nicknameCheckStatus === 'checking';
+  const isNicknameValid = nickname && /^[가-힣a-zA-Z0-9]{2,12}$/.test(nickname);
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<ProfileFormData>({
-    resolver: zodResolver(profileSchema),
-    mode: 'onChange',
-    defaultValues: {
-      nickname: defaultNickname,
-      bio: defaultBio,
-    },
-  });
+  const nicknameFeedback = ((): { state: 'error' | 'success' | 'default'; message?: string } => {
+    if (!nickname) return { state: 'error', message: '닉네임을 입력해 주세요.' };
+    if (!isNicknameValid) return { state: 'error', message: '2~12자의 한글, 영문, 숫자만 입력해 주세요.' };
+    switch (nicknameCheckStatus) {
+      case 'available':
+        return { state: 'success', message: '사용 가능한 닉네임이에요.' };
+      case 'unavailable':
+        return { state: 'error', message: '이미 사용 중인 닉네임이에요.' };
+      case 'error':
+        return { state: 'error', message: '오류가 발생했어요. 나중에 다시 시도해주세요.' };
+      case 'checking':
+      case 'idle':
+        return { state: 'default' };
+    }
+  })();
+
+  const bioFeedback = ((): { state: 'error' | 'default'; message?: string } => {
+    if (bio.length > 160) return { state: 'error', message: '최대 160자까지 입력할 수 있어요.' };
+    return { state: 'default' };
+  })();
 
   const handleCheckNickname = async (nickname: string) => {
     setNicknameCheckStatus('checking');
@@ -67,26 +76,6 @@ export const ProfileStep = () => {
       nextStatus = 'error';
     } finally {
       setNicknameCheckStatus(nextStatus);
-    }
-  };
-
-  const getNicknameFeedback = (
-    fieldState: ControllerFieldState,
-    nicknameCheckStatus: NicknameCheckStatus,
-  ): { state: 'error' | 'success' | 'default'; message?: string } => {
-    if (fieldState.isTouched && fieldState.error) {
-      return { state: 'error', message: fieldState.error.message };
-    }
-    switch (nicknameCheckStatus) {
-      case 'available':
-        return { state: 'success', message: '사용 가능한 닉네임이에요.' };
-      case 'unavailable':
-        return { state: 'error', message: '이미 사용 중인 닉네임이에요.' };
-      case 'error':
-        return { state: 'error', message: '오류가 발생했어요. 나중에 다시 시도해주세요.' };
-      case 'checking':
-      case 'idle':
-        return { state: 'default' };
     }
   };
 
@@ -149,14 +138,15 @@ export const ProfileStep = () => {
     }
   };
 
-  const onSubmit = (data: ProfileFormData) => {
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     if (nicknameCheckStatus !== 'available') return;
-    update({ ...data, nicknameVerified: true });
+    update({ nickname, bio, nicknameVerified: true });
     router.push(`/signup?step=${Step.GENRES}`);
   };
 
   return (
-    <form className="flex flex-1 flex-col justify-between" onSubmit={handleSubmit(onSubmit)}>
+    <form className="flex flex-1 flex-col justify-between" onSubmit={onSubmit}>
       <div>
         <h1 className="mb-2 text-3xl font-bold">프로필 설정하기</h1>
         <p className="text-secondary mb-8 text-base">
@@ -167,66 +157,50 @@ export const ProfileStep = () => {
           닉네임
         </label>
         <p className="text-secondary mb-2 text-sm">* 2~12자의 한글, 영문, 숫자</p>
-        <Controller
-          name="nickname"
-          control={control}
-          render={({ field, fieldState }) => {
-            const nicknameInputFeedback = getNicknameFeedback(fieldState, nicknameCheckStatus);
-
-            return (
-              <Input
-                id="nickname"
-                type="text"
-                placeholder="닉네임을 입력하세요."
-                value={field.value}
-                onChange={(e) => {
-                  field.onChange(e);
-                  setNicknameCheckStatus('idle');
-                }}
-                onBlur={field.onBlur}
-                readOnly={isNicknameChecking}
-                clearable={!isNicknameChecking}
-                state={nicknameInputFeedback.state}
-                message={nicknameInputFeedback.message}
-                suffix={
-                  <Button
-                    type="button"
-                    size="xs"
-                    onClick={() => handleCheckNickname(field.value)}
-                    disabled={!!fieldState.error || !field.value || isNicknameChecking}
-                    isLoading={isNicknameChecking}
-                    className="-mr-1.5 w-16.5"
-                  >
-                    중복 확인
-                  </Button>
-                }
-                className="mb-5"
-              />
-            );
+        <Input
+          id="nickname"
+          type="text"
+          placeholder="닉네임을 입력하세요."
+          value={nickname}
+          onChange={(e) => {
+            setNickname(e.target.value);
+            setNicknameCheckStatus('idle');
           }}
+          onBlur={() => setTouched((prev) => ({ ...prev, nickname: true }))}
+          readOnly={isNicknameChecking}
+          clearable={!isNicknameChecking}
+          state={touched.nickname ? nicknameFeedback.state : 'default'}
+          message={touched.nickname ? nicknameFeedback.message : undefined}
+          suffix={
+            <Button
+              type="button"
+              size="xs"
+              onClick={() => handleCheckNickname(nickname)}
+              disabled={!isNicknameValid || isNicknameChecking}
+              isLoading={isNicknameChecking}
+              className="-mr-1.5 w-16.5"
+            >
+              중복 확인
+            </Button>
+          }
+          className="mb-5"
         />
 
         <label htmlFor="bio" className="mb-1 block text-lg font-semibold">
           자기소개
         </label>
         <p className="text-secondary mb-2.5 text-sm">가입 후 언제든지 수정할 수 있어요.</p>
-        <Controller
-          name="bio"
-          control={control}
-          render={({ field, fieldState }) => (
-            <Textarea
-              id="bio"
-              placeholder="소설책이나 철학책을 즐겨읽어요!"
-              value={field.value}
-              warnLength={160}
-              showCounter
-              onChange={field.onChange}
-              onBlur={field.onBlur}
-              state={fieldState.error ? 'error' : 'default'}
-              message={fieldState.error?.message}
-              className="mb-5"
-            />
-          )}
+        <Textarea
+          id="bio"
+          placeholder="소설책이나 철학책을 즐겨읽어요!"
+          value={bio}
+          warnLength={160}
+          showCounter
+          onChange={(e) => setBio(e.target.value)}
+          onBlur={() => setTouched((prev) => ({ ...prev, bio: true }))}
+          state={touched.bio ? bioFeedback.state : 'default'}
+          message={touched.bio ? bioFeedback.message : undefined}
+          className="mb-5"
         />
 
         <label htmlFor="profileImage" className="mb-1 block text-lg font-semibold">
@@ -294,11 +268,7 @@ export const ProfileStep = () => {
         <Button
           type="submit"
           className="flex-1"
-          disabled={
-            Boolean(errors.nickname) ||
-            nicknameCheckStatus !== 'available' ||
-            isProfileImageUploading
-          }
+          disabled={nicknameCheckStatus !== 'available' || isProfileImageUploading}
         >
           다음
         </Button>
