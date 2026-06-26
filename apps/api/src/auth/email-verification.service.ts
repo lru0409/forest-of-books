@@ -7,10 +7,11 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
-import { randomInt } from 'crypto';
+import { randomInt, randomUUID } from 'crypto';
 import nodemailer from 'nodemailer';
 
 import { PrismaService } from 'src/prisma/prisma.service';
+import { generateVerificationEmailHtml } from './email-verification.template';
 
 const EMAIL_VERIFICATION_CODE_EXPIRES_IN_MS = 10 * 60 * 1000; // 10분
 const EMAIL_VERIFICATION_CODE_MAX_ATTEMPTS = 5;
@@ -54,8 +55,10 @@ export class EmailVerificationService {
     await transporter.sendMail({
       from,
       to: email,
-      subject: '책의 숲 이메일 인증 코드',
+      messageId: `<${randomUUID()}@forest-of-books>`, // TODO: @ 우측을 실제 도메인으로 변경 필요
+      subject: '책의 숲 - 이메일 인증 코드',
       text: `인증 코드는 ${code}입니다. 10분 안에 입력해 주세요.`,
+      html: generateVerificationEmailHtml(code),
     });
   }
 
