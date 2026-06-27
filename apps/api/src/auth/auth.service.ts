@@ -164,9 +164,8 @@ export class AuthService {
           preferredGenres: data.preferredGenres,
         },
       });
-      await tx.emailVerificationCode.update({
+      await tx.emailVerificationCode.delete({
         where: { id: emailVerificationCode.id },
-        data: { consumedAt: new Date() },
       });
       return createdUser;
     });
