@@ -22,8 +22,6 @@ import {
   VerifyEmailCodeDto,
 } from './dto';
 
-// TODO: 테스트 작성
-
 @Controller('auth')
 export class AuthController {
   constructor(

@@ -195,6 +195,33 @@ describe('UploadService', () => {
       expect(mockRemove).toHaveBeenCalledWith(['orphan.jpg']);
     });
 
+    it('created_at이 null인 파일 → epoch(0)으로 처리되어 grace period 초과 → 삭제', async () => {
+      mockList.mockResolvedValue({
+        data: [{ name: 'null_date.jpg', created_at: null }],
+        error: null,
+      });
+      mockFindMany.mockResolvedValue([]);
+      mockGetPublicUrl.mockReturnValue({
+        data: { publicUrl: 'https://test.supabase.co/null_date.jpg' },
+      });
+      mockRemove.mockResolvedValue({ error: null });
+
+      await service.cleanupOrphanProfileImageFiles();
+
+      expect(mockRemove).toHaveBeenCalledWith(['null_date.jpg']);
+    });
+
+    it('prisma.user.findMany 실패 시 에러 전파', async () => {
+      const oldDate = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+      mockList.mockResolvedValue({
+        data: [{ name: 'orphan.jpg', created_at: oldDate }],
+        error: null,
+      });
+      mockFindMany.mockRejectedValue(new Error('DB connection failed'));
+
+      await expect(service.cleanupOrphanProfileImageFiles()).rejects.toThrow('DB connection failed');
+    });
+
     it('삭제 실패 시 에러 로그 후 예외 미발생', async () => {
       const oldDate = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
 
