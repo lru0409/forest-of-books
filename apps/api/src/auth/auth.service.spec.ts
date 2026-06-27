@@ -198,7 +198,7 @@ describe('AuthService', () => {
   // ─────────────────────────────────────────────
   describe('register', () => {
     const registerData = {
-      email: 'new@example.com',
+      email: '  NEW@Example.COM  ',
       password: 'password123',
       nickname: 'tester',
       bio: 'hello',
@@ -254,7 +254,7 @@ describe('AuthService', () => {
       expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
       expect(mockTx.user.create).toHaveBeenCalledWith({
         data: {
-          email: 'new@example.com',
+          email: 'new@example.com', // normalizeEmail 적용된 값
           password: expect.any(String),
           nickname: 'tester',
           bio: 'hello',

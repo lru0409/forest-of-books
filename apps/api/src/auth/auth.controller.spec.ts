@@ -101,11 +101,12 @@ describe('AuthController', () => {
       await controller.naverCallback(req, res);
 
       expect(mockAuthService.issueSocialPendingToken).toHaveBeenCalledWith({ naverId: 'naver-new' });
-      expect(res.cookie).toHaveBeenCalledWith(
-        'social_pending_token',
-        'pending.token',
-        expect.objectContaining({ httpOnly: true }),
-      );
+      expect(res.cookie).toHaveBeenCalledWith('social_pending_token', 'pending.token', {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: 24 * 60 * 60 * 1000,
+      });
       expect(res.redirect).toHaveBeenCalledWith(
         'https://frontend.test/signup?step=2&social_login=true',
       );
@@ -135,6 +136,13 @@ describe('AuthController', () => {
 
       await controller.kakaoCallback(req, res);
 
+      expect(mockAuthService.issueSocialPendingToken).toHaveBeenCalledWith({ kakaoId: 'kakao-new' });
+      expect(res.cookie).toHaveBeenCalledWith('social_pending_token', 'pending.token', {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: 24 * 60 * 60 * 1000,
+      });
       expect(res.redirect).toHaveBeenCalledWith(
         'https://frontend.test/signup?step=2&social_login=true',
       );
@@ -164,6 +172,13 @@ describe('AuthController', () => {
 
       await controller.googleCallback(req, res);
 
+      expect(mockAuthService.issueSocialPendingToken).toHaveBeenCalledWith({ googleId: 'google-new' });
+      expect(res.cookie).toHaveBeenCalledWith('social_pending_token', 'pending.token', {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: 24 * 60 * 60 * 1000,
+      });
       expect(res.redirect).toHaveBeenCalledWith(
         'https://frontend.test/signup?step=2&social_login=true',
       );
@@ -264,6 +279,15 @@ describe('AuthController', () => {
       expect(res.clearCookie).toHaveBeenCalledWith('social_pending_token');
       expect(mockAuthService.socialRegister).toHaveBeenCalledWith('pending.token', body);
       expect(res.json).toHaveBeenCalledWith({ token: 'final.jwt' });
+    });
+
+    it('service throw 시 에러 전파 + clearCookie는 이미 호출된 상태', async () => {
+      mockAuthService.socialRegister.mockRejectedValue(new Error('registration failed'));
+      const req = { cookies: { social_pending_token: 'pending.token' } } as unknown as Request;
+      const res = makeRes();
+
+      await expect(controller.socialRegister(body, req, res)).rejects.toThrow('registration failed');
+      expect(res.clearCookie).toHaveBeenCalledWith('social_pending_token');
     });
   });
 
