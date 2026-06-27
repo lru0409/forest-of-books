@@ -242,7 +242,7 @@ describe('AuthService', () => {
 
       const mockTx = {
         user: { create: jest.fn().mockResolvedValue({ id: 'created-user-id' }) },
-        emailVerificationCode: { update: jest.fn().mockResolvedValue({}) },
+        emailVerificationCode: { delete: jest.fn().mockResolvedValue({}) },
       };
       mockPrisma.$transaction.mockImplementation((cb: (tx: typeof mockTx) => Promise<unknown>) =>
         cb(mockTx),
@@ -262,9 +262,8 @@ describe('AuthService', () => {
           preferredGenres: [],
         },
       });
-      expect(mockTx.emailVerificationCode.update).toHaveBeenCalledWith({
+      expect(mockTx.emailVerificationCode.delete).toHaveBeenCalledWith({
         where: { id: 99 },
-        data: { consumedAt: expect.any(Date) },
       });
       expect(result).toBe('final.jwt.token');
     });
@@ -275,7 +274,7 @@ describe('AuthService', () => {
 
       const mockTx = {
         user: { create: jest.fn().mockResolvedValue({ id: 'created-user-id' }) },
-        emailVerificationCode: { update: jest.fn().mockResolvedValue({}) },
+        emailVerificationCode: { delete: jest.fn().mockResolvedValue({}) },
       };
       mockPrisma.$transaction.mockImplementation((cb: (tx: typeof mockTx) => Promise<unknown>) =>
         cb(mockTx),

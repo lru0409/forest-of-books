@@ -6,6 +6,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Cron } from '@nestjs/schedule';
 import * as bcrypt from 'bcrypt';
 import { randomInt, randomUUID } from 'crypto';
 import nodemailer from 'nodemailer';
@@ -75,12 +76,8 @@ export class EmailVerificationService {
     const code = this.generateEmailVerificationCode();
     const codeHash = await bcrypt.hash(code, 10);
 
-    await this.prisma.emailVerificationCode.updateMany({
-      where: {
-        email: normalizedEmail,
-        consumedAt: null,
-      },
-      data: { consumedAt: now },
+    await this.prisma.emailVerificationCode.deleteMany({
+      where: { email: normalizedEmail },
     });
 
     const emailVerificationCode = await this.prisma.emailVerificationCode.create({
@@ -94,9 +91,8 @@ export class EmailVerificationService {
     try {
       await this.sendVerificationEmail(normalizedEmail, code);
     } catch (error) {
-      await this.prisma.emailVerificationCode.update({
+      await this.prisma.emailVerificationCode.delete({
         where: { id: emailVerificationCode.id },
-        data: { consumedAt: new Date() },
       });
       if (error instanceof InternalServerErrorException) {
         throw error;
@@ -111,11 +107,7 @@ export class EmailVerificationService {
     // 유효한 이메일 인증 코드를 찾을 수 없는 경우
     const normalizedEmail = this.normalizeEmail(email);
     const emailVerificationCode = await this.prisma.emailVerificationCode.findFirst({
-      where: {
-        email: normalizedEmail,
-        consumedAt: null,
-        verifiedAt: null,
-      },
+      where: { email: normalizedEmail, verifiedAt: null },
       orderBy: { createdAt: 'desc' },
     });
     if (!emailVerificationCode) {
@@ -127,9 +119,8 @@ export class EmailVerificationService {
 
     // 이메일 인증 코드가 만료된 경우
     if (emailVerificationCode.expiresAt <= now) {
-      await this.prisma.emailVerificationCode.update({
+      await this.prisma.emailVerificationCode.delete({
         where: { id: emailVerificationCode.id },
-        data: { consumedAt: now },
       });
       throw new GoneException('이메일 인증 코드가 만료되었습니다.');
     }
@@ -138,13 +129,16 @@ export class EmailVerificationService {
     const isCodeValid = await bcrypt.compare(code, emailVerificationCode.codeHash);
     if (!isCodeValid) {
       const nextAttemptCount = emailVerificationCode.attemptCount + 1;
-      await this.prisma.emailVerificationCode.update({
-        where: { id: emailVerificationCode.id },
-        data: {
-          attemptCount: nextAttemptCount,
-          ...(nextAttemptCount >= EMAIL_VERIFICATION_CODE_MAX_ATTEMPTS ? { consumedAt: now } : {}),
-        },
-      });
+      if (nextAttemptCount >= EMAIL_VERIFICATION_CODE_MAX_ATTEMPTS) {
+        await this.prisma.emailVerificationCode.delete({
+          where: { id: emailVerificationCode.id },
+        });
+      } else {
+        await this.prisma.emailVerificationCode.update({
+          where: { id: emailVerificationCode.id },
+          data: { attemptCount: nextAttemptCount },
+        });
+      }
       throw new BadRequestException({
         errorCode: 'EMAIL_VERIFICATION_CODE_MISMATCH',
         message: '이메일 인증 코드가 일치하지 않습니다.',
@@ -164,13 +158,21 @@ export class EmailVerificationService {
 
   async findValidVerifiedCode(email: string) {
     return this.prisma.emailVerificationCode.findFirst({
-      where: {
-        email: this.normalizeEmail(email),
-        verifiedAt: { not: null },
-        consumedAt: null,
-        expiresAt: { gt: new Date() },
-      },
+      where: { email: this.normalizeEmail(email), verifiedAt: { not: null } },
       orderBy: { verifiedAt: 'desc' },
+    });
+  }
+
+  @Cron('0 0 * * *')
+  async cleanupExpiredCodes() {
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24h 전
+    await this.prisma.emailVerificationCode.deleteMany({
+      where: {
+        OR: [
+          { verifiedAt: null, expiresAt: { lt: new Date() } },
+          { verifiedAt: { not: null, lt: cutoff } },
+        ],
+      },
     });
   }
 }

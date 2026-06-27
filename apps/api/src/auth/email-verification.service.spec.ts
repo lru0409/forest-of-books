@@ -26,7 +26,6 @@ const makeCode = (overrides: Record<string, unknown> = {}) => ({
   attemptCount: 0,
   expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10분 후 (유효)
   verifiedAt: null,
-  consumedAt: null,
   createdAt: new Date(),
   ...overrides,
 });
@@ -38,7 +37,8 @@ type MockPrismaService = {
     findFirst: jest.Mock;
     create: jest.Mock;
     update: jest.Mock;
-    updateMany: jest.Mock;
+    delete: jest.Mock;
+    deleteMany: jest.Mock;
   };
 };
 
@@ -48,7 +48,8 @@ const createMockPrisma = (): MockPrismaService => ({
     findFirst: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
-    updateMany: jest.fn(),
+    delete: jest.fn(),
+    deleteMany: jest.fn(),
   },
 });
 
@@ -100,22 +101,21 @@ describe('EmailVerificationService', () => {
       expect(mockPrisma.emailVerificationCode.create).not.toHaveBeenCalled();
     });
 
-    it('정상 케이스: 이전 코드 무효화 → 새 코드 생성 → 이메일 발송', async () => {
+    it('정상 케이스: 이전 코드 삭제 → 새 코드 생성 → 이메일 발송', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
       mockPrisma.emailVerificationCode.create.mockResolvedValue(makeCode());
 
       await service.sendCode('test@example.com');
 
-      expect(mockPrisma.emailVerificationCode.updateMany).toHaveBeenCalledWith({
-        where: { email: 'test@example.com', consumedAt: null },
-        data: { consumedAt: expect.any(Date) },
+      expect(mockPrisma.emailVerificationCode.deleteMany).toHaveBeenCalledWith({
+        where: { email: 'test@example.com' },
       });
       expect(mockPrisma.emailVerificationCode.create).toHaveBeenCalledWith({
         data: { email: 'test@example.com', codeHash: expect.any(String), expiresAt: expect.any(Date) },
       });
     });
 
-    it('이메일 대소문자·공백 정규화 후 조회 및 이전 코드 무효화', async () => {
+    it('이메일 대소문자·공백 정규화 후 조회 및 이전 코드 삭제', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
       mockPrisma.emailVerificationCode.create.mockResolvedValue(makeCode());
 
@@ -124,9 +124,8 @@ describe('EmailVerificationService', () => {
       expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
         where: { email: 'test@example.com' },
       });
-      expect(mockPrisma.emailVerificationCode.updateMany).toHaveBeenCalledWith({
-        where: { email: 'test@example.com', consumedAt: null },
-        data: { consumedAt: expect.any(Date) },
+      expect(mockPrisma.emailVerificationCode.deleteMany).toHaveBeenCalledWith({
+        where: { email: 'test@example.com' },
       });
     });
 
@@ -152,7 +151,7 @@ describe('EmailVerificationService', () => {
       );
     });
 
-    it('이메일 발송 실패 시 생성한 코드를 소비 처리 후 InternalServerErrorException', async () => {
+    it('이메일 발송 실패 시 생성한 코드 삭제 후 InternalServerErrorException', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
       mockPrisma.emailVerificationCode.create.mockResolvedValue(makeCode({ id: 42 }));
 
@@ -165,9 +164,8 @@ describe('EmailVerificationService', () => {
         InternalServerErrorException,
       );
 
-      expect(mockPrisma.emailVerificationCode.update).toHaveBeenCalledWith({
+      expect(mockPrisma.emailVerificationCode.delete).toHaveBeenCalledWith({
         where: { id: 42 },
-        data: { consumedAt: expect.any(Date) },
       });
     });
   });
@@ -184,16 +182,15 @@ describe('EmailVerificationService', () => {
       expect(err.response).toMatchObject({ errorCode: 'EMAIL_VERIFICATION_CODE_NOT_FOUND' });
     });
 
-    it('만료된 코드면 GoneException + 해당 코드 소비 처리', async () => {
+    it('만료된 코드면 GoneException + 해당 코드 삭제', async () => {
       mockPrisma.emailVerificationCode.findFirst.mockResolvedValue(
         makeCode({ expiresAt: new Date(Date.now() - 1000) }),
       );
 
       await expect(service.verifyCode('test@example.com', '123456')).rejects.toThrow(GoneException);
 
-      expect(mockPrisma.emailVerificationCode.update).toHaveBeenCalledWith({
+      expect(mockPrisma.emailVerificationCode.delete).toHaveBeenCalledWith({
         where: { id: 1 },
-        data: { consumedAt: expect.any(Date) },
       });
     });
 
@@ -213,7 +210,7 @@ describe('EmailVerificationService', () => {
       });
     });
 
-    it('5회 시도 도달 시 코드도 함께 소비 처리', async () => {
+    it('5회 시도 도달 시 코드 삭제', async () => {
       const hashedCode = await bcrypt.hash('123456', 10);
       mockPrisma.emailVerificationCode.findFirst.mockResolvedValue(
         makeCode({ codeHash: hashedCode, attemptCount: 4 }),
@@ -223,9 +220,8 @@ describe('EmailVerificationService', () => {
         BadRequestException,
       );
 
-      expect(mockPrisma.emailVerificationCode.update).toHaveBeenCalledWith({
+      expect(mockPrisma.emailVerificationCode.delete).toHaveBeenCalledWith({
         where: { id: 1 },
-        data: { attemptCount: 5, consumedAt: expect.any(Date) },
       });
     });
 
@@ -246,6 +242,24 @@ describe('EmailVerificationService', () => {
   });
 
   // ─────────────────────────────────────────────
+  // cleanupExpiredCodes
+  // ─────────────────────────────────────────────
+  describe('cleanupExpiredCodes', () => {
+    it('만료된 미인증 코드 + 24시간 지난 인증 코드 삭제', async () => {
+      await service.cleanupExpiredCodes();
+
+      expect(mockPrisma.emailVerificationCode.deleteMany).toHaveBeenCalledWith({
+        where: {
+          OR: [
+            { verifiedAt: null, expiresAt: { lt: expect.any(Date) } },
+            { verifiedAt: { not: null, lt: expect.any(Date) } },
+          ],
+        },
+      });
+    });
+  });
+
+  // ─────────────────────────────────────────────
   // findValidVerifiedCode
   // ─────────────────────────────────────────────
   describe('findValidVerifiedCode', () => {
@@ -260,7 +274,6 @@ describe('EmailVerificationService', () => {
         where: {
           email: 'test@example.com',
           verifiedAt: { not: null },
-          consumedAt: null,
         },
         orderBy: { verifiedAt: 'desc' },
       });
