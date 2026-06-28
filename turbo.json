@@ -7,7 +7,7 @@
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"],
-      "env": ["DATABASE_URL", "NEXT_PUBLIC_API_URL"]
+      "env": ["DATABASE_URL", "NEXT_PUBLIC_API_URL", "NEXT_PUBLIC_BASE_URL"]
     },
     "lint": {
       "dependsOn": ["^lint"]
@@ -21,6 +21,7 @@
       "env": [
         "DATABASE_URL",
         "NEXT_PUBLIC_API_URL",
+        "NEXT_PUBLIC_BASE_URL",
         "API_PORT",
         "API_FRONTEND_URL",
         "API_JWT_SECRET",

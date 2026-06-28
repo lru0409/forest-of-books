@@ -42,7 +42,7 @@ const initialState: SignupData = {
   nickname: '',
   nicknameVerified: false,
   bio: '',
-  profileImageUrl: `${window.location.origin}/images/profile-defaults/1.png`,
+  profileImageUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/images/profile-defaults/1.png`,
 };
 
 export const useSignupStore = create<SignupData & SignupActions>()(

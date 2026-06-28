@@ -29,9 +29,7 @@ export const ProfileStep = () => {
   const [touched, setTouched] = useState({ nickname: false, bio: false });
 
   const [isProfileImageOverlayOpen, setIsProfileImageOverlayOpen] = useState(false);
-  const [displayProfileImageUrl, setDisplayProfileImageUrl] = useState<string>(
-    profileImageUrl || '/images/profile-defaults/1.png',
-  );
+  const [displayProfileImageUrl, setDisplayProfileImageUrl] = useState<string>(profileImageUrl);
   const [profileImageErrorMessage, setProfileImageErrorMessage] = useState<string | null>(null);
   const [isProfileImageUploading, setIsProfileImageUploading] = useState(false);
   const profileImageInputRef = useRef<HTMLInputElement>(null);
@@ -44,7 +42,8 @@ export const ProfileStep = () => {
 
   const nicknameFeedback = ((): { state: 'error' | 'success' | 'default'; message?: string } => {
     if (!nickname) return { state: 'error', message: '닉네임을 입력해 주세요.' };
-    if (!isNicknameValid) return { state: 'error', message: '2~12자의 한글, 영문, 숫자만 입력해 주세요.' };
+    if (!isNicknameValid)
+      return { state: 'error', message: '2~12자의 한글, 영문, 숫자만 입력해 주세요.' };
     switch (nicknameCheckStatus) {
       case 'available':
         return { state: 'success', message: '사용 가능한 닉네임이에요.' };
@@ -91,7 +90,7 @@ export const ProfileStep = () => {
     if (displayProfileImageUrl && displayProfileImageUrl.startsWith('blob:')) {
       URL.revokeObjectURL(displayProfileImageUrl);
     }
-    const url = `/images/profile-defaults/${index + 1}.png`;
+    const url = `${process.env.NEXT_PUBLIC_BASE_URL}/images/profile-defaults/${index + 1}.png`;
     setDisplayProfileImageUrl(url);
     update({ profileImageUrl: url });
     setIsProfileImageOverlayOpen(false);
