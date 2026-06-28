@@ -1,15 +1,7 @@
-import {
-  IsString,
-  IsArray,
-  IsEnum,
-  IsEmail,
-  IsUrl,
-  MinLength,
-  MaxLength,
-  Matches,
-} from 'class-validator';
+import { IsString, IsArray, IsEnum, IsEmail, MinLength, MaxLength, Matches } from 'class-validator';
 
 import { Genre } from '@repo/db';
+import { IsProfileImageUrl } from '../validators/is-profile-image-url.decorator';
 
 export class RegisterDto {
   @IsEmail()
@@ -35,7 +27,7 @@ export class RegisterDto {
   @MaxLength(160)
   bio!: string;
 
-  @IsUrl()
+  @IsProfileImageUrl()
   profileImageUrl!: string;
 
   @IsArray()

@@ -1,5 +1,4 @@
 export function generateVerificationEmailHtml(code: string): string {
-
   return `<!DOCTYPE html>
 <html lang="ko">
   <head>
@@ -10,7 +9,7 @@ export function generateVerificationEmailHtml(code: string): string {
       rel="stylesheet"
     />
   </head>
-  <body style="margin:0;padding:20px;background:#f4f0e8;font-family:'Noto Sans KR',sans-serif">
+  <body style="margin:0;padding:20px;font-family:'Noto Sans KR',sans-serif">
     <div style="max-width:520px;margin:0 auto;background:#f9f5ee;border-radius:12px;overflow:hidden;border:1px solid #d6cdb8">
       <div style="background:#1a3628;padding:28px 40px;text-align:center">
         <p style="color:#f9f5ee;font-size:25px;font-weight:500;letter-spacing:0.06em;margin:0 0 4px">책의 숲</p>
@@ -27,8 +26,8 @@ export function generateVerificationEmailHtml(code: string): string {
           <p style="color:#7a6e5e;font-size:15px;letter-spacing:0.12em;margin:0 0 12px;text-transform:uppercase">
             인증 코드
           </p>
-          <div title="클릭하면 코드가 선택됩니다" style="display:flex;justify-content:center;align-items:center;cursor:pointer;user-select:all">
-            <span style="font-size:38px;font-weight:700;color:#1a3628;line-height:1;letter-spacing:0.25em;font-family:'Noto Sans KR',sans-serif">${code}</span>
+          <div title="클릭하면 코드가 선택됩니다" style="text-align:center;cursor:pointer">
+            <span style="display:inline-block;font-size:38px;font-weight:700;color:#1a3628;line-height:1;letter-spacing:0.25em;font-family:'Noto Sans KR',sans-serif">${code}</span>
           </div>
         </div>
         <p style="color:#7a8f85;font-size:15px;line-height:1.8;margin:32px 0 0">
