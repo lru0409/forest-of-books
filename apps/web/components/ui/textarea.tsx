@@ -4,7 +4,7 @@ import { useState, type ChangeEvent, type ComponentProps } from 'react';
 
 import { cn } from '@/lib/utils';
 
-type TextareaState = 'default' | 'info' | 'error';
+export type TextareaState = 'default' | 'info' | 'error';
 
 const stateStyles: Record<TextareaState, string> = {
   default: 'border-input focus-visible:border-primary disabled:bg-input/50',
