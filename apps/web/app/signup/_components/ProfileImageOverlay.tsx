@@ -27,7 +27,10 @@ export const ProfileImageOverlay = ({
           <button
             key={index}
             aria-label={`기본 프로필 이미지 ${index + 1}`}
-            onClick={() => onSelect(index)}
+            onClick={() => {
+              onSelect(index);
+              onClose();
+            }}
             className={cn(
               'bg-primary/40 border-primary hover:border-primary-foreground size-35 overflow-hidden rounded-full border-2 transition-all hover:border-4 hover:shadow-[0_0_10px_5px_color-mix(in_srgb,var(--color-primary-foreground)_50%,transparent)]',
               selectedIndex === index && 'border-primary-foreground border-4',

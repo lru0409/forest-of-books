@@ -5,7 +5,7 @@ import { Eye, EyeOff, X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
-type InputState = 'default' | 'info' | 'error' | 'success';
+export type InputState = 'default' | 'info' | 'error' | 'success';
 
 const stateWrapperStyles: Record<InputState, string> = {
   default: 'border-input focus-within:border-primary focus-within:ring-1',
@@ -50,7 +50,9 @@ function Input({
     onChange?.({ target: { value: '' } } as React.ChangeEvent<HTMLInputElement>);
   };
 
-  const hasRightContent = !props.disabled && (suffix || isPassword || (clearable && value));
+  // TODO: 이거 꼭 해야하나?
+  const hasRightContent =
+    !props.disabled && (suffix || isPassword || (clearable && !props.readOnly && value));
 
   return (
     <div className={cn('w-full', className)}>
@@ -78,7 +80,7 @@ function Input({
         />
         {hasRightContent && (
           <div className="flex shrink-0 items-center gap-2.5">
-            {clearable && value && (
+            {clearable && !props.readOnly && value && (
               <button
                 type="button"
                 onClick={handleClear}
