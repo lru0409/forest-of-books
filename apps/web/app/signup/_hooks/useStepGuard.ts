@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
+import { isValidEmail, isValidNickname, isValidPassword } from '@/lib/validators';
 import { Step, TOTAL_STEPS } from '../constants';
 import { useSignupStore } from '@/store/signupStore';
 
@@ -24,15 +25,13 @@ function useStepGuard() {
 
   const [hasHydrated, setHasHydrated] = useState(false);
 
-  // TODO: validation 시 직접 정규식 사용하는 대신 유틸 함수 사용
-
   const canProceedToProfileStep = useMemo(() => {
     if (!hasHydrated) return null;
     if (isSocialLogin) return true;
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return false;
+    if (!isValidEmail(email)) return false;
     if (!emailVerified) return false;
-    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,16}$/.test(password)) return false;
+    if (!isValidPassword(password)) return false;
     if (password !== confirmPassword) return false;
     return true;
   }, [hasHydrated, isSocialLogin, email, emailVerified, password, confirmPassword]);
@@ -41,7 +40,7 @@ function useStepGuard() {
     if (!hasHydrated) return null;
     if (!canProceedToProfileStep) return false;
 
-    if (!/^[가-힣a-zA-Z0-9]{2,12}$/.test(nickname)) return false;
+    if (!isValidNickname(nickname)) return false;
     if (!nicknameVerified) return false;
     if (bio.length > 160) return false;
     return true;

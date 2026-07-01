@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 
+import { isValidEmail, isValidPassword } from '@/lib';
 import authService from '@/services/auth';
 import type { InputState } from '@/components/ui/input';
 import { useSignupStore } from '@/store/signupStore';
@@ -43,8 +44,7 @@ function useEmailPasswordStep(
     emailCodeVerifyAttempt !== null &&
     emailCodeVerifyAttempt.attemptCount >= emailCodeVerifyAttempt.maxAttempts;
 
-  // TODO: 유틸 함수 사용
-  const isEmailValid = email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isEmailValid = isValidEmail(email);
   const emailFeedback: { state: InputState; message?: string } = useMemo(() => {
     if (!email) return { state: 'error', message: '이메일을 입력해 주세요.' };
     if (!isEmailValid) return { state: 'error', message: '올바른 이메일 형식을 입력해 주세요.' };
@@ -96,8 +96,7 @@ function useEmailPasswordStep(
 
   const passwordFeedback: { state: InputState; message?: string } = useMemo(() => {
     if (!password) return { state: 'error', message: '비밀번호를 입력해 주세요.' };
-    // TODO: 유틸 함수 사용
-    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,16}$/.test(password))
+    if (!isValidPassword(password))
       return { state: 'error', message: '8~16자의 영문 대소문자, 숫자, 특수문자를 조합해 주세요.' };
     return { state: 'default' };
   }, [password]);
