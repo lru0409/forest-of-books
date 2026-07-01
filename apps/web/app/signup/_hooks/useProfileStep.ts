@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 
+import { isValidNickname } from '@/lib';
 import authService from '@/services/auth';
 import { PROFILE_IMAGE_ACCEPTED_TYPES, PROFILE_IMAGE_MAX_FILE_SIZE } from '../constants';
 import type { InputState } from '@/components/ui/input';
@@ -19,8 +20,7 @@ function useProfileStep(nickname: string, bio: string) {
   const [profileImageErrorMessage, setProfileImageErrorMessage] = useState<string | null>(null);
   const [isProfileImageUploading, setIsProfileImageUploading] = useState(false);
 
-  // TODO: 유틸 함수 사용
-  const isNicknameValid = nickname && /^[가-힣a-zA-Z0-9]{2,12}$/.test(nickname);
+  const isNicknameValid = isValidNickname(nickname);
   const nicknameFeedback: { state: InputState; message?: string } = useMemo(() => {
     if (!nickname) return { state: 'error', message: '닉네임을 입력해 주세요.' };
     if (!isNicknameValid)
