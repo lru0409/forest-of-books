@@ -172,4 +172,17 @@ export class AuthService {
 
     return this.issueToken(user.id);
   }
+
+  // 일반 로그인
+  async login(data: { email: string; password: string }) {
+    const user = await this.findUserByEmail(data.email);
+    if (!user || !(await bcrypt.compare(data.password, user.password!))) {
+      throw new UnauthorizedException({
+        errorCode: 'INVALID_CREDENTIALS',
+        message: '이메일 또는 비밀번호가 올바르지 않습니다.',
+      });
+    }
+
+    return this.issueToken(user.id);
+  }
 }
