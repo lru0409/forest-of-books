@@ -288,4 +288,42 @@ describe('AuthService', () => {
       expect(isMatch).toBe(true);
     });
   });
+
+  // ─────────────────────────────────────────────
+  // login
+  // ─────────────────────────────────────────────
+  describe('login', () => {
+    const loginData = { email: '  Test@Example.COM  ', password: 'password123' };
+
+    it('가입되지 않은 이메일이면 UnauthorizedException (INVALID_CREDENTIALS)', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+
+      const err = await service.login(loginData).catch((e) => e);
+      expect(err).toBeInstanceOf(UnauthorizedException);
+      expect(err.response).toMatchObject({ errorCode: 'INVALID_CREDENTIALS' });
+    });
+
+    it('비밀번호가 일치하지 않으면 UnauthorizedException (INVALID_CREDENTIALS)', async () => {
+      const hashedPassword = await bcrypt.hash('correct-password', 10);
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', password: hashedPassword });
+
+      const err = await service.login(loginData).catch((e) => e);
+      expect(err).toBeInstanceOf(UnauthorizedException);
+      expect(err.response).toMatchObject({ errorCode: 'INVALID_CREDENTIALS' });
+    });
+
+    it('정상 케이스: 비밀번호 일치 시 JWT 반환', async () => {
+      const hashedPassword = await bcrypt.hash('password123', 10);
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', password: hashedPassword });
+      mockJwtService.sign.mockReturnValue('login.jwt.token');
+
+      const result = await service.login(loginData);
+
+      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
+        where: { email: 'test@example.com' },
+      });
+      expect(mockJwtService.sign).toHaveBeenCalledWith({ sub: 'user-1' });
+      expect(result).toBe('login.jwt.token');
+    });
+  });
 });

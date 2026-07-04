@@ -5,6 +5,7 @@ import type { Request, Response } from 'express';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { EmailVerificationService } from './email-verification.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 type MockAuthService = {
   issueToken: jest.Mock;
@@ -15,6 +16,7 @@ type MockAuthService = {
   findUserByNickname: jest.Mock;
   socialRegister: jest.Mock;
   register: jest.Mock;
+  login: jest.Mock;
 };
 
 type MockEmailVerificationService = {
@@ -31,6 +33,7 @@ const createMockAuthService = (): MockAuthService => ({
   findUserByNickname: jest.fn(),
   socialRegister: jest.fn(),
   register: jest.fn(),
+  login: jest.fn(),
 });
 
 const createMockEmailVerificationService = (): MockEmailVerificationService => ({
@@ -63,7 +66,10 @@ describe('AuthController', () => {
         { provide: AuthService, useValue: mockAuthService },
         { provide: EmailVerificationService, useValue: mockEmailVerificationService },
       ],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: jest.fn().mockReturnValue(true) })
+      .compile();
 
     controller = module.get<AuthController>(AuthController);
   });
@@ -311,6 +317,37 @@ describe('AuthController', () => {
 
       expect(mockAuthService.register).toHaveBeenCalledWith(body);
       expect(res.json).toHaveBeenCalledWith({ token: 'user.jwt' });
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  // login
+  // ─────────────────────────────────────────────
+  describe('login', () => {
+    it('login 호출 후 token 응답', async () => {
+      const body = { email: 'user@example.com', password: 'Password1!' };
+      mockAuthService.login.mockResolvedValue('user.jwt');
+      const res = makeRes();
+
+      await controller.login(body, res);
+
+      expect(mockAuthService.login).toHaveBeenCalledWith(body);
+      expect(res.json).toHaveBeenCalledWith({ token: 'user.jwt' });
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  // me
+  // ─────────────────────────────────────────────
+  describe('me', () => {
+    it('req.user에서 password를 제외하고 반환', () => {
+      const req = {
+        user: { id: 'user-1', email: 'user@example.com', nickname: 'tester', password: 'hashed' },
+      } as unknown as Request;
+
+      const result = controller.me(req);
+
+      expect(result).toEqual({ id: 'user-1', email: 'user@example.com', nickname: 'tester' });
     });
   });
 });

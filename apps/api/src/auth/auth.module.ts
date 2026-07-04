@@ -4,6 +4,7 @@ import { PassportModule } from '@nestjs/passport';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { EmailVerificationService } from './email-verification.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { NaverStrategy } from './strategies/naver.strategy';
 import { KakaoStrategy } from './strategies/kakao.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
@@ -21,6 +22,13 @@ import { GoogleStrategy } from './strategies/google.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, EmailVerificationService, NaverStrategy, KakaoStrategy, GoogleStrategy],
+  providers: [
+    AuthService,
+    EmailVerificationService,
+    JwtAuthGuard,
+    NaverStrategy,
+    KakaoStrategy,
+    GoogleStrategy,
+  ],
 })
 export class AuthModule {}

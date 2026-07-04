@@ -15,12 +15,15 @@ import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { EmailVerificationService } from './email-verification.service';
 import {
+  SendEmailVerificationCodeDto,
+  VerifyEmailCodeDto,
   CheckNicknameDto,
   RegisterDto,
-  SendEmailVerificationCodeDto,
   SocialRegisterDto,
-  VerifyEmailCodeDto,
+  LoginDto,
 } from './dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import type { User } from '@repo/db';
 
 @Controller('auth')
 export class AuthController {
@@ -131,5 +134,19 @@ export class AuthController {
   async register(@Body() body: RegisterDto, @Res() res: Response) {
     const token = await this.authService.register(body);
     return res.json({ token });
+  }
+
+  @Post('login')
+  async login(@Body() body: LoginDto, @Res() res: Response) {
+    const token = await this.authService.login(body);
+    return res.json({ token });
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  me(@Req() req: Request) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...user } = req.user as User;
+    return user;
   }
 }
