@@ -1,4 +1,4 @@
-import type { Genre, ApiResponse } from '@/lib';
+import type { Genre, ApiResponse, User } from '@/lib';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
@@ -112,6 +112,30 @@ async function generalRegister(payload: RegisterPayload): Promise<ApiResponse<{ 
   return { isSuccess: true, statusCode: res.status, data: body };
 }
 
+async function login(email: string, password: string): Promise<ApiResponse<{ token: string }>> {
+  const res = await fetch(`${API_URL}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    return { isSuccess: false, statusCode: res.status, errorCode: body.errorCode };
+  }
+  return { isSuccess: true, statusCode: res.status, data: body };
+}
+
+async function getMe(token: string | null): Promise<ApiResponse<User>> {
+  const res = await fetch(`${API_URL}/auth/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    return { isSuccess: false, statusCode: res.status, errorCode: body.errorCode };
+  }
+  return { isSuccess: true, statusCode: res.status, data: body };
+}
+
 export default {
   socialRegister,
   generalRegister,
@@ -119,4 +143,6 @@ export default {
   sendEmailVerificationCode,
   verifyEmailCode,
   uploadProfileImage,
+  login,
+  getMe,
 };
