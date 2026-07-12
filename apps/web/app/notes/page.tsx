@@ -7,6 +7,7 @@ import { BookOpen } from 'lucide-react';
 import { Container } from '@/components/layout';
 import { ViewToggle, ViewMode } from './_components/ViewToggle';
 import { Book, MOCK_BOOKS } from './mockBooks';
+import { BookShelf } from './_components/BookShelf';
 
 export default function NotesPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('shelf');
@@ -14,7 +15,7 @@ export default function NotesPage() {
   return (
     <Container>
       <div className="flex h-full min-w-[400px] flex-col">
-        <div className="flex justify-center px-4 pt-4">
+        <div className="mt-6 flex justify-center">
           <ViewToggle view={viewMode} onChange={setViewMode} />
         </div>
         <BooksView mode={viewMode} />
@@ -24,7 +25,7 @@ export default function NotesPage() {
 }
 
 const BooksView = ({ mode }: { mode: ViewMode }) => {
-  const books: Book[] = [];
+  const books: Book[] = MOCK_BOOKS;
 
   if (books.length === 0) {
     return (
@@ -38,5 +39,9 @@ const BooksView = ({ mode }: { mode: ViewMode }) => {
     );
   }
 
-  return null;
+  return (
+    <div className="my-6">
+      <BookShelf books={books} />
+    </div>
+  );
 };
