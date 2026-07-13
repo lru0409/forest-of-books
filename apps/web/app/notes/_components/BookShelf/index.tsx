@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import { Book } from '../../mockBooks';
-import { BookSpine } from './BookSpine';
+import { Book } from '../../types';
+import { Item } from './Item';
 
 interface BookShelfProps {
   books: Book[];
@@ -49,11 +49,15 @@ export function BookShelf({ books }: BookShelfProps) {
   return (
     <div ref={containerRef} className="flex flex-col gap-6">
       {shelves.map((shelfBooks, shelfIndex) => (
-        <div key={shelfIndex} className="flex flex-col px-4">
+        <div
+          key={shelfIndex}
+          className="animate-emerge flex flex-col px-4"
+          style={{ animationDelay: `${shelfIndex * 100}ms` }}
+        >
           {/* 책들 */}
           <div className="z-1 -mb-2 flex gap-1.5" style={{ marginLeft: firstBookOffset }}>
             {shelfBooks.map((book) => (
-              <BookSpine key={book.id} book={book} />
+              <Item key={book.id} book={book} />
             ))}
           </div>
 

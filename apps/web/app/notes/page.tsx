@@ -4,9 +4,10 @@ import { useState } from 'react';
 
 import { BookOpen } from 'lucide-react';
 
+import { Book } from './types';
+import { MOCK_BOOKS } from './mockBooks';
 import { Container } from '@/components/layout';
 import { ViewToggle, ViewMode } from './_components/ViewToggle';
-import { Book, MOCK_BOOKS } from './mockBooks';
 import { BookShelf } from './_components/BookShelf';
 
 export default function NotesPage() {

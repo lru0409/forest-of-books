@@ -1,15 +1,15 @@
-import { Book } from '../../mockBooks';
+import { Book } from '../../types';
 
-interface BookSpineProps {
+interface ItemProps {
   book: Book;
 }
 
-export function BookSpine({ book }: BookSpineProps) {
+export function Item({ book }: ItemProps) {
   return (
     <div
       className="flex h-50 w-12 cursor-pointer rounded-sm shadow-md transition-transform duration-200 ease-out hover:-translate-y-3"
       title={`${book.title} — ${book.author}`}
-      style={{ backgroundColor: book.spineColor }}
+      style={{ backgroundColor: book.color }}
     >
       {/* 책등 왼쪽 하이라이트 */}
       <div className="h-full w-2 rounded-l-sm bg-white/15" />
