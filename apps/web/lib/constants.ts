@@ -17,3 +17,18 @@ export const GENRE_LABELS: Record<Genre, string> = {
 };
 
 export const GENRES = Object.keys(GENRE_LABELS) as Genre[];
+
+export const BOOK_COLORS: string[] = [
+  '#A27873',
+  '#B78C6D',
+  '#A0967D',
+  '#81766A',
+  '#717B72',
+  '#93A07B',
+  '#719677',
+  '#648789',
+  '#667D8C',
+  '#6180A1',
+  '#7C7392',
+  '#A77F8E',
+];

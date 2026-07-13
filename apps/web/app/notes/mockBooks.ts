@@ -1,13 +1,5 @@
-export type ReadingStatus = 'reading' | 'completed';
-
-export interface Book {
-  id: string;
-  title: string;
-  author: string;
-  genre: string;
-  status: ReadingStatus;
-  spineColor: string;
-}
+import { BOOK_COLORS } from '@/lib/constants';
+import { Book } from './types';
 
 export const MOCK_BOOKS: Book[] = [
   {
@@ -16,7 +8,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '한강',
     genre: '소설',
     status: 'completed',
-    spineColor: '#7D6E5C',
+    color: BOOK_COLORS[0]!,
   },
   {
     id: '2',
@@ -24,7 +16,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '조남주',
     genre: '소설',
     status: 'completed',
-    spineColor: '#8B6F7A',
+    color: BOOK_COLORS[1]!,
   },
   {
     id: '3',
@@ -32,7 +24,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '김호연',
     genre: '소설',
     status: 'reading',
-    spineColor: '#6B7F6E',
+    color: BOOK_COLORS[2]!,
   },
   {
     id: '4',
@@ -40,7 +32,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '손원평',
     genre: '소설',
     status: 'completed',
-    spineColor: '#A67B5B',
+    color: BOOK_COLORS[3]!,
   },
   {
     id: '5',
@@ -48,15 +40,15 @@ export const MOCK_BOOKS: Book[] = [
     author: '백세희',
     genre: '에세이',
     status: 'completed',
-    spineColor: '#6B8F71',
+    color: BOOK_COLORS[4]!,
   },
   {
     id: '6',
     title: '어떻게 살 것인가',
     author: '유시민',
     genre: '인문',
-    status: 'reading',
-    spineColor: '#5B7FA6',
+    status: 'on_hold',
+    color: BOOK_COLORS[5]!,
   },
   {
     id: '7',
@@ -64,7 +56,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '유발 하라리',
     genre: '역사',
     status: 'completed',
-    spineColor: '#7A6E9B',
+    color: BOOK_COLORS[6]!,
   },
   {
     id: '8',
@@ -72,7 +64,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '재레드 다이아몬드',
     genre: '역사',
     status: 'reading',
-    spineColor: '#4A7C7E',
+    color: BOOK_COLORS[7]!,
   },
   {
     id: '9',
@@ -80,15 +72,15 @@ export const MOCK_BOOKS: Book[] = [
     author: '기시미 이치로',
     genre: '자기계발',
     status: 'completed',
-    spineColor: '#9B7B5A',
+    color: BOOK_COLORS[8]!,
   },
   {
     id: '10',
     title: '원씽',
     author: '게리 켈러',
     genre: '자기계발',
-    status: 'reading',
-    spineColor: '#7A8B6E',
+    status: 'not_started',
+    color: BOOK_COLORS[9]!,
   },
   {
     id: '11',
@@ -96,7 +88,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '칼 세이건',
     genre: '과학·기술',
     status: 'completed',
-    spineColor: '#3D6B7A',
+    color: BOOK_COLORS[10]!,
   },
   {
     id: '12',
@@ -104,7 +96,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '김수현',
     genre: '에세이',
     status: 'reading',
-    spineColor: '#A08070',
+    color: BOOK_COLORS[11]!,
   },
   {
     id: '13',
@@ -112,23 +104,23 @@ export const MOCK_BOOKS: Book[] = [
     author: '한강',
     genre: '소설',
     status: 'completed',
-    spineColor: '#7D6E5C',
+    color: BOOK_COLORS[0]!,
   },
   {
     id: '14',
     title: '82년생 김지영',
     author: '조남주',
     genre: '소설',
-    status: 'completed',
-    spineColor: '#8B6F7A',
+    status: 'on_hold',
+    color: BOOK_COLORS[1]!,
   },
   {
     id: '15',
     title: '불편한 편의점',
     author: '김호연',
     genre: '소설',
-    status: 'reading',
-    spineColor: '#6B7F6E',
+    status: 'not_started',
+    color: BOOK_COLORS[2]!,
   },
   {
     id: '16',
@@ -136,7 +128,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '손원평',
     genre: '소설',
     status: 'completed',
-    spineColor: '#A67B5B',
+    color: BOOK_COLORS[3]!,
   },
   {
     id: '17',
@@ -144,7 +136,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '백세희',
     genre: '에세이',
     status: 'completed',
-    spineColor: '#6B8F71',
+    color: BOOK_COLORS[4]!,
   },
   {
     id: '18',
@@ -152,7 +144,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '유시민',
     genre: '인문',
     status: 'reading',
-    spineColor: '#5B7FA6',
+    color: BOOK_COLORS[5]!,
   },
   {
     id: '19',
@@ -160,7 +152,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '유발 하라리',
     genre: '역사',
     status: 'completed',
-    spineColor: '#7A6E9B',
+    color: BOOK_COLORS[6]!,
   },
   {
     id: '20',
@@ -168,7 +160,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '재레드 다이아몬드',
     genre: '역사',
     status: 'reading',
-    spineColor: '#4A7C7E',
+    color: BOOK_COLORS[7]!,
   },
   {
     id: '21',
@@ -176,7 +168,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '기시미 이치로',
     genre: '자기계발',
     status: 'completed',
-    spineColor: '#9B7B5A',
+    color: BOOK_COLORS[8]!,
   },
   {
     id: '22',
@@ -184,7 +176,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '게리 켈러',
     genre: '자기계발',
     status: 'reading',
-    spineColor: '#7A8B6E',
+    color: BOOK_COLORS[9]!,
   },
   {
     id: '23',
@@ -192,7 +184,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '칼 세이건',
     genre: '과학·기술',
     status: 'completed',
-    spineColor: '#3D6B7A',
+    color: BOOK_COLORS[10]!,
   },
   {
     id: '24',
@@ -200,7 +192,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '김수현',
     genre: '에세이',
     status: 'reading',
-    spineColor: '#A08070',
+    color: BOOK_COLORS[11]!,
   },
   {
     id: '25',
@@ -208,7 +200,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '한강',
     genre: '소설',
     status: 'completed',
-    spineColor: '#7D6E5C',
+    color: BOOK_COLORS[0]!,
   },
   {
     id: '26',
@@ -216,7 +208,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '조남주',
     genre: '소설',
     status: 'completed',
-    spineColor: '#8B6F7A',
+    color: BOOK_COLORS[1]!,
   },
   {
     id: '27',
@@ -224,7 +216,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '김호연',
     genre: '소설',
     status: 'reading',
-    spineColor: '#6B7F6E',
+    color: BOOK_COLORS[2]!,
   },
   {
     id: '28',
@@ -232,7 +224,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '손원평',
     genre: '소설',
     status: 'completed',
-    spineColor: '#A67B5B',
+    color: BOOK_COLORS[3]!,
   },
   {
     id: '29',
@@ -240,7 +232,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '백세희',
     genre: '에세이',
     status: 'completed',
-    spineColor: '#6B8F71',
+    color: BOOK_COLORS[4]!,
   },
   {
     id: '30',
@@ -248,7 +240,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '유시민',
     genre: '인문',
     status: 'reading',
-    spineColor: '#5B7FA6',
+    color: BOOK_COLORS[5]!,
   },
   {
     id: '31',
@@ -256,7 +248,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '유발 하라리',
     genre: '역사',
     status: 'completed',
-    spineColor: '#7A6E9B',
+    color: BOOK_COLORS[6]!,
   },
   {
     id: '32',
@@ -264,7 +256,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '재레드 다이아몬드',
     genre: '역사',
     status: 'reading',
-    spineColor: '#4A7C7E',
+    color: BOOK_COLORS[7]!,
   },
   {
     id: '33',
@@ -272,7 +264,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '기시미 이치로',
     genre: '자기계발',
     status: 'completed',
-    spineColor: '#9B7B5A',
+    color: BOOK_COLORS[8]!,
   },
   {
     id: '34',
@@ -280,7 +272,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '게리 켈러',
     genre: '자기계발',
     status: 'reading',
-    spineColor: '#7A8B6E',
+    color: BOOK_COLORS[9]!,
   },
   {
     id: '35',
@@ -288,7 +280,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '칼 세이건',
     genre: '과학·기술',
     status: 'completed',
-    spineColor: '#3D6B7A',
+    color: BOOK_COLORS[10]!,
   },
   {
     id: '36',
@@ -296,7 +288,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '김수현',
     genre: '에세이',
     status: 'reading',
-    spineColor: '#A08070',
+    color: BOOK_COLORS[11]!,
   },
   {
     id: '37',
@@ -304,7 +296,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '한강',
     genre: '소설',
     status: 'completed',
-    spineColor: '#7D6E5C',
+    color: BOOK_COLORS[0]!,
   },
   {
     id: '38',
@@ -312,7 +304,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '조남주',
     genre: '소설',
     status: 'completed',
-    spineColor: '#8B6F7A',
+    color: BOOK_COLORS[1]!,
   },
   {
     id: '39',
@@ -320,7 +312,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '김호연',
     genre: '소설',
     status: 'reading',
-    spineColor: '#6B7F6E',
+    color: BOOK_COLORS[2]!,
   },
   {
     id: '40',
@@ -328,7 +320,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '손원평',
     genre: '소설',
     status: 'completed',
-    spineColor: '#A67B5B',
+    color: BOOK_COLORS[3]!,
   },
   {
     id: '41',
@@ -336,7 +328,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '백세희',
     genre: '에세이',
     status: 'completed',
-    spineColor: '#6B8F71',
+    color: BOOK_COLORS[4]!,
   },
   {
     id: '42',
@@ -344,7 +336,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '유시민',
     genre: '인문',
     status: 'reading',
-    spineColor: '#5B7FA6',
+    color: BOOK_COLORS[5]!,
   },
   {
     id: '43',
@@ -352,7 +344,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '유발 하라리',
     genre: '역사',
     status: 'completed',
-    spineColor: '#7A6E9B',
+    color: BOOK_COLORS[6]!,
   },
   {
     id: '44',
@@ -360,7 +352,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '재레드 다이아몬드',
     genre: '역사',
     status: 'reading',
-    spineColor: '#4A7C7E',
+    color: BOOK_COLORS[7]!,
   },
   {
     id: '45',
@@ -368,7 +360,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '기시미 이치로',
     genre: '자기계발',
     status: 'completed',
-    spineColor: '#9B7B5A',
+    color: BOOK_COLORS[8]!,
   },
   {
     id: '46',
@@ -376,7 +368,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '게리 켈러',
     genre: '자기계발',
     status: 'reading',
-    spineColor: '#7A8B6E',
+    color: BOOK_COLORS[9]!,
   },
   {
     id: '47',
@@ -384,7 +376,7 @@ export const MOCK_BOOKS: Book[] = [
     author: '칼 세이건',
     genre: '과학·기술',
     status: 'completed',
-    spineColor: '#3D6B7A',
+    color: BOOK_COLORS[10]!,
   },
   {
     id: '48',
@@ -392,6 +384,6 @@ export const MOCK_BOOKS: Book[] = [
     author: '김수현',
     genre: '에세이',
     status: 'reading',
-    spineColor: '#A08070',
+    color: BOOK_COLORS[11]!,
   },
 ];
