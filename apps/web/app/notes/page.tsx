@@ -9,6 +9,7 @@ import { MOCK_BOOKS } from './mockBooks';
 import { Container } from '@/components/layout';
 import { ViewToggle, ViewMode } from './_components/ViewToggle';
 import { BookShelf } from './_components/BookShelf';
+import { BookCardGrid } from './_components/BookCardGrid';
 
 export default function NotesPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('shelf');
@@ -42,7 +43,7 @@ const BooksView = ({ mode }: { mode: ViewMode }) => {
 
   return (
     <div className="my-6">
-      <BookShelf books={books} />
+      {mode === 'shelf' ? <BookShelf books={books} /> : <BookCardGrid books={books} />}
     </div>
   );
 };
