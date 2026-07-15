@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { Book } from '../../types';
 import { Item } from './Item';
 
@@ -47,25 +48,27 @@ export function BookShelf({ books }: BookShelfProps) {
   }
 
   return (
-    <div ref={containerRef} className="flex flex-col gap-6">
-      {shelves.map((shelfBooks, shelfIndex) => (
-        <div
-          key={shelfIndex}
-          className="animate-emerge flex flex-col px-4"
-          style={{ animationDelay: `${shelfIndex * 100}ms` }}
-        >
-          {/* 책들 */}
-          <div className="z-1 -mb-2 flex gap-1.5" style={{ marginLeft: firstBookOffset }}>
-            {shelfBooks.map((book) => (
-              <Item key={book.id} book={book} />
-            ))}
-          </div>
+    <TooltipProvider>
+      <div ref={containerRef} className="flex flex-col gap-6">
+        {shelves.map((shelfBooks, shelfIndex) => (
+          <div
+            key={shelfIndex}
+            className="animate-emerge flex flex-col px-4"
+            style={{ animationDelay: `${shelfIndex * 100}ms` }}
+          >
+            {/* 책들 */}
+            <div className="z-1 -mb-2 flex gap-1.5" style={{ marginLeft: firstBookOffset }}>
+              {shelfBooks.map((book) => (
+                <Item key={book.id} book={book} />
+              ))}
+            </div>
 
-          {/* 선반 */}
-          <div className="h-4 rounded-t-sm bg-yellow-800/50 shadow-md" />
-          <div className="h-2 rounded-b-sm bg-yellow-900/55" />
-        </div>
-      ))}
-    </div>
+            {/* 선반 */}
+            <div className="h-4 rounded-t-sm bg-yellow-800/50 shadow-md" />
+            <div className="h-2 rounded-b-sm bg-yellow-900/55" />
+          </div>
+        ))}
+      </div>
+    </TooltipProvider>
   );
 }
