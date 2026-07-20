@@ -12,7 +12,7 @@ interface BookShelfProps {
 
 const BOOK_WIDTH = 48;
 const BOOK_GAP = 6;
-const ROW_PADDING_X = 32; // 한 줄의 실제 padding (양쪽 합, 각 16px)
+const ROW_PADDING_X = 0; // 한 줄의 실제 padding (양쪽 합, 각 0px)
 const MIN_SIDE_MARGIN_X = 40; // 선반 양쪽에 최소로 남기고 싶은 여백 (양쪽 합, 각 20px)
 const DEFAULT_BOOKS_PER_SHELF = 10;
 
@@ -53,7 +53,7 @@ export function BookShelf({ books }: BookShelfProps) {
         {shelves.map((shelfBooks, shelfIndex) => (
           <div
             key={shelfIndex}
-            className="animate-emerge flex flex-col px-4"
+            className="animate-emerge flex flex-col"
             style={{ animationDelay: `${shelfIndex * 100}ms` }}
           >
             {/* 책들 */}

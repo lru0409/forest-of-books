@@ -50,6 +50,8 @@ export class UploadService {
     return data.publicUrl;
   }
 
+  // TODO: 어드민 만들어서 수동 호출 가능하도록
+
   @Cron('0 0 * * *')
   async cleanupOrphanProfileImageFiles(): Promise<void> {
     this.logger.log('고아 프로필 이미지 파일 정리 시작');

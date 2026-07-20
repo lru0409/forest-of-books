@@ -163,6 +163,8 @@ export class EmailVerificationService {
     });
   }
 
+  // TODO: 어드민 만들어서 수동 호출 가능하도록
+
   @Cron('0 0 * * *')
   async cleanupExpiredCodes() {
     const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24h 전
