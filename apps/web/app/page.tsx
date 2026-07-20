@@ -10,7 +10,9 @@ export default function Home() {
   const token = useAuthStore((state) => state.token);
 
   useEffect(() => {
-    AuthService.getMe(token).then((result) => console.log(result));
+    if (token) {
+      AuthService.getMe(token).then((result) => console.log(result));
+    }
   }, [token]);
 
   return (

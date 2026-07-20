@@ -22,10 +22,11 @@ const messageStyles: Record<InputState, string> = {
   success: 'text-green-600',
 };
 
-interface InputProps extends React.ComponentProps<'input'> {
+interface InputProps extends Omit<React.ComponentProps<'input'>, 'prefix'> {
   clearable?: boolean;
   state?: InputState;
   message?: string | null;
+  prefix?: React.ReactNode;
   suffix?: React.ReactNode;
 }
 
@@ -38,6 +39,7 @@ function Input({
   onChange,
   value,
   maxLength = 255,
+  prefix,
   suffix,
   ...props
 }: InputProps) {
@@ -60,6 +62,7 @@ function Input({
           'has-[input:disabled]:bg-input/20 has-[input:disabled]:cursor-not-allowed has-[input:disabled]:opacity-50',
         )}
       >
+        {prefix}
         <input
           type={isPassword ? (showPassword ? 'text' : 'password') : type}
           ref={inputRef}
@@ -71,7 +74,7 @@ function Input({
           className="file:text-foreground placeholder:text-muted-foreground caret-primary min-w-0 flex-1 text-base text-black transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed"
           {...props}
         />
-        <div className="empty:hidden flex shrink-0 items-center gap-2.5">
+        <div className="flex items-center gap-2.5 empty:hidden">
           {!props.readOnly && !props.disabled && clearable && value && (
             <button
               type="button"
