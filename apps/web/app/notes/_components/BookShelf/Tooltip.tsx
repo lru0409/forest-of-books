@@ -1,5 +1,5 @@
-import { Book } from '../../types';
 import { STATUS_CONFIG } from '../../constants';
+import { type Book, GENRE_LABELS } from '@/lib';
 
 interface TooltipProps {
   book: Book;
@@ -16,13 +16,13 @@ export function Tooltip({ book }: TooltipProps) {
 
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         <span className="border-primary/15 bg-primary-foreground text-primary rounded-full border px-3 py-1.5 text-xs">
-          {book.genre}
         </span>
         <span
           className={`flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium ${status.className}`}
         >
           <StatusIcon className="size-3" aria-hidden="true" />
           {status.label}
+          {GENRE_LABELS[book.genre]}
         </span>
       </div>
     </div>

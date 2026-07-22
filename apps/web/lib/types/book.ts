@@ -12,3 +12,14 @@ export type Genre =
   | 'TRAVEL'
   | 'CHILDREN_TEEN'
   | 'COMICS';
+
+export type ReadingStatus = 'NOT_STARTED' | 'READING' | 'COMPLETED' | 'ON_HOLD';
+
+export type Book = {
+  id: string;
+  title: string;
+  author: string;
+  genre: Genre;
+  status: ReadingStatus;
+  color: string;
+};

@@ -1,4 +1,6 @@
-import type { Genre } from './types/genre';
+import { Circle, CheckCircle2, PauseCircle, PlayCircle, type LucideIcon } from 'lucide-react';
+
+import type { Genre, ReadingStatus } from '../types/book';
 
 export const GENRE_LABELS: Record<Genre, string> = {
   NOVEL: '소설',
@@ -17,6 +19,22 @@ export const GENRE_LABELS: Record<Genre, string> = {
 };
 
 export const GENRES = Object.keys(GENRE_LABELS) as Genre[];
+
+export const READING_STATUS_LABELS: Record<ReadingStatus, string> = {
+  NOT_STARTED: '읽지 않음',
+  READING: '읽는 중',
+  COMPLETED: '완독',
+  ON_HOLD: '보류',
+};
+
+export const READING_STATUS_ICONS: Record<ReadingStatus, LucideIcon> = {
+  NOT_STARTED: Circle,
+  READING: PlayCircle,
+  COMPLETED: CheckCircle2,
+  ON_HOLD: PauseCircle,
+};
+
+export const READING_STATUSES = Object.keys(READING_STATUS_LABELS) as ReadingStatus[];
 
 export const BOOK_COLORS: string[] = [
   '#A27873',

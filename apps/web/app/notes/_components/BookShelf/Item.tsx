@@ -1,6 +1,6 @@
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
-import { Book } from '../../types';
+import { Book } from '@/lib';
 import { Tooltip as BookTooltip } from './Tooltip';
 
 interface ItemProps {

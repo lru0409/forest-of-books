@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { Book } from '../../types';
+import { type Book } from '@/lib';
 import { Item } from './Item';
 
 interface BookShelfProps {

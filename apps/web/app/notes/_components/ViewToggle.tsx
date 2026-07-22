@@ -3,8 +3,7 @@
 import { LayoutGrid, Rows3 } from 'lucide-react';
 
 import { cn } from '@/lib';
-
-export type ViewMode = 'shelf' | 'card';
+import { type ViewMode } from '../types';
 
 interface ViewToggleProps {
   view: ViewMode;
