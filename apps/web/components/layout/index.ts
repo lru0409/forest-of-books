@@ -1,3 +1,3 @@
-export { Container } from './container';
-export { Sidebar } from './sidebar';
-export { Modal } from './modal';
+export { Container } from './Container';
+export { Sidebar } from './Sidebar';
+export { Modal } from './Modal';

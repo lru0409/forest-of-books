@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { Sidebar } from './sidebar';
+import { Sidebar } from './Sidebar';
 
 interface ContainerProps {
   children: React.ReactNode;

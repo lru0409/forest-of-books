@@ -34,7 +34,7 @@ export function MultiSelectFilter({ label, options, selected, onChange }: MultiS
           className="group border-primary/30 bg-primary/8 text-primary flex cursor-pointer items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium"
         >
           {label}
-          <span className="bg-primary text-primary-foreground flex h-4.5 min-w-4.5 items-center justify-center rounded-full px-1 text-[11px] font-semibold">
+          <span className="bg-primary text-primary-foreground flex h-5 min-w-4.5 items-center justify-center rounded-full px-1.5 text-[10px]">
             {isAllSelected ? '전체' : selected.length}
           </span>
           <ChevronDown
