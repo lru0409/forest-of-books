@@ -1,6 +1,13 @@
 export { cn } from './utils';
 export { isValidEmail, isValidPassword, isValidNickname } from './validators';
-export { GENRE_LABELS, GENRES, BOOK_COLORS } from './constants';
+export {
+  GENRE_LABELS,
+  GENRES,
+  READING_STATUS_LABELS,
+  READING_STATUS_ICONS,
+  READING_STATUSES,
+  BOOK_COLORS,
+} from './constants/book';
 export type { ApiResponse } from './types/api';
-export type { Genre } from './types/genre';
+export type { Genre, ReadingStatus, Book } from './types/book';
 export type { User } from './types/user';

@@ -1,4 +1,4 @@
-import type { Genre } from './genre';
+import type { Genre } from './book';
 
 export interface User {
   id: string;

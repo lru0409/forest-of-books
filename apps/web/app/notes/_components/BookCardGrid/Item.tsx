@@ -1,5 +1,5 @@
-import { Book } from '../../types';
 import { STATUS_CONFIG } from '../../constants';
+import { type Book, GENRE_LABELS } from '@/lib';
 
 interface ItemProps {
   book: Book;
@@ -24,7 +24,7 @@ export function Item({ book, index = 0 }: ItemProps) {
 
           <div className="mt-auto flex items-center gap-1.5">
             <div className="border-primary/15 bg-primary-foreground text-primary rounded-full border px-3 py-1.5 text-xs">
-              {book.genre}
+              {GENRE_LABELS[book.genre]}
             </div>
 
             <div
