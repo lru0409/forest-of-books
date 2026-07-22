@@ -1,6 +1,6 @@
 import { cn } from '@/lib';
 
-import { BookLoader } from '@/components/ui/book-loader';
+import { BookLoader } from '@/components/common';
 
 interface LoadingScreenProps {
   message?: string;
