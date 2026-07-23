@@ -22,14 +22,14 @@ export function ViewToggle({ view, onChange }: ViewToggleProps) {
     <div
       role="tablist"
       aria-label="책 목록 보기 방식"
-      className="bg-primary relative inline-grid rounded-full p-1.5"
+      className="border-primary/30 bg-primary/8 relative inline-grid rounded-full border p-1"
       style={{ gridTemplateColumns: `repeat(${OPTIONS.length}, minmax(0, 1fr))` }}
     >
       <div
         aria-hidden="true"
-        className="bg-primary-foreground absolute inset-y-1.5 left-1.5 rounded-full transition-transform duration-300"
+        className="bg-primary absolute inset-y-1 left-1 rounded-full transition-transform duration-300"
         style={{
-          width: `calc((100% - 0.75rem) / ${OPTIONS.length})`,
+          width: `calc((100% - 0.5rem) / ${OPTIONS.length})`,
           transform: `translateX(${activeIndex * 100}%)`,
         }}
       />
@@ -43,12 +43,25 @@ export function ViewToggle({ view, onChange }: ViewToggleProps) {
             aria-selected={isActive}
             onClick={() => onChange(value)}
             className={cn(
-              'text-md relative z-10 flex items-center justify-center gap-1.5 rounded-full px-5 py-1.5 font-medium transition-transform duration-200',
-              isActive ? 'text-primary' : 'text-primary-foreground hover:scale-110',
+              'group relative z-10 flex cursor-pointer items-center justify-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors',
+              isActive ? 'text-primary-foreground' : 'text-primary',
             )}
           >
-            <Icon className="size-4" aria-hidden="true" />
-            {label}
+            <Icon
+              className={cn(
+                'size-3.5 transition-transform duration-200',
+                !isActive && 'group-hover:scale-110',
+              )}
+              aria-hidden="true"
+            />
+            <span
+              className={cn(
+                'transition-transform duration-200',
+                !isActive && 'group-hover:scale-110',
+              )}
+            >
+              {label}
+            </span>
           </button>
         );
       })}
