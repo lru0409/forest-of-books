@@ -1,5 +1,5 @@
-import { STATUS_CONFIG } from '../../constants';
 import { type Book, GENRE_LABELS } from '@/lib';
+import { ReadingStatusBadge } from '@/components/common';
 
 interface ItemProps {
   book: Book;
@@ -7,9 +7,6 @@ interface ItemProps {
 }
 
 export function Item({ book, index = 0 }: ItemProps) {
-  const status = STATUS_CONFIG[book.status];
-  const StatusIcon = status.icon;
-
   return (
     <div
       className="animate-emerge border-primary/15 flex overflow-hidden rounded-lg border bg-white shadow-sm transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-lg"
@@ -27,12 +24,7 @@ export function Item({ book, index = 0 }: ItemProps) {
               {GENRE_LABELS[book.genre]}
             </div>
 
-            <div
-              className={`flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium ${status.className}`}
-            >
-              <StatusIcon className="size-3.5" aria-hidden="true" />
-              {status.label}
-            </div>
+            <ReadingStatusBadge status={book.status} />
           </div>
         </div>
 
