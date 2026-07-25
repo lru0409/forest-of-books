@@ -55,7 +55,7 @@ function Textarea({
         data-slot="textarea"
         aria-invalid={state === 'error' || undefined}
         className={cn(
-          'placeholder:text-muted-foreground flex field-sizing-content min-h-24 w-full rounded-xl border bg-white px-4 pt-3 pb-3.5 text-base transition-colors outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-50',
+          'placeholder:text-muted-foreground flex field-sizing-content min-h-24 w-full rounded-xl border bg-white px-4 pt-3 pb-3.5 text-base text-black transition-colors outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-50',
           stateStyles[state],
         )}
         maxLength={maxLength}

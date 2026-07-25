@@ -1,5 +1,5 @@
-import { type Book, GENRE_LABELS } from '@/lib';
-import { ReadingStatusBadge } from '@/components/common';
+import { type Book } from '@/lib';
+import { ReadingStatusBadge, GenreBadge } from '@/components/common';
 
 interface TooltipProps {
   book: Book;
@@ -12,9 +12,7 @@ export function Tooltip({ book }: TooltipProps) {
       <p className="text-secondary line-clamp-1 text-sm">{book.author}</p>
 
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
-        <span className="border-primary/15 bg-primary-foreground text-primary rounded-full border px-3 py-1.5 text-xs">
-          {GENRE_LABELS[book.genre]}
-        </span>
+        <GenreBadge genre={book.genre} />
         <ReadingStatusBadge status={book.status} />
       </div>
     </div>

@@ -43,7 +43,7 @@ export function Sidebar() {
           aria-label={isCollapsed ? '사이드바 펼치기' : '사이드바 접기'}
           aria-expanded={!isCollapsed}
           onClick={() => setIsCollapsed((current) => !current)}
-          className="hover:bg-primary-foreground/20 ml-auto flex size-9 items-center justify-center rounded-full transition-colors"
+          className="hover:bg-primary-foreground/20 ml-auto flex size-9 cursor-pointer items-center justify-center rounded-full transition-colors"
         >
           <ChevronLeft
             className={cn('size-5 transition-transform duration-500', isCollapsed && 'rotate-180')}
