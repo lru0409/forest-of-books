@@ -34,6 +34,13 @@ export const READING_STATUS_ICONS: Record<ReadingStatus, LucideIcon> = {
   ON_HOLD: PauseCircle,
 };
 
+export const READING_STATUS_STYLES: Record<ReadingStatus, string> = {
+  NOT_STARTED: 'border border-primary/15 bg-muted text-foreground',
+  READING: 'border border-transparent bg-secondary text-white',
+  COMPLETED: 'border border-transparent bg-primary text-primary-foreground',
+  ON_HOLD: 'border border-dashed border-secondary bg-transparent text-primary',
+};
+
 export const READING_STATUSES = Object.keys(READING_STATUS_LABELS) as ReadingStatus[];
 
 export const BOOK_COLORS: string[] = [
