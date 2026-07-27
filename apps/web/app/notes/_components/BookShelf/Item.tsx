@@ -1,10 +1,10 @@
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
-import { Book } from '@/lib';
+import { type BookWithNote } from '../../types';
 import { Tooltip as BookTooltip } from './Tooltip';
 
 interface ItemProps {
-  book: Book;
+  book: BookWithNote;
 }
 
 export function Item({ book }: ItemProps) {

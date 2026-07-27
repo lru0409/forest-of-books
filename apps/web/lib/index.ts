@@ -10,5 +10,5 @@ export {
   BOOK_COLORS,
 } from './constants/book';
 export type { ApiResponse } from './types/api';
-export type { Genre, ReadingStatus, Book } from './types/book';
+export type { Genre, ReadingStatus, Book, ReadingNote } from './types/book';
 export type { User } from './types/user';

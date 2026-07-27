@@ -1,8 +1,8 @@
-import { type Book } from '@/lib';
 import { ReadingStatusBadge, GenreBadge } from '@/components/common';
+import { type BookWithNote } from '../../types';
 
 interface TooltipProps {
-  book: Book;
+  book: BookWithNote;
 }
 
 export function Tooltip({ book }: TooltipProps) {
