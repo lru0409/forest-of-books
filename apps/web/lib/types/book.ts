@@ -20,6 +20,14 @@ export type Book = {
   title: string;
   author: string;
   genre: Genre;
+};
+
+export type ReadingNote = {
   status: ReadingStatus;
   color: string;
+  rating?: number;
+  comment?: string;
+  note?: string;
+  createdAt?: string;
+  updatedAt?: string;
 };

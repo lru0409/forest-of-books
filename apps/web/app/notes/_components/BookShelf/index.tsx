@@ -3,11 +3,11 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { type Book } from '@/lib';
+import { type BookWithNote } from '../../types';
 import { Item } from './Item';
 
 interface BookShelfProps {
-  books: Book[];
+  books: BookWithNote[];
 }
 
 const BOOK_WIDTH = 48;
@@ -42,7 +42,7 @@ export function BookShelf({ books }: BookShelfProps) {
     return () => observer.disconnect();
   }, []);
 
-  const shelves: Book[][] = [];
+  const shelves: BookWithNote[][] = [];
   for (let i = 0; i < books.length; i += booksPerShelf) {
     shelves.push(books.slice(i, i + booksPerShelf));
   }

@@ -1,8 +1,8 @@
-import { type Book, GENRE_LABELS } from '@/lib';
-import { ReadingStatusBadge } from '@/components/common';
+import { ReadingStatusBadge, GenreBadge } from '@/components/common';
+import { type BookWithNote } from '../../types';
 
 interface ItemProps {
-  book: Book;
+  book: BookWithNote;
   index?: number;
 }
 
@@ -20,10 +20,7 @@ export function Item({ book, index = 0 }: ItemProps) {
           <p className="text-secondary text-sm">{book.author}</p>
 
           <div className="mt-auto flex items-center gap-1.5">
-            <div className="border-primary/15 bg-primary-foreground text-primary rounded-full border px-3 py-1.5 text-xs">
-              {GENRE_LABELS[book.genre]}
-            </div>
-
+            <GenreBadge genre={book.genre} />
             <ReadingStatusBadge status={book.status} />
           </div>
         </div>
