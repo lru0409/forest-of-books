@@ -3,12 +3,12 @@
 import { useState, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { PROFILE_IMAGE_ACCEPTED_TYPES } from '../constants';
+import { PROFILE_IMAGE_ACCEPTED_TYPES } from '../../constants';
 import { Button, Input, Textarea } from '@/components/ui';
 import { useSignupStore } from '@/store/signupStore';
-import { Step } from '../constants';
+import { Step } from '../../constants';
 import { ProfileImageOverlay } from './ProfileImageOverlay';
-import useProfileStep from '../_hooks/useProfileStep';
+import useProfileStep from '../../_hooks/useProfileStep';
 
 export const ProfileStep = () => {
   const router = useRouter();

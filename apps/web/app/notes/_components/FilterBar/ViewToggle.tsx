@@ -3,7 +3,7 @@
 import { LayoutGrid, Rows3 } from 'lucide-react';
 
 import { cn } from '@/lib';
-import { type ViewMode } from '../types';
+import { type ViewMode } from '../../types';
 
 interface ViewToggleProps {
   view: ViewMode;

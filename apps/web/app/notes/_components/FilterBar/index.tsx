@@ -13,7 +13,7 @@ import {
   type ReadingStatus,
 } from '@/lib';
 import { MultiSelectFilter } from '@/components/common';
-import type { ViewMode } from '../types';
+import type { ViewMode } from '../../types';
 import { ViewToggle } from './ViewToggle';
 
 interface FilterBarProps {
