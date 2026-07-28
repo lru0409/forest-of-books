@@ -1,4 +1,5 @@
 export { cn } from './utils';
+export { formatDate } from './date';
 export { isValidEmail, isValidPassword, isValidNickname } from './validators';
 export {
   GENRE_LABELS,

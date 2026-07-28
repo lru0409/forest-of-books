@@ -4,6 +4,7 @@ import {
   READING_STATUS_LABELS,
   READING_STATUS_ICONS,
   READING_STATUS_STYLES,
+  type Book,
   type ReadingStatus,
 } from '@/lib';
 import {
@@ -13,13 +14,41 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { GenreBadge } from '@/components/common';
 
-interface ReadingStatusSelectProps {
+interface BookSummaryProps {
+  book: Book;
+  color: string;
   status: ReadingStatus;
-  onChange: (status: ReadingStatus) => void;
+  onStatusChange: (status: ReadingStatus) => void;
 }
 
-export function ReadingStatusSelect({ status, onChange }: ReadingStatusSelectProps) {
+export function BookSummary({ book, color, status, onStatusChange }: BookSummaryProps) {
+  return (
+    <div className="flex gap-4">
+      <div className="h-28 w-20 rounded-sm shadow-sm" style={{ backgroundColor: color }} />
+      <div className="flex-1 pt-1">
+        <h2 className="text-primary font-heading line-clamp-2 text-xl font-semibold">
+          {book.title}
+        </h2>
+        <p className="text-secondary mt-1 text-sm">{book.author}</p>
+
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <GenreBadge genre={book.genre} />
+          <ReadingStatusSelect status={status} onChange={onStatusChange} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function ReadingStatusSelect({
+  status,
+  onChange,
+}: {
+  status: ReadingStatus;
+  onChange: (status: ReadingStatus) => void;
+}) {
   return (
     <Select value={status} onValueChange={(value) => onChange(value as ReadingStatus)}>
       <SelectTrigger
