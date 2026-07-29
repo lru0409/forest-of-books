@@ -1,3 +1,7 @@
+'use client';
+
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 import { type BookWithNote } from '../../types';
@@ -8,10 +12,22 @@ interface ItemProps {
 }
 
 export function Item({ book }: ItemProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const handleClick = () => {
+    const navigate = searchParams.has('book') ? router.replace : router.push;
+    const params = new URLSearchParams(searchParams);
+    params.set('book', book.id);
+    navigate(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <div
+          onClick={handleClick}
           className="flex h-50 w-12 cursor-pointer rounded-sm shadow-md transition-transform duration-200 ease-out hover:-translate-y-3"
           style={{ backgroundColor: book.color }}
         >

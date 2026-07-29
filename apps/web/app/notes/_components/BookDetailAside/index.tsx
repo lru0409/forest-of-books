@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
 
-import { type Book, type ReadingNote } from '@/lib';
+import { cn, type Book, type ReadingNote } from '@/lib';
 import { Textarea } from '@/components/ui/textarea';
 import { BookSummary } from './BookSummary';
 import { RecordHeader } from './RecordHeader';
@@ -11,24 +12,135 @@ import { RecordSection } from './RecordSection';
 import { RatingInput } from './RatingInput';
 import { RatingStars } from './RatingStars';
 
-interface BookDetailPanelProps {
+const PANEL_DEFAULT_WIDTH = 672;
+const PANEL_MIN_WIDTH = 400;
+const PANEL_MAX_WIDTH_RATIO = 0.7;
+
+interface BookDetailAsideProps {
   book: Book;
   note: ReadingNote | undefined;
   onUpdateNote: (patch: Partial<ReadingNote>) => void;
-  onClose: () => void;
-  isFullscreen: boolean;
-  onToggleFullscreen: () => void;
+  isClosing: boolean;
+  isEntering: boolean;
+}
+
+export const BookDetailAside = ({
+  book,
+  note,
+  onUpdateNote,
+  isClosing,
+  isEntering,
+}: BookDetailAsideProps) => {
+  const searchParams = useSearchParams();
+
+  const [panelWidth, setPanelWidth] = useState(PANEL_DEFAULT_WIDTH);
+  const [isResizing, setIsResizing] = useState(false);
+  const isFullscreen = searchParams.get('fullscreen') === 'true';
+
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const maxWidth = window.innerWidth * PANEL_MAX_WIDTH_RATIO;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const nextWidth = window.innerWidth - e.clientX;
+      setPanelWidth(Math.min(Math.max(nextWidth, PANEL_MIN_WIDTH), maxWidth));
+    };
+    const handleMouseUp = () => setIsResizing(false);
+
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing]);
+
+  return (
+    <div
+      className={cn(
+        'z-50 transition-all duration-300 ease-in-out',
+        isFullscreen
+          ? 'fixed inset-0'
+          : 'fixed inset-0 md:sticky md:inset-auto md:top-0 md:h-screen md:w-(--panel-width) md:translate-x-0 md:self-start',
+        !isFullscreen && !isResizing && 'md:transition-[width]',
+        !isFullscreen && isResizing && 'transition-none',
+        (isClosing || isEntering) && 'translate-x-full overflow-hidden',
+      )}
+      style={
+        {
+          '--panel-width': `${isClosing || isEntering ? 0 : panelWidth}px`,
+        } as React.CSSProperties
+      }
+    >
+      {!isFullscreen && <ResizeHandle onResizeStart={() => setIsResizing(true)} />}
+      <BookDetailPanel
+        book={book}
+        note={note}
+        onUpdateNote={onUpdateNote}
+        isFullscreen={isFullscreen}
+      />
+    </div>
+  );
+};
+
+function ResizeHandle({ onResizeStart }: { onResizeStart: () => void }) {
+  return (
+    <div
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="상세 패널 너비 조절"
+      onMouseDown={(e) => {
+        e.preventDefault();
+        onResizeStart();
+      }}
+      className="hover:bg-primary/30 absolute top-0 left-0 z-10 hidden h-full w-1.5 -translate-x-1/2 cursor-col-resize transition-colors md:block"
+    />
+  );
 }
 
 export function BookDetailPanel({
   book,
   note,
   onUpdateNote,
-  onClose,
   isFullscreen,
-  onToggleFullscreen,
-}: BookDetailPanelProps) {
+}: {
+  book: Book;
+  note: ReadingNote | undefined;
+  onUpdateNote: (patch: Partial<ReadingNote>) => void;
+  isFullscreen: boolean;
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [isEditing, setIsEditing] = useState(false);
+
+  const handleClose = () => {
+    const params = new URLSearchParams(searchParams);
+    params.delete('book');
+    params.delete('fullscreen');
+    if (params.size === 0) {
+      router.push(pathname, { scroll: false });
+      return;
+    }
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleToggleFullscreen = () => {
+    const params = new URLSearchParams(searchParams);
+    if (isFullscreen) {
+      params.delete('fullscreen');
+    } else {
+      params.set('fullscreen', 'true');
+    }
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
 
   const startEditing = () => setIsEditing(true);
 
@@ -49,7 +161,7 @@ export function BookDetailPanel({
         <button
           type="button"
           aria-label="상세 패널 닫기"
-          onClick={onClose}
+          onClick={handleClose}
           className="hover:bg-primary-foreground/50 flex size-9 cursor-pointer items-center justify-center rounded-full transition-colors"
         >
           {isFullscreen ? (
@@ -61,7 +173,7 @@ export function BookDetailPanel({
         <button
           type="button"
           aria-label={isFullscreen ? '전체화면 종료' : '전체화면으로 보기'}
-          onClick={onToggleFullscreen}
+          onClick={handleToggleFullscreen}
           className="hover:bg-primary-foreground/50 flex size-9 cursor-pointer items-center justify-center rounded-full transition-colors"
         >
           {isFullscreen ? (
@@ -80,7 +192,7 @@ export function BookDetailPanel({
           onStatusChange={(status) => onUpdateNote({ status })}
         />
 
-        <div className="border-primary/20 mt-8 mb-6 flex flex-1 border-t"></div>
+        <div className="border-primary/20 mt-8 mb-6 flex flex-1 border-t" />
 
         <RecordHeader
           createdAt={note.createdAt}
