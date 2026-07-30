@@ -3,15 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BookOpen, ChevronLeft, MessageCircle, User } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-
-const NAV_ITEMS = [
-  { href: '/', icon: MessageCircle, label: '커뮤니티' },
-  { href: '/notes', icon: BookOpen, label: '독서 노트' },
-  { href: '/profile', icon: User, label: '프로필' },
-];
+import { NAV_ITEMS } from './constants';
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -22,7 +17,7 @@ export function Sidebar() {
     <nav
       aria-label="주요 메뉴"
       className={cn(
-        'bg-primary min-h-screen shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out',
+        'bg-primary hidden min-h-screen shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out md:block',
         isCollapsed ? 'w-16' : 'w-75',
       )}
     >

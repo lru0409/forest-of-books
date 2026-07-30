@@ -50,7 +50,7 @@ export function FilterBar({
         }
         className="min-w-65 flex-1"
       />
-      <div className="flex shrink-0 flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <MultiSelectFilter
           label="장르"
           options={GENRES.map((genre) => ({ value: genre, label: GENRE_LABELS[genre] }))}
