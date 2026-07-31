@@ -16,6 +16,8 @@ const PANEL_DEFAULT_WIDTH = 672;
 const PANEL_MIN_WIDTH = 400;
 const PANEL_MAX_WIDTH_RATIO = 0.7;
 
+export const PANEL_TRANSITION_MS = 300;
+
 interface BookDetailAsideProps {
   book: Book;
   note: ReadingNote | undefined;
@@ -61,10 +63,11 @@ export const BookDetailAside = ({
     };
   }, [isResizing]);
 
+  // TODO: 모바일인 경우 자동으로 fullscreen=true로 전환 & 축소 버튼 숨기기
   return (
     <div
       className={cn(
-        'z-50 transition-all duration-300 ease-in-out',
+        'z-50 transition-all ease-in-out',
         isFullscreen
           ? 'fixed inset-0'
           : 'fixed inset-0 md:sticky md:inset-auto md:top-0 md:h-screen md:w-(--panel-width) md:translate-x-0 md:self-start',
@@ -75,6 +78,7 @@ export const BookDetailAside = ({
       style={
         {
           '--panel-width': `${isClosing || isEntering ? 0 : panelWidth}px`,
+          transitionDuration: `${PANEL_TRANSITION_MS}ms`,
         } as React.CSSProperties
       }
     >
