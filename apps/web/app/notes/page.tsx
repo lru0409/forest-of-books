@@ -1,42 +1,106 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { BookOpen } from 'lucide-react';
 
-import { GENRES, READING_STATUSES, type Genre, type ReadingStatus, type Book } from '@/lib';
-import { MOCK_BOOKS } from './mockBooks';
+import {
+  GENRES,
+  READING_STATUSES,
+  type Genre,
+  type ReadingStatus,
+  type Book,
+  type ReadingNote,
+} from '@/lib';
+import { MOCK_BOOKS, MOCK_READING_NOTES } from './mockBooks';
 import { Container } from '@/components/layout';
-import { type ViewMode } from './types';
-import { BookShelf, BookCardGrid, FilterBar } from './_components';
+import { type ViewMode, type BookWithNote } from './types';
+import {
+  BookShelf,
+  BookCardGrid,
+  FilterBar,
+  BookDetailAside,
+  PANEL_TRANSITION_MS,
+} from './_components';
+
+const books = MOCK_BOOKS;
 
 export default function NotesPage() {
+  const searchParams = useSearchParams();
+  const selectedBookId = searchParams.get('book');
+
   const [viewMode, setViewMode] = useState<ViewMode>('shelf');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGenres, setSelectedGenres] = useState<Genre[]>([...GENRES]);
   const [selectedStatuses, setSelectedStatuses] = useState<ReadingStatus[]>([...READING_STATUSES]);
+  const [notes, setNotes] = useState<Record<string, ReadingNote>>(MOCK_READING_NOTES);
+
+  const [displayedBook, setDisplayedBook] = useState<Book | undefined>(undefined);
+  const [isClosing, setIsClosing] = useState(false);
+  const [isEntering, setIsEntering] = useState(false);
+  const wasOpenRef = useRef(false);
 
   const hasActiveFilters =
     searchQuery.trim() !== '' ||
     selectedGenres.length < GENRES.length ||
     selectedStatuses.length < READING_STATUSES.length;
 
+  // TODO: query 디바운싱 적용
   const filteredBooks = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    return MOCK_BOOKS.filter((book) => {
-      const matchesQuery =
-        query === '' ||
-        book.title.toLowerCase().includes(query) ||
-        book.author.toLowerCase().includes(query);
-      const matchesGenre = selectedGenres.includes(book.genre);
-      const matchesStatus = selectedStatuses.includes(book.status);
-      return matchesQuery && matchesGenre && matchesStatus;
-    });
-  }, [searchQuery, selectedGenres, selectedStatuses]);
+    return books
+      .map((book): BookWithNote => ({ ...book, ...notes[book.id]! }))
+      .filter((book) => {
+        const matchesQuery =
+          query === '' ||
+          book.title.toLowerCase().includes(query) ||
+          book.author.toLowerCase().includes(query);
+        const matchesGenre = selectedGenres.includes(book.genre);
+        const matchesStatus = selectedStatuses.includes(book.status);
+        return matchesQuery && matchesGenre && matchesStatus;
+      });
+  }, [notes, searchQuery, selectedGenres, selectedStatuses]);
+
+  useEffect(() => {
+    const selectedBook = selectedBookId ? books.find((book) => book.id === selectedBookId) : null;
+    if (selectedBook) {
+      const isNewlyOpening = !wasOpenRef.current;
+      setDisplayedBook(selectedBook);
+      setIsClosing(false);
+      wasOpenRef.current = true;
+
+      if (isNewlyOpening) {
+        setIsEntering(true);
+        const timer = setTimeout(() => setIsEntering(false), 20);
+        return () => clearTimeout(timer);
+      }
+    } else if (wasOpenRef.current) {
+      wasOpenRef.current = false;
+      setIsClosing(true);
+      const timer = setTimeout(() => setDisplayedBook(undefined), PANEL_TRANSITION_MS);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedBookId]);
+
+  const handleUpdateNote = (bookId: string, patch: Partial<ReadingNote>) => {
+    setNotes((current) => ({ ...current, [bookId]: { ...current[bookId]!, ...patch } }));
+  };
 
   return (
-    <Container>
-      <div className="flex h-full min-w-[400px] flex-col px-12 pt-8 pb-10">
+    <Container
+      aside={
+        displayedBook && (
+          <BookDetailAside
+            book={displayedBook}
+            note={notes[displayedBook.id]}
+            onUpdateNote={(patch) => handleUpdateNote(displayedBook.id, patch)}
+            isClosing={isClosing}
+            isEntering={isEntering}
+          />
+        )
+      }
+    >
+      <div className="flex h-full flex-col px-4 pt-8 md:min-w-[400px] md:px-12">
         <FilterBar
           searchQuery={searchQuery}
           onSearchQueryChange={setSearchQuery}
@@ -61,7 +125,7 @@ const BooksView = ({
   isFiltered,
 }: {
   mode: ViewMode;
-  books: Book[];
+  books: BookWithNote[];
   isFiltered: boolean;
 }) => {
   if (books.length === 0) {
