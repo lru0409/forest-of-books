@@ -7,6 +7,7 @@ import { BookOpen } from 'lucide-react';
 import {
   GENRES,
   READING_STATUSES,
+  useDebounce,
   type Genre,
   type ReadingStatus,
   type Book,
@@ -45,9 +46,10 @@ export default function NotesPage() {
     selectedGenres.length < GENRES.length ||
     selectedStatuses.length < READING_STATUSES.length;
 
-  // TODO: query 디바운싱 적용
+  const debouncedSearchQuery = useDebounce(searchQuery);
+
   const filteredBooks = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
+    const query = debouncedSearchQuery.trim().toLowerCase();
     return books
       .map((book): BookWithNote => ({ ...book, ...notes[book.id]! }))
       .filter((book) => {
@@ -59,7 +61,7 @@ export default function NotesPage() {
         const matchesStatus = selectedStatuses.includes(book.status);
         return matchesQuery && matchesGenre && matchesStatus;
       });
-  }, [notes, searchQuery, selectedGenres, selectedStatuses]);
+  }, [notes, debouncedSearchQuery, selectedGenres, selectedStatuses]);
 
   useEffect(() => {
     const selectedBook = selectedBookId ? books.find((book) => book.id === selectedBookId) : null;
