@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
 
-import { cn, type Book, type ReadingNote } from '@/lib';
+import { cn, useMediaQuery, type Book, type ReadingNote } from '@/lib';
 import { Textarea } from '@/components/ui/textarea';
 import { BookSummary } from './BookSummary';
 import { RecordHeader } from './RecordHeader';
@@ -34,10 +34,11 @@ export const BookDetailAside = ({
   isEntering,
 }: BookDetailAsideProps) => {
   const searchParams = useSearchParams();
+  const isMobile = !useMediaQuery('md');
+  const isFullscreen = isMobile || searchParams.get('fullscreen') === 'true';
 
   const [panelWidth, setPanelWidth] = useState(PANEL_DEFAULT_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
-  const isFullscreen = searchParams.get('fullscreen') === 'true';
 
   useEffect(() => {
     if (!isResizing) return;
@@ -63,7 +64,6 @@ export const BookDetailAside = ({
     };
   }, [isResizing]);
 
-  // TODO: 모바일인 경우 자동으로 fullscreen=true로 전환 & 축소 버튼 숨기기
   return (
     <div
       className={cn(
@@ -88,6 +88,7 @@ export const BookDetailAside = ({
         note={note}
         onUpdateNote={onUpdateNote}
         isFullscreen={isFullscreen}
+        showFullscreenToggle={!isMobile}
       />
     </div>
   );
@@ -113,11 +114,13 @@ export function BookDetailPanel({
   note,
   onUpdateNote,
   isFullscreen,
+  showFullscreenToggle,
 }: {
   book: Book;
   note: ReadingNote | undefined;
   onUpdateNote: (patch: Partial<ReadingNote>) => void;
   isFullscreen: boolean;
+  showFullscreenToggle: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -174,18 +177,20 @@ export function BookDetailPanel({
             <ChevronRight className="size-5" aria-hidden="true" />
           )}
         </button>
-        <button
-          type="button"
-          aria-label={isFullscreen ? '전체화면 종료' : '전체화면으로 보기'}
-          onClick={handleToggleFullscreen}
-          className="hover:bg-primary-foreground/50 flex size-9 cursor-pointer items-center justify-center rounded-full transition-colors"
-        >
-          {isFullscreen ? (
-            <Minimize2 className="size-4" aria-hidden="true" />
-          ) : (
-            <Maximize2 className="size-4" aria-hidden="true" />
-          )}
-        </button>
+        {showFullscreenToggle && (
+          <button
+            type="button"
+            aria-label={isFullscreen ? '전체화면 종료' : '전체화면으로 보기'}
+            onClick={handleToggleFullscreen}
+            className="hover:bg-primary-foreground/50 flex size-9 cursor-pointer items-center justify-center rounded-full transition-colors"
+          >
+            {isFullscreen ? (
+              <Minimize2 className="size-4" aria-hidden="true" />
+            ) : (
+              <Maximize2 className="size-4" aria-hidden="true" />
+            )}
+          </button>
+        )}
       </div>
 
       <div className="mx-auto w-full max-w-2xl min-w-2xs px-4">
