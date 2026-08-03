@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { BookOpen } from 'lucide-react';
 
 import {
   GENRES,
   READING_STATUSES,
   useDebounce,
+  useLocalStorage,
   type Genre,
   type ReadingStatus,
   type Book,
@@ -26,14 +27,27 @@ import {
 
 const books = MOCK_BOOKS;
 
+function parseFilterParam<T extends string>(value: string | null, validValues: readonly T[]): T[] {
+  if (!value) return [...validValues];
+  const values = value.split(',').filter((item): item is T => validValues.includes(item as T));
+  return values.length > 0 ? values : [...validValues];
+}
+
 export default function NotesPage() {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+  const searchParamsString = searchParams.toString();
   const selectedBookId = searchParams.get('book');
 
-  const [viewMode, setViewMode] = useState<ViewMode>('shelf');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedGenres, setSelectedGenres] = useState<Genre[]>([...GENRES]);
-  const [selectedStatuses, setSelectedStatuses] = useState<ReadingStatus[]>([...READING_STATUSES]);
+  const [viewMode, setViewMode] = useLocalStorage<ViewMode>('notes-view-mode', 'shelf');
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') ?? '');
+  const [selectedGenres, setSelectedGenres] = useState<Genre[]>(() =>
+    parseFilterParam(searchParams.get('genres'), GENRES),
+  );
+  const [selectedStatuses, setSelectedStatuses] = useState<ReadingStatus[]>(() =>
+    parseFilterParam(searchParams.get('statuses'), READING_STATUSES),
+  );
   const [notes, setNotes] = useState<Record<string, ReadingNote>>(MOCK_READING_NOTES);
 
   const [displayedBook, setDisplayedBook] = useState<Book | undefined>(undefined);
@@ -47,6 +61,38 @@ export default function NotesPage() {
     selectedStatuses.length < READING_STATUSES.length;
 
   const debouncedSearchQuery = useDebounce(searchQuery);
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParamsString);
+
+    if (debouncedSearchQuery) {
+      params.set('q', debouncedSearchQuery);
+    } else {
+      params.delete('q');
+    }
+
+    if (selectedGenres.length < GENRES.length) {
+      params.set('genres', selectedGenres.join(','));
+    } else {
+      params.delete('genres');
+    }
+
+    if (selectedStatuses.length < READING_STATUSES.length) {
+      params.set('statuses', selectedStatuses.join(','));
+    } else {
+      params.delete('statuses');
+    }
+
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [
+    debouncedSearchQuery,
+    selectedGenres,
+    selectedStatuses,
+    pathname,
+    router,
+    searchParamsString,
+  ]);
 
   const filteredBooks = useMemo(() => {
     const query = debouncedSearchQuery.trim().toLowerCase();
