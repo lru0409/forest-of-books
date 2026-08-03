@@ -2,6 +2,7 @@ export { cn } from './utils';
 export { formatDate } from './date';
 export { useDebounce } from './hooks/useDebounce';
 export { useMediaQuery } from './hooks/useMediaQuery';
+export { useLocalStorage } from './hooks/useLocalStorage';
 export { isValidEmail, isValidPassword, isValidNickname } from './validators';
 export {
   GENRE_LABELS,

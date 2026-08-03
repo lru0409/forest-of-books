@@ -1,17 +1,17 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronLeft } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import { useLocalStorage } from '@/lib';
 import { NAV_ITEMS } from './constants';
 
 export function Sidebar() {
   const pathname = usePathname();
 
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useLocalStorage('sidebar-collapsed', true);
 
   return (
     <nav
@@ -27,7 +27,7 @@ export function Sidebar() {
           href="/"
           aria-hidden={isCollapsed}
           className={cn(
-            'transition-[max-width,opacity overflow-hidden text-2xl font-semibold whitespace-nowrap duration-300',
+            'overflow-hidden text-2xl font-semibold whitespace-nowrap transition-[max-width,opacity] duration-300',
             isCollapsed ? 'max-w-0 opacity-0' : 'max-w-32 opacity-100',
           )}
         >
@@ -37,7 +37,7 @@ export function Sidebar() {
           type="button"
           aria-label={isCollapsed ? '사이드바 펼치기' : '사이드바 접기'}
           aria-expanded={!isCollapsed}
-          onClick={() => setIsCollapsed((current) => !current)}
+          onClick={() => setIsCollapsed(!isCollapsed)}
           className="hover:bg-primary-foreground/20 ml-auto flex size-9 cursor-pointer items-center justify-center rounded-full transition-colors"
         >
           <ChevronLeft
