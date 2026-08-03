@@ -42,6 +42,8 @@ export function BookSummary({ book, color, status, onStatusChange }: BookSummary
   );
 }
 
+// TODO: 호버 시 ring 효과 제거 & shadow 효과 추가
+
 export function ReadingStatusSelect({
   status,
   onChange,

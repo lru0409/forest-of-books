@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
 
-import { cn, useMediaQuery, type Book, type ReadingNote } from '@/lib';
+import { cn, useLocalStorage, useMediaQuery, type Book, type ReadingNote } from '@/lib';
 import { Textarea } from '@/components/ui/textarea';
 import { BookSummary } from './BookSummary';
 import { RecordHeader } from './RecordHeader';
@@ -33,9 +33,9 @@ export const BookDetailAside = ({
   isClosing,
   isEntering,
 }: BookDetailAsideProps) => {
-  const searchParams = useSearchParams();
   const isMobile = !useMediaQuery('md');
-  const isFullscreen = isMobile || searchParams.get('fullscreen') === 'true';
+  const [isFullscreen, setIsFullscreen] = useLocalStorage('book-detail-fullscreen', false);
+  const isFullscreenView = isMobile || isFullscreen;
 
   const [panelWidth, setPanelWidth] = useState(PANEL_DEFAULT_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
@@ -68,11 +68,11 @@ export const BookDetailAside = ({
     <div
       className={cn(
         'z-50 transition-all ease-in-out',
-        isFullscreen
+        isFullscreenView
           ? 'fixed inset-0'
           : 'fixed inset-0 md:sticky md:inset-auto md:top-0 md:h-screen md:w-(--panel-width) md:translate-x-0 md:self-start',
-        !isFullscreen && !isResizing && 'md:transition-[width]',
-        !isFullscreen && isResizing && 'transition-none',
+        !isFullscreenView && !isResizing && 'md:transition-[width]',
+        !isFullscreenView && isResizing && 'transition-none',
         (isClosing || isEntering) && 'translate-x-full overflow-hidden',
       )}
       style={
@@ -82,13 +82,14 @@ export const BookDetailAside = ({
         } as React.CSSProperties
       }
     >
-      {!isFullscreen && <ResizeHandle onResizeStart={() => setIsResizing(true)} />}
+      {!isFullscreenView && <ResizeHandle onResizeStart={() => setIsResizing(true)} />}
       <BookDetailPanel
         book={book}
         note={note}
         onUpdateNote={onUpdateNote}
-        isFullscreen={isFullscreen}
+        isFullscreen={isFullscreenView}
         showFullscreenToggle={!isMobile}
+        onToggleFullscreen={() => setIsFullscreen(!isFullscreenView)}
       />
     </div>
   );
@@ -115,12 +116,14 @@ export function BookDetailPanel({
   onUpdateNote,
   isFullscreen,
   showFullscreenToggle,
+  onToggleFullscreen,
 }: {
   book: Book;
   note: ReadingNote | undefined;
   onUpdateNote: (patch: Partial<ReadingNote>) => void;
   isFullscreen: boolean;
   showFullscreenToggle: boolean;
+  onToggleFullscreen: () => void;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -131,20 +134,9 @@ export function BookDetailPanel({
   const handleClose = () => {
     const params = new URLSearchParams(searchParams);
     params.delete('book');
-    params.delete('fullscreen');
     if (params.size === 0) {
       router.push(pathname, { scroll: false });
       return;
-    }
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  };
-
-  const handleToggleFullscreen = () => {
-    const params = new URLSearchParams(searchParams);
-    if (isFullscreen) {
-      params.delete('fullscreen');
-    } else {
-      params.set('fullscreen', 'true');
     }
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
@@ -181,7 +173,7 @@ export function BookDetailPanel({
           <button
             type="button"
             aria-label={isFullscreen ? '전체화면 종료' : '전체화면으로 보기'}
-            onClick={handleToggleFullscreen}
+            onClick={onToggleFullscreen}
             className="hover:bg-primary-foreground/50 flex size-9 cursor-pointer items-center justify-center rounded-full transition-colors"
           >
             {isFullscreen ? (
