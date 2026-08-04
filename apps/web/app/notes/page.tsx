@@ -148,7 +148,7 @@ export default function NotesPage() {
         )
       }
     >
-      <div className="flex h-full flex-col px-4 pt-8 md:min-w-[400px] md:px-12">
+      <div className="flex h-full flex-col md:min-w-[400px]">
         <FilterBar
           searchQuery={searchQuery}
           onSearchQueryChange={setSearchQuery}
@@ -159,7 +159,7 @@ export default function NotesPage() {
           view={viewMode}
           onViewChange={setViewMode}
         />
-        <div className="mt-8">
+        <div className="mt-6 flex flex-1 flex-col md:mt-8">
           <BooksView mode={viewMode} books={filteredBooks} isFiltered={hasActiveFilters} />
         </div>
       </div>

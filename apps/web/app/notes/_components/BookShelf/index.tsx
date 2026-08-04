@@ -13,7 +13,7 @@ interface BookShelfProps {
 const BOOK_WIDTH = 48;
 const BOOK_GAP = 6;
 const ROW_PADDING_X = 0; // 한 줄의 실제 padding (양쪽 합, 각 0px)
-const MIN_SIDE_MARGIN_X = 40; // 선반 양쪽에 최소로 남기고 싶은 여백 (양쪽 합, 각 20px)
+const MIN_SIDE_MARGIN_X = 20; // 선반 양쪽에 최소로 남기고 싶은 여백 (양쪽 합, 각 10px)
 const DEFAULT_BOOKS_PER_SHELF = 10;
 
 export function BookShelf({ books }: BookShelfProps) {
