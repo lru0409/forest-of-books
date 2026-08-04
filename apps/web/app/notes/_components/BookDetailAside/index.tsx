@@ -34,7 +34,7 @@ export const BookDetailAside = ({
   isEntering,
 }: BookDetailAsideProps) => {
   const isMobile = !useMediaQuery('md');
-  const [isFullscreen, setIsFullscreen] = useLocalStorage('book-detail-fullscreen', false);
+  const [isFullscreen, setIsFullscreen] = useLocalStorage('notes-book-detail-fullscreen', false);
   const isFullscreenView = isMobile || isFullscreen;
 
   const [panelWidth, setPanelWidth] = useState(PANEL_DEFAULT_WIDTH);
@@ -155,7 +155,7 @@ export function BookDetailPanel({
   }
 
   return (
-    <div className="border-primary/15 h-full w-full flex-col overflow-y-auto overscroll-contain border-l bg-white px-3.5 pt-5 pb-4">
+    <div className="border-primary/15 h-full w-full flex-col overflow-y-auto overscroll-contain border-l bg-white px-2 pt-3.5 pb-6 md:px-3.5 md:pt-5 md:pb-8">
       <div className="mb-4 flex items-center gap-1">
         <button
           type="button"

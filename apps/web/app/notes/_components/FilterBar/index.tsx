@@ -38,7 +38,7 @@ export function FilterBar({
   onViewChange,
 }: FilterBarProps) {
   return (
-    <div className="flex flex-wrap items-center gap-4">
+    <div className="flex flex-wrap items-center gap-2 md:gap-4">
       <Input
         value={searchQuery}
         onChange={(e) => onSearchQueryChange(e.target.value)}
@@ -48,7 +48,7 @@ export function FilterBar({
             <Search className="text-primary size-4" aria-hidden="true" />
           </div>
         }
-        className="min-w-65 flex-1"
+        className="min-w-full flex-1 md:min-w-75"
       />
       <div className="flex flex-wrap items-center gap-2">
         <MultiSelectFilter
@@ -68,8 +68,8 @@ export function FilterBar({
           onChange={(statuses) => onSelectedStatusesChange(statuses as ReadingStatus[])}
         />
         <ViewToggle view={view} onChange={onViewChange} />
-        <button className="border-primary/30 bg-primary/8 text-primary hover:bg-primary hover:text-primary-foreground flex h-9.5 w-9.5 cursor-pointer items-center justify-center rounded-full border transition-colors">
-          <Plus className="size-5" aria-hidden="true" />
+        <button className="border-primary/30 bg-primary/8 text-primary hover:bg-primary hover:text-primary-foreground flex h-7.5 w-7.5 cursor-pointer items-center justify-center rounded-full border transition-colors md:h-9.5 md:w-9.5">
+          <Plus className="size-4 md:size-5" aria-hidden="true" />
         </button>
       </div>
     </div>
