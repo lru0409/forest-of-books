@@ -1,6 +1,6 @@
 'use client';
 
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, Rows3, LayoutGrid } from 'lucide-react';
 
 import { Input } from '@/components/ui/input';
 import {
@@ -12,9 +12,13 @@ import {
   type Genre,
   type ReadingStatus,
 } from '@/lib';
-import { MultiSelectFilter } from '@/components/common';
+import { MultiSelectFilter, SegmentedToggle, type SegmentedToggleOption } from '@/components/common';
 import type { ViewMode } from '../../types';
-import { ViewToggle } from './ViewToggle';
+
+const VIEW_OPTIONS: SegmentedToggleOption<ViewMode>[] = [
+  { value: 'shelf', label: '책장', icon: Rows3 },
+  { value: 'card', label: '카드', icon: LayoutGrid },
+];
 
 interface FilterBarProps {
   searchQuery: string;
@@ -67,8 +71,13 @@ export function FilterBar({
           selected={selectedStatuses}
           onChange={(statuses) => onSelectedStatusesChange(statuses as ReadingStatus[])}
         />
-        <ViewToggle view={view} onChange={onViewChange} />
         <button className="border-primary/30 bg-primary/8 text-primary hover:bg-primary hover:text-primary-foreground flex h-7.5 w-7.5 cursor-pointer items-center justify-center rounded-full border transition-colors md:h-9.5 md:w-9.5">
+        <SegmentedToggle
+          value={view}
+          onChange={onViewChange}
+          options={VIEW_OPTIONS}
+          ariaLabel="책 목록 보기 방식"
+        />
           <Plus className="size-4 md:size-5" aria-hidden="true" />
         </button>
       </div>
