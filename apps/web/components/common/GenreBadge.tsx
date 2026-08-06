@@ -6,7 +6,7 @@ interface GenreBadgeProps {
 
 export function GenreBadge({ genre }: GenreBadgeProps) {
   return (
-    <span className="border-primary/15 bg-primary-foreground text-primary rounded-full border px-3 py-1.5 text-xs">
+    <span className="border-primary/15 bg-primary-foreground text-primary rounded-full border px-3 py-1.5 text-xs font-semibold">
       {GENRE_LABELS[genre]}
     </span>
   );
