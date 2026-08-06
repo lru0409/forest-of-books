@@ -42,8 +42,6 @@ export function BookSummary({ book, color, status, onStatusChange }: BookSummary
   );
 }
 
-// TODO: 호버 시 ring 효과 제거 & shadow 효과 추가
-
 export function ReadingStatusSelect({
   status,
   onChange,
@@ -55,8 +53,9 @@ export function ReadingStatusSelect({
     <Select value={status} onValueChange={(value) => onChange(value as ReadingStatus)}>
       <SelectTrigger
         aria-label="읽기 상태 변경"
+        emphasizeOpenState={false}
         className={cn(
-          'w-fit gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium',
+          'w-fit gap-1 rounded-full px-2.5 py-1.5 text-xs font-semibold',
           READING_STATUS_STYLES[status],
         )}
       >
@@ -70,7 +69,8 @@ export function ReadingStatusSelect({
               <SelectItem
                 key={value}
                 value={value}
-                className={cn('rounded-full text-xs font-medium', READING_STATUS_STYLES[value])}
+                interactive={false}
+                className={cn('rounded-full text-xs font-semibold', READING_STATUS_STYLES[value])}
               >
                 <span className="flex items-center gap-1 transition-transform duration-150 group-data-highlighted:scale-107">
                   <Icon className="size-3.5" aria-hidden="true" />
