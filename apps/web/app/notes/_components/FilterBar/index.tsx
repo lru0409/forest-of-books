@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { Search, Plus, Rows3, LayoutGrid } from 'lucide-react';
 
 import { Input } from '@/components/ui/input';
@@ -12,7 +13,11 @@ import {
   type Genre,
   type ReadingStatus,
 } from '@/lib';
-import { MultiSelectFilter, SegmentedToggle, type SegmentedToggleOption } from '@/components/common';
+import {
+  MultiSelectFilter,
+  SegmentedToggle,
+  type SegmentedToggleOption,
+} from '@/components/common';
 import type { ViewMode } from '../../types';
 
 const VIEW_OPTIONS: SegmentedToggleOption<ViewMode>[] = [
@@ -41,17 +46,15 @@ export function FilterBar({
   view,
   onViewChange,
 }: FilterBarProps) {
+  const router = useRouter();
+
   return (
     <div className="flex flex-wrap items-center gap-2 md:gap-4">
       <Input
         value={searchQuery}
         onChange={(e) => onSearchQueryChange(e.target.value)}
         placeholder="제목 또는 저자로 검색하세요."
-        prefix={
-          <div className="flex items-center">
-            <Search className="text-primary size-4" aria-hidden="true" />
-          </div>
-        }
+        prefix={<Search className="text-primary size-4" aria-hidden="true" />}
         className="min-w-full flex-1 md:min-w-75"
       />
       <div className="flex flex-wrap items-center gap-2">
@@ -71,13 +74,18 @@ export function FilterBar({
           selected={selectedStatuses}
           onChange={(statuses) => onSelectedStatusesChange(statuses as ReadingStatus[])}
         />
-        <button className="border-primary/30 bg-primary/8 text-primary hover:bg-primary hover:text-primary-foreground flex h-7.5 w-7.5 cursor-pointer items-center justify-center rounded-full border transition-colors md:h-9.5 md:w-9.5">
         <SegmentedToggle
           value={view}
           onChange={onViewChange}
           options={VIEW_OPTIONS}
           ariaLabel="책 목록 보기 방식"
         />
+        <button
+          type="button"
+          onClick={() => router.push('/notes/add')}
+          aria-label="책 추가하기"
+          className="border-primary/30 bg-primary/8 text-primary hover:bg-primary hover:text-primary-foreground flex h-7.5 w-7.5 cursor-pointer items-center justify-center rounded-full border transition-colors md:h-9.5 md:w-9.5"
+        >
           <Plus className="size-4 md:size-5" aria-hidden="true" />
         </button>
       </div>
