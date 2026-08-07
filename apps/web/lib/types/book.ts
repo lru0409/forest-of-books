@@ -20,6 +20,7 @@ export type Book = {
   title: string;
   author: string;
   genre: Genre;
+  publisher?: string;
 };
 
 export type ReadingNote = {
