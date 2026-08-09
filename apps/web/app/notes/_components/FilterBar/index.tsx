@@ -1,9 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Search, Plus, Rows3, LayoutGrid } from 'lucide-react';
+import { Plus, Rows3, LayoutGrid } from 'lucide-react';
 
-import { Input } from '@/components/ui/input';
 import {
   GENRES,
   GENRE_LABELS,
@@ -15,6 +14,7 @@ import {
 } from '@/lib';
 import {
   MultiSelectFilter,
+  SearchInput,
   SegmentedToggle,
   type SegmentedToggleOption,
 } from '@/components/common';
@@ -49,13 +49,12 @@ export function FilterBar({
   const router = useRouter();
 
   return (
-    <div className="flex flex-wrap items-center gap-2 md:gap-4">
-      <Input
+    <div className="flex flex-wrap items-center gap-3 md:gap-4">
+      <SearchInput
         value={searchQuery}
-        onChange={(e) => onSearchQueryChange(e.target.value)}
+        onChange={onSearchQueryChange}
         placeholder="제목 또는 저자로 검색하세요."
-        prefix={<Search className="text-primary size-4" aria-hidden="true" />}
-        className="min-w-full flex-1 md:min-w-75"
+        className="min-w-full md:min-w-80"
       />
       <div className="flex flex-wrap items-center gap-2">
         <MultiSelectFilter
