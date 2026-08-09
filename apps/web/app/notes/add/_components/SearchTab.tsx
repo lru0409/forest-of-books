@@ -1,18 +1,20 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { BookOpen, Search } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 
-import { Input } from '@/components/ui';
+import { SearchInput } from '@/components/common';
+import { Button } from '@/components/ui';
 import { BOOK_COLORS, useDebounce, type Book } from '@/lib';
 import { CATALOG } from '../../mockCatalog';
 
 interface SearchTabProps {
   existingBooks: Book[];
   onAdd: (book: Book) => void;
+  onGoToManual: () => void;
 }
 
-export function SearchTab({ existingBooks, onAdd }: SearchTabProps) {
+export function SearchTab({ existingBooks, onAdd, onGoToManual }: SearchTabProps) {
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounce(query);
   const isSearching = debouncedQuery.trim() !== '';
@@ -42,12 +44,11 @@ export function SearchTab({ existingBooks, onAdd }: SearchTabProps) {
 
   return (
     <div className="flex flex-1 flex-col gap-4">
-      <Input
+      <SearchInput
         autoFocus
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={setQuery}
         placeholder="제목 또는 저자로 검색하세요."
-        prefix={<Search className="text-primary size-4" aria-hidden="true" />}
       />
       <div className="flex flex-1 flex-col">
         {!isSearching && (
@@ -56,7 +57,14 @@ export function SearchTab({ existingBooks, onAdd }: SearchTabProps) {
         {isSearching && results.length === 0 && (
           <div className="flex flex-1 flex-col items-center justify-center">
             <BookOpen className="text-primary mb-5 size-18" strokeWidth={1.2} aria-hidden="true" />
-            <p className="text-primary text-center text-base font-medium">검색 결과가 없어요.</p>
+            <p className="text-primary mb-3 text-center text-base font-medium">
+              검색 결과가 없어요.
+              <br />
+              직접 입력해서 등록해주세요
+            </p>
+            <Button variant="outline" size="xs" onClick={onGoToManual}>
+              직접 입력하기
+            </Button>
           </div>
         )}
         <div className="flex flex-col gap-1">
