@@ -1,17 +1,26 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft } from 'lucide-react';
 
 import { Container } from '@/components/layout';
+import { SegmentedToggle, type SegmentedToggleOption } from '@/components/common';
 import { type Book } from '@/lib';
 import { MOCK_BOOKS } from '../mockBooks';
-import { SearchTab } from './_components';
+import { SearchTab, ManualTab } from './_components';
+import { type Mode } from './types';
 
 const books = MOCK_BOOKS;
 
+const MODE_OPTIONS: SegmentedToggleOption<Mode>[] = [
+  { value: 'search', label: '검색' },
+  { value: 'manual', label: '직접 입력' },
+];
+
 export default function AddBookPage() {
   const router = useRouter();
+  const [mode, setMode] = useState<Mode>('search');
 
   const handleAdd = (book: Book) => {
     console.log('TODO [Add Book]', book);
@@ -30,9 +39,26 @@ export default function AddBookPage() {
           돌아가기
         </button>
         <h1 className="mb-2 text-3xl font-bold">책 등록하기</h1>
-        <p className="text-secondary mb-3 text-base">검색해서 책을 등록해주세요.</p>
+        <p className="text-secondary mb-3 text-base">검색해서 등록하거나 직접 입력해주세요.</p>
+        <div className="mb-4">
+          <SegmentedToggle
+            value={mode}
+            onChange={setMode}
+            options={MODE_OPTIONS}
+            ariaLabel="책 등록 방식"
+            fullWidth
+          />
+        </div>
         <div className="flex flex-1 flex-col">
-          <SearchTab existingBooks={books} onAdd={handleAdd} />
+          {mode === 'search' ? (
+            <SearchTab
+              existingBooks={books}
+              onAdd={handleAdd}
+              onGoToManual={() => setMode('manual')}
+            />
+          ) : (
+            <ManualTab onAdd={(book) => handleAdd({ ...book, id: crypto.randomUUID() })} />
+          )}
         </div>
       </div>
     </Container>
