@@ -16,6 +16,7 @@ interface SegmentedToggleProps<T extends string> {
   options: SegmentedToggleOption<T>[];
   ariaLabel: string;
   fullWidth?: boolean;
+  size?: 'sm' | 'md';
 }
 
 export function SegmentedToggle<T extends string>({
@@ -24,6 +25,7 @@ export function SegmentedToggle<T extends string>({
   options,
   ariaLabel,
   fullWidth = false,
+  size = 'md',
 }: SegmentedToggleProps<T>) {
   const activeIndex = options.findIndex((option) => option.value === value);
 
@@ -55,7 +57,8 @@ export function SegmentedToggle<T extends string>({
             aria-selected={isActive}
             onClick={() => onChange(optionValue)}
             className={cn(
-              'group relative z-10 flex cursor-pointer items-center justify-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-medium transition-colors md:px-3.5',
+              'group relative z-10 flex cursor-pointer items-center justify-center rounded-full px-2.5 py-1.5 font-medium transition-colors',
+              size === 'sm' ? 'gap-1 text-xs' : 'gap-1.5 text-sm md:px-3.5',
               isActive ? 'text-primary-foreground' : 'text-primary',
             )}
           >
