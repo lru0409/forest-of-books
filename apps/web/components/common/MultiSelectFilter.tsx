@@ -20,8 +20,6 @@ interface MultiSelectFilterProps {
 }
 
 export function MultiSelectFilter({ label, options, selected, onChange }: MultiSelectFilterProps) {
-  const isAllSelected = selected.length >= options.length;
-
   const toggle = (value: string) => {
     onChange(selected.includes(value) ? selected.filter((v) => v !== value) : [...selected, value]);
   };
@@ -31,12 +29,9 @@ export function MultiSelectFilter({ label, options, selected, onChange }: MultiS
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="group border-primary/30 bg-primary/8 text-primary flex cursor-pointer items-center gap-1 rounded-full border px-2.5 py-1.5 text-xs font-medium md:gap-1.5 md:px-4 md:py-2 md:text-sm"
+          className="group border-primary/30 bg-primary/8 text-primary flex cursor-pointer items-center gap-1 rounded-full border px-2.5 py-1.5 text-xs font-medium"
         >
           {label}
-          <span className="bg-primary text-primary-foreground hidden h-5 min-w-4.5 items-center justify-center rounded-full px-1.5 text-[10px] md:flex">
-            {isAllSelected ? '전체' : selected.length}
-          </span>
           <ChevronDown
             className="text-primary size-3.5 transition-transform duration-200 group-data-[state=open]:rotate-180"
             aria-hidden="true"
