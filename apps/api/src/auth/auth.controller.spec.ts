@@ -280,11 +280,11 @@ describe('AuthController', () => {
       const req = { cookies: { social_pending_token: 'pending.token' } } as unknown as Request;
       const res = makeRes();
 
-      await controller.socialRegister(body, req, res);
+      const result = await controller.socialRegister(body, req, res);
 
       expect(res.clearCookie).toHaveBeenCalledWith('social_pending_token');
       expect(mockAuthService.socialRegister).toHaveBeenCalledWith('pending.token', body);
-      expect(res.json).toHaveBeenCalledWith({ token: 'final.jwt' });
+      expect(result).toEqual({ token: 'final.jwt' });
     });
 
     it('service throw 시 에러 전파 + clearCookie는 이미 호출된 상태', async () => {
@@ -311,12 +311,11 @@ describe('AuthController', () => {
         preferredGenres: [],
       };
       mockAuthService.register.mockResolvedValue('user.jwt');
-      const res = makeRes();
 
-      await controller.register(body, res);
+      const result = await controller.register(body);
 
       expect(mockAuthService.register).toHaveBeenCalledWith(body);
-      expect(res.json).toHaveBeenCalledWith({ token: 'user.jwt' });
+      expect(result).toEqual({ token: 'user.jwt' });
     });
   });
 
@@ -327,12 +326,11 @@ describe('AuthController', () => {
     it('login 호출 후 token 응답', async () => {
       const body = { email: 'user@example.com', password: 'Password1!' };
       mockAuthService.login.mockResolvedValue('user.jwt');
-      const res = makeRes();
 
-      await controller.login(body, res);
+      const result = await controller.login(body);
 
       expect(mockAuthService.login).toHaveBeenCalledWith(body);
-      expect(res.json).toHaveBeenCalledWith({ token: 'user.jwt' });
+      expect(result).toEqual({ token: 'user.jwt' });
     });
   });
 
