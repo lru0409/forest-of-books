@@ -21,6 +21,9 @@ import {
   RegisterDto,
   SocialRegisterDto,
   LoginDto,
+  CheckNicknameResponseDto,
+  AuthTokenResponseDto,
+  MeResponseDto,
 } from './dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import type { User } from '@repo/db';
@@ -116,35 +119,39 @@ export class AuthController {
   }
 
   @Get('check-nickname')
-  async checkNickname(@Query() query: CheckNicknameDto) {
+  async checkNickname(@Query() query: CheckNicknameDto): Promise<CheckNicknameResponseDto> {
     const existingNicknameUser = await this.authService.findUserByNickname(query.nickname);
     return { available: !existingNicknameUser };
   }
 
   @Post('social/register')
-  async socialRegister(@Body() body: SocialRegisterDto, @Req() req: Request, @Res() res: Response) {
+  async socialRegister(
+    @Body() body: SocialRegisterDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthTokenResponseDto> {
     const socialPendingToken = req.cookies['social_pending_token'];
     if (typeof socialPendingToken !== 'string') throw new UnauthorizedException();
     res.clearCookie('social_pending_token');
     const token = await this.authService.socialRegister(socialPendingToken, body);
-    return res.json({ token });
+    return { token };
   }
 
   @Post('register')
-  async register(@Body() body: RegisterDto, @Res() res: Response) {
+  async register(@Body() body: RegisterDto): Promise<AuthTokenResponseDto> {
     const token = await this.authService.register(body);
-    return res.json({ token });
+    return { token };
   }
 
   @Post('login')
-  async login(@Body() body: LoginDto, @Res() res: Response) {
+  async login(@Body() body: LoginDto): Promise<AuthTokenResponseDto> {
     const token = await this.authService.login(body);
-    return res.json({ token });
+    return { token };
   }
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  me(@Req() req: Request) {
+  me(@Req() req: Request): MeResponseDto {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...user } = req.user as User;
     return user;
