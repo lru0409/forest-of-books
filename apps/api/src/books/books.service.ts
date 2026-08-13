@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { ALADIN_SEARCH_URL } from './lib/constants';
 import type { AladinSearchResponse } from './lib/aladin-api.types';
+import { mapAladinCategoryToGenre } from './lib/map-aladin-category-to-genre';
 import { SearchBookItemDto, SearchBooksResponseDto } from './dto/search-book-response.dto';
 
 @Injectable()
@@ -54,7 +55,7 @@ export class BooksService {
       publisher: item.publisher,
       isbn: item.isbn13,
       coverUrl: item.cover,
-      genre: null,
+      genre: item.categoryName ? mapAladinCategoryToGenre(item.categoryName) : null,
     }));
 
     return { total: data.totalResults, items };
