@@ -49,13 +49,13 @@ export class BooksService {
     }
 
     const items: SearchBookItemDto[] = (data.item ?? []).map((item) => ({
-      id: item.isbn13 || `${item.title}-${item.author}`,
+      id: item.isbn13 || `${item.title}-${item.author}`, // TODO isbn이 같은 책의 두 권 이상 검색되는 경우가 있음
       title: item.title,
       author: item.author,
       publisher: item.publisher,
       isbn: item.isbn13,
       coverUrl: item.cover,
-      genre: item.categoryName ? mapAladinCategoryToGenre(item.categoryName) : null,
+      genre: item.categoryName ? mapAladinCategoryToGenre(item.categoryName) : 'OTHER',
     }));
 
     return { total: data.totalResults, items };

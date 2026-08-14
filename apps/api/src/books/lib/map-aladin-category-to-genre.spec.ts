@@ -48,7 +48,7 @@ describe('mapAladinCategoryToGenre', () => {
     },
   );
 
-  it('categoryName이 없으면 null을 반환한다', () => {
-    expect(mapAladinCategoryToGenre('')).toBeNull();
+  it('categoryName이 없으면 OTHER를 반환한다', () => {
+    expect(mapAladinCategoryToGenre('')).toBe('OTHER');
   });
 });

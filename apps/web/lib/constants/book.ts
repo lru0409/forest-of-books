@@ -16,6 +16,7 @@ export const GENRE_LABELS: Record<Genre, string> = {
   TRAVEL: '여행',
   CHILDREN_TEEN: '아동·청소년',
   COMICS: '만화',
+  OTHER: '기타',
 };
 
 export const GENRES = Object.keys(GENRE_LABELS) as Genre[];
