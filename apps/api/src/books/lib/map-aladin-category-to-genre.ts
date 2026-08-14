@@ -6,12 +6,12 @@ const EXTRA_NOVEL_MIDDLE_CATEGORIES = new Set(['여성문학', '테마문학', '
  * 알라딘 categoryName은 "국내도서|외국도서>대분류>중분류>소분류" 형태의 문자열.
  * 대분류(top)로 1차 판별하고 "소설/시/희곡"처럼 형식이 섞인 대분류만 하위 세그먼트로 재분류한다.
  */
-export function mapAladinCategoryToGenre(categoryName: string): Genre | null {
+export function mapAladinCategoryToGenre(categoryName: string): Genre {
   const segments = categoryName
     .split('>')
     .map((segment) => segment.trim())
     .filter(Boolean);
-  if (segments.length === 0) return null;
+  if (segments.length === 0) return 'OTHER';
 
   const top = segments[1] ?? '';
 

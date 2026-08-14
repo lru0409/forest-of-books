@@ -11,7 +11,8 @@ export type Genre =
   | 'ART_CULTURE'
   | 'TRAVEL'
   | 'CHILDREN_TEEN'
-  | 'COMICS';
+  | 'COMICS'
+  | 'OTHER';
 
 export type ReadingStatus = 'NOT_STARTED' | 'READING' | 'COMPLETED' | 'ON_HOLD';
 

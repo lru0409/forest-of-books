@@ -7,7 +7,7 @@ export class SearchBookItemDto {
   publisher!: string;
   isbn!: string;
   coverUrl!: string;
-  genre!: Genre | null;
+  genre!: Genre;
 }
 
 export class SearchBooksResponseDto {
