@@ -1,6 +1,4 @@
-import type { Genre, ApiResponse, User } from '@/lib';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { type Genre, type ApiResponse, type User, API_URL, withApiErrorHandling } from '@/lib';
 
 async function sendEmailVerificationCode(email: string): Promise<ApiResponse> {
   const res = await fetch(`${API_URL}/auth/email-verifications`, {
@@ -37,7 +35,9 @@ async function verifyEmailCode(
   return { isSuccess: true, statusCode: res.status };
 }
 
-async function checkNickname(nickname: string): Promise<ApiResponse<{ available: boolean }>> {
+async function checkNickname(
+  nickname: string,
+): Promise<ApiResponse<{ available: boolean }>> {
   const res = await fetch(
     `${API_URL}/auth/check-nickname?nickname=${encodeURIComponent(nickname)}`,
   );
@@ -52,7 +52,9 @@ async function checkNickname(nickname: string): Promise<ApiResponse<{ available:
   };
 }
 
-async function uploadProfileImage(formData: FormData): Promise<ApiResponse<{ url: string }>> {
+async function uploadProfileImage(
+  formData: FormData,
+): Promise<ApiResponse<{ url: string }>> {
   const res = await fetch(`${API_URL}/upload/profile-image`, {
     method: 'POST',
     body: formData,
@@ -98,7 +100,9 @@ interface RegisterPayload {
   preferredGenres: Genre[];
 }
 
-async function generalRegister(payload: RegisterPayload): Promise<ApiResponse<{ token: string }>> {
+async function generalRegister(
+  payload: RegisterPayload,
+): Promise<ApiResponse<{ token: string }>> {
   const res = await fetch(`${API_URL}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -112,7 +116,10 @@ async function generalRegister(payload: RegisterPayload): Promise<ApiResponse<{ 
   return { isSuccess: true, statusCode: res.status, data: body };
 }
 
-async function login(email: string, password: string): Promise<ApiResponse<{ token: string }>> {
+async function login(
+  email: string,
+  password: string,
+): Promise<ApiResponse<{ token: string }>> {
   const res = await fetch(`${API_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -137,12 +144,12 @@ async function getMe(token: string | null): Promise<ApiResponse<User>> {
 }
 
 export default {
-  socialRegister,
-  generalRegister,
-  checkNickname,
-  sendEmailVerificationCode,
-  verifyEmailCode,
-  uploadProfileImage,
-  login,
-  getMe,
+  socialRegister: withApiErrorHandling(socialRegister),
+  generalRegister: withApiErrorHandling(generalRegister),
+  checkNickname: withApiErrorHandling(checkNickname),
+  sendEmailVerificationCode: withApiErrorHandling(sendEmailVerificationCode),
+  verifyEmailCode: withApiErrorHandling(verifyEmailCode),
+  uploadProfileImage: withApiErrorHandling(uploadProfileImage),
+  login: withApiErrorHandling(login),
+  getMe: withApiErrorHandling(getMe),
 };
