@@ -7,11 +7,8 @@ import { ChevronLeft } from 'lucide-react';
 import { Container } from '@/components/layout';
 import { SegmentedToggle, type SegmentedToggleOption } from '@/components/common';
 import { type Book } from '@/lib';
-import { MOCK_BOOKS } from '../mockBooks';
 import { SearchTab, ManualTab } from './_components';
 import { type Mode } from './types';
-
-const books = MOCK_BOOKS;
 
 const MODE_OPTIONS: SegmentedToggleOption<Mode>[] = [
   { value: 'search', label: '검색' },
@@ -51,11 +48,7 @@ export default function AddBookPage() {
         </div>
         <div className="flex flex-1 flex-col">
           {mode === 'search' ? (
-            <SearchTab
-              existingBooks={books}
-              onAdd={handleAdd}
-              onGoToManual={() => setMode('manual')}
-            />
+            <SearchTab onAdd={handleAdd} onGoToManual={() => setMode('manual')} />
           ) : (
             <ManualTab onAdd={(book) => handleAdd({ ...book, id: crypto.randomUUID() })} />
           )}

@@ -1,46 +1,159 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { BookOpen } from 'lucide-react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import { BookOpen, SearchX, LoaderCircle } from 'lucide-react';
 
-import { SearchInput } from '@/components/common';
+import { BookCover, BookLoader, SearchInput } from '@/components/common';
 import { Button } from '@/components/ui';
-import { BOOK_COLORS, useDebounce, type Book } from '@/lib';
-import { CATALOG } from '../../mockCatalog';
+import { useDebounce, type Book } from '@/lib';
+import booksService from '@/services/books';
 
 interface SearchTabProps {
-  existingBooks: Book[];
   onAdd: (book: Book) => void;
   onGoToManual: () => void;
 }
 
-export function SearchTab({ existingBooks, onAdd, onGoToManual }: SearchTabProps) {
+// TODO: 제목, 저자, 출판사가 너무 길면 생략 처리
+// TODO: 이미 등록된 책 클릭 시 처리
+// TODO: 로직을 훅으로 분리
+
+interface SearchState {
+  results: Book[];
+  total: number;
+  page: number;
+  isLoading: boolean;
+  isLoadingMore: boolean;
+  error: string | null;
+}
+
+const initialSearchState: SearchState = {
+  results: [],
+  total: 0,
+  page: 1,
+  isLoading: false,
+  isLoadingMore: false,
+  error: null,
+};
+
+type SearchAction =
+  | { type: 'RESET' }
+  | { type: 'FETCH_START' }
+  | { type: 'FETCH_SUCCESS'; results: Book[]; total: number }
+  | { type: 'FETCH_ERROR' }
+  | { type: 'LOAD_MORE_START' }
+  | { type: 'LOAD_MORE_SUCCESS'; results: Book[] }
+  | { type: 'LOAD_MORE_ERROR' };
+
+function searchReducer(state: SearchState, action: SearchAction): SearchState {
+  switch (action.type) {
+    case 'RESET':
+      return initialSearchState;
+    case 'FETCH_START':
+      return { ...initialSearchState, isLoading: true };
+    case 'FETCH_SUCCESS':
+      return {
+        ...state,
+        results: action.results,
+        total: action.total,
+        page: 1,
+        isLoading: false,
+        error: null,
+      };
+    case 'FETCH_ERROR':
+      return {
+        ...state,
+        isLoading: false,
+        error: '검색에 실패했어요. 잠시 후 다시 시도해주세요.',
+      };
+    case 'LOAD_MORE_START':
+      return { ...state, isLoadingMore: true };
+    case 'LOAD_MORE_SUCCESS':
+      return {
+        ...state,
+        results: [...state.results, ...action.results],
+        page: state.page + 1,
+        isLoadingMore: false,
+      };
+    case 'LOAD_MORE_ERROR':
+      return { ...state, isLoadingMore: false };
+    default:
+      return state;
+  }
+}
+
+export function SearchTab({ onAdd, onGoToManual }: SearchTabProps) {
   const [query, setQuery] = useState('');
+  const [state, dispatch] = useReducer(searchReducer, initialSearchState);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const requestIdRef = useRef(0);
+
   const debouncedQuery = useDebounce(query);
   const isSearching = debouncedQuery.trim() !== '';
+  const { results, total, page, isLoading, isLoadingMore, error } = state;
+  const hasMore = results.length < total;
 
-  const results = useMemo(() => {
-    if (!isSearching) return [];
+  useEffect(() => {
+    requestIdRef.current += 1;
+    const requestId = requestIdRef.current;
 
-    const normalizedQuery = debouncedQuery.trim().toLowerCase();
-    if (normalizedQuery === '') return [];
+    if (!isSearching) {
+      dispatch({ type: 'RESET' });
+      return;
+    }
 
-    const filtered = CATALOG.filter(
-      (book) =>
-        book.title.toLowerCase().includes(normalizedQuery) ||
-        book.author.toLowerCase().includes(normalizedQuery),
-    ).filter((book) => !existingBooks.some((existing) => existing.id === book.id));
+    const fetchResults = async () => {
+      dispatch({ type: 'FETCH_START' });
+      const response = await booksService.searchBooks(debouncedQuery.trim());
+      if (requestIdRef.current !== requestId) return;
+      if (!response.isSuccess) {
+        dispatch({ type: 'FETCH_ERROR' });
+      } else {
+        dispatch({
+          type: 'FETCH_SUCCESS',
+          results: response.data.items,
+          total: response.data.total,
+        });
+      }
+    };
 
-    return filtered;
-  }, [isSearching, debouncedQuery, existingBooks]);
+    fetchResults();
+  }, [debouncedQuery, isSearching]);
 
-  const suggestions = useMemo(
-    () =>
-      CATALOG.filter((book) => !existingBooks.some((existing) => existing.id === book.id)).slice(),
-    [existingBooks],
-  );
+  const loadMore = useCallback(async () => {
+    if (isLoading || isLoadingMore || !hasMore) return;
 
-  const listedBooks = isSearching ? results : suggestions;
+    const requestId = requestIdRef.current;
+    const nextPage = page + 1;
+    dispatch({ type: 'LOAD_MORE_START' });
+
+    const response = await booksService.searchBooks(debouncedQuery.trim(), nextPage);
+    if (requestIdRef.current !== requestId) return;
+    if (response.isSuccess) {
+      dispatch({ type: 'LOAD_MORE_SUCCESS', results: response.data.items });
+    } else {
+      dispatch({ type: 'LOAD_MORE_ERROR' });
+    }
+  }, [debouncedQuery, hasMore, isLoading, isLoadingMore, page]);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel || !hasMore) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0]?.isIntersecting) loadMore();
+    });
+    observer.observe(sentinel);
+
+    return () => observer.disconnect();
+  }, [hasMore, loadMore]);
+
+  const viewState = (() => {
+    if (!isSearching) return 'idle';
+    if (isLoading) return 'loading';
+    if (error) return 'error';
+    if (results.length === 0) return 'empty';
+    return 'results';
+  })();
 
   return (
     <div className="flex flex-1 flex-col gap-4">
@@ -51,45 +164,100 @@ export function SearchTab({ existingBooks, onAdd, onGoToManual }: SearchTabProps
         placeholder="제목 또는 저자로 검색하세요."
       />
       <div className="flex flex-1 flex-col">
-        {!isSearching && (
-          <p className="text-secondary px-2 pt-1 pb-2 text-sm font-medium">이런 책은 어때요?</p>
+        {viewState === 'idle' && (
+          <SearchStatus
+            icon={
+              <BookOpen
+                className="text-primary mb-5 size-18"
+                strokeWidth={1.2}
+                aria-hidden="true"
+              />
+            }
+            message="등록하고 싶은 책을 검색하세요."
+          />
         )}
-        {isSearching && results.length === 0 && (
-          <div className="flex flex-1 flex-col items-center justify-center">
-            <BookOpen className="text-primary mb-5 size-18" strokeWidth={1.2} aria-hidden="true" />
-            <p className="text-primary mb-3 text-center text-base font-medium">
-              검색 결과가 없어요.
-              <br />
-              직접 입력해서 등록해주세요
-            </p>
-            <Button variant="outline" size="xs" onClick={onGoToManual}>
-              직접 입력하기
-            </Button>
+        {viewState === 'loading' && (
+          <SearchStatus icon={<BookLoader size={120} />} message="불러오는 중..." />
+        )}
+        {viewState === 'empty' && (
+          <SearchStatus
+            icon={
+              <BookOpen
+                className="text-primary mb-5 size-18"
+                strokeWidth={1.2}
+                aria-hidden="true"
+              />
+            }
+            message={
+              <>
+                검색 결과가 없어요.
+                <br />
+                직접 입력해서 등록해주세요
+              </>
+            }
+            action={
+              <Button variant="outline" size="xs" onClick={onGoToManual}>
+                직접 입력하기
+              </Button>
+            }
+          />
+        )}
+        {viewState === 'error' && (
+          <SearchStatus
+            icon={
+              <SearchX className="text-primary mb-5 size-18" strokeWidth={1.2} aria-hidden="true" />
+            }
+            message={error}
+          />
+        )}
+        {viewState === 'results' && (
+          <div className="flex flex-col gap-1">
+            {results.map((book, index) => (
+              <button
+                key={book.id}
+                type="button"
+                onClick={() => onAdd({ ...book, genre: book.genre ?? 'OTHER' })}
+                className="hover:bg-primary/8 flex w-full cursor-pointer items-center gap-4 rounded-lg p-2 text-left transition-colors"
+              >
+                <BookCover book={book} index={index} />
+                <div className="flex flex-1 flex-col gap-1">
+                  <span className="text-base font-semibold">{book.title}</span>
+                  <span className="text-secondary text-sm">
+                    {book.author}
+                    {book.publisher ? ` | ${book.publisher}` : ''}
+                  </span>
+                </div>
+              </button>
+            ))}
           </div>
         )}
-        <div className="flex flex-col gap-1">
-          {listedBooks.map((book, index) => (
-            <button
-              key={book.id}
-              type="button"
-              onClick={() => onAdd(book)}
-              className="hover:bg-primary/8 flex w-full cursor-pointer items-center gap-4 rounded-lg p-2 text-left transition-colors"
-            >
-              <div
-                className="flex h-21 w-14 rounded-sm shadow-sm"
-                style={{ backgroundColor: BOOK_COLORS[index % BOOK_COLORS.length] }}
-              />
-              <div className="flex flex-1 flex-col gap-1">
-                <span className="text-base font-semibold">{book.title}</span>
-                <span className="text-secondary text-sm">
-                  {book.author}
-                  {book.publisher ? ` | ${book.publisher}` : ''}
-                </span>
-              </div>
-            </button>
-          ))}
-        </div>
+        {hasMore && (
+          <div ref={sentinelRef} className="flex items-center justify-center gap-1.5 py-6">
+            {isLoadingMore && (
+              <>
+                <LoaderCircle className="text-secondary size-5 animate-spin" strokeWidth={4} />
+                <p className="text-secondary text-sm">불러오는 중...</p>
+              </>
+            )}
+          </div>
+        )}
       </div>
+    </div>
+  );
+}
+
+interface SearchStatusProps {
+  icon: React.ReactNode;
+  message: React.ReactNode;
+  action?: React.ReactNode;
+}
+
+function SearchStatus({ icon, message, action }: SearchStatusProps) {
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center">
+      {icon}
+      <p className="text-primary mb-3 text-center text-base font-medium">{message}</p>
+      {action}
     </div>
   );
 }
