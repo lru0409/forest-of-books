@@ -1,12 +1,10 @@
-import { type Genre, type ApiResponse, type User, API_URL, withApiErrorHandling } from '@/lib';
+import { type Genre, type ApiResponse, type User, apiRequest } from '@/lib';
 
-async function sendEmailVerificationCode(email: string): Promise<ApiResponse> {
-  const res = await fetch(`${API_URL}/auth/email-verifications`, {
+function sendEmailVerificationCode(email: string): Promise<ApiResponse> {
+  return apiRequest('/auth/email-verifications', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email }),
+    body: { email },
   });
-  return { isSuccess: res.ok, statusCode: res.status };
 }
 
 interface EmailVerificationCodeMismatchData {
@@ -14,58 +12,25 @@ interface EmailVerificationCodeMismatchData {
   maxAttempts: number;
 }
 
-async function verifyEmailCode(
+function verifyEmailCode(
   email: string,
   code: string,
 ): Promise<ApiResponse<undefined, EmailVerificationCodeMismatchData>> {
-  const res = await fetch(`${API_URL}/auth/email-verifications/verify`, {
+  return apiRequest('/auth/email-verifications/verify', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, code }),
+    body: { email, code },
   });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    return {
-      isSuccess: false,
-      statusCode: res.status,
-      errorCode: body.errorCode,
-      data: body.data,
-    };
-  }
-  return { isSuccess: true, statusCode: res.status };
 }
 
-async function checkNickname(
-  nickname: string,
-): Promise<ApiResponse<{ available: boolean }>> {
-  const res = await fetch(
-    `${API_URL}/auth/check-nickname?nickname=${encodeURIComponent(nickname)}`,
-  );
-  if (!res.ok) {
-    return { isSuccess: false, statusCode: res.status };
-  }
-  const body = await res.json().catch(() => ({}));
-  return {
-    isSuccess: true,
-    statusCode: res.status,
-    data: body,
-  };
+function checkNickname(nickname: string): Promise<ApiResponse<{ available: boolean }>> {
+  return apiRequest(`/auth/check-nickname?nickname=${encodeURIComponent(nickname)}`);
 }
 
-async function uploadProfileImage(
-  formData: FormData,
-): Promise<ApiResponse<{ url: string }>> {
-  const res = await fetch(`${API_URL}/upload/profile-image`, {
+function uploadProfileImage(formData: FormData): Promise<ApiResponse<{ url: string }>> {
+  return apiRequest('/upload/profile-image', {
     method: 'POST',
     body: formData,
   });
-  console.log('uploadProfileImage res:', res);
-  if (!res.ok) {
-    return { isSuccess: false, statusCode: res.status };
-  }
-  const body = await res.json().catch(() => ({}));
-  console.log('uploadProfileImage body:', body);
-  return { isSuccess: true, statusCode: res.status, data: body };
 }
 
 interface SocialRegisterPayload {
@@ -75,20 +40,12 @@ interface SocialRegisterPayload {
   preferredGenres: Genre[];
 }
 
-async function socialRegister(
-  payload: SocialRegisterPayload,
-): Promise<ApiResponse<{ token: string }>> {
-  const res = await fetch(`${API_URL}/auth/social/register`, {
+function socialRegister(payload: SocialRegisterPayload): Promise<ApiResponse<{ token: string }>> {
+  return apiRequest('/auth/social/register', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify(payload),
+    body: payload,
   });
-  const body = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    return { isSuccess: false, statusCode: res.status, errorCode: body.errorCode };
-  }
-  return { isSuccess: true, statusCode: res.status, data: body };
 }
 
 interface RegisterPayload {
@@ -100,56 +57,34 @@ interface RegisterPayload {
   preferredGenres: Genre[];
 }
 
-async function generalRegister(
-  payload: RegisterPayload,
-): Promise<ApiResponse<{ token: string }>> {
-  const res = await fetch(`${API_URL}/auth/register`, {
+function generalRegister(payload: RegisterPayload): Promise<ApiResponse<{ token: string }>> {
+  return apiRequest('/auth/register', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify(payload),
+    body: payload,
   });
-  const body = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    return { isSuccess: false, statusCode: res.status, errorCode: body.errorCode };
-  }
-  return { isSuccess: true, statusCode: res.status, data: body };
 }
 
-async function login(
-  email: string,
-  password: string,
-): Promise<ApiResponse<{ token: string }>> {
-  const res = await fetch(`${API_URL}/auth/login`, {
+function login(email: string, password: string): Promise<ApiResponse<{ token: string }>> {
+  return apiRequest('/auth/login', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
+    body: { email, password },
   });
-  const body = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    return { isSuccess: false, statusCode: res.status, errorCode: body.errorCode };
-  }
-  return { isSuccess: true, statusCode: res.status, data: body };
 }
 
-async function getMe(token: string | null): Promise<ApiResponse<User>> {
-  const res = await fetch(`${API_URL}/auth/me`, {
+function getMe(token: string | null): Promise<ApiResponse<User>> {
+  return apiRequest('/auth/me', {
     headers: { Authorization: `Bearer ${token}` },
   });
-  const body = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    return { isSuccess: false, statusCode: res.status, errorCode: body.errorCode };
-  }
-  return { isSuccess: true, statusCode: res.status, data: body };
 }
 
 export default {
-  socialRegister: withApiErrorHandling(socialRegister),
-  generalRegister: withApiErrorHandling(generalRegister),
-  checkNickname: withApiErrorHandling(checkNickname),
-  sendEmailVerificationCode: withApiErrorHandling(sendEmailVerificationCode),
-  verifyEmailCode: withApiErrorHandling(verifyEmailCode),
-  uploadProfileImage: withApiErrorHandling(uploadProfileImage),
-  login: withApiErrorHandling(login),
-  getMe: withApiErrorHandling(getMe),
+  socialRegister,
+  generalRegister,
+  checkNickname,
+  sendEmailVerificationCode,
+  verifyEmailCode,
+  uploadProfileImage,
+  login,
+  getMe,
 };

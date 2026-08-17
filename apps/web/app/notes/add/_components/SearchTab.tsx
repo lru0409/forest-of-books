@@ -13,7 +13,6 @@ interface SearchTabProps {
   onGoToManual: () => void;
 }
 
-// TODO: 제목, 저자, 출판사가 너무 길면 생략 처리
 // TODO: 이미 등록된 책 클릭 시 처리
 // TODO: 로직을 훅으로 분리
 
@@ -221,8 +220,8 @@ export function SearchTab({ onAdd, onGoToManual }: SearchTabProps) {
               >
                 <BookCover book={book} index={index} />
                 <div className="flex flex-1 flex-col gap-1">
-                  <span className="text-base font-semibold">{book.title}</span>
-                  <span className="text-secondary text-sm">
+                  <span className="line-clamp-2 text-base font-semibold">{book.title}</span>
+                  <span className="text-secondary line-clamp-1 text-sm">
                     {book.author}
                     {book.publisher ? ` | ${book.publisher}` : ''}
                   </span>
