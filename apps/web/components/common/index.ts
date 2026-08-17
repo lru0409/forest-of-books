@@ -1,4 +1,5 @@
 export { BookLoader } from './BookLoader';
+export { BookCover } from './BookCover';
 export { ReadingStatusBadge } from './ReadingStatusBadge';
 export { GenreBadge } from './GenreBadge';
 export { MultiSelectFilter } from './MultiSelectFilter';

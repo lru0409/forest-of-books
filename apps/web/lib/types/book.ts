@@ -22,6 +22,8 @@ export type Book = {
   author: string;
   genre: Genre;
   publisher?: string;
+  coverUrl?: string;
+  isbn?: string;
 };
 
 export type ReadingNote = {
