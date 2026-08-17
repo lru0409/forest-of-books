@@ -14,7 +14,7 @@ export {
   BOOK_COLORS,
 } from './constants/book';
 export { API_URL } from './constants/api';
-export { withApiErrorHandling } from './with-api-error-handling';
+export { apiRequest } from './api-request';
 export type { ApiResponse } from './types/api';
 export type { Genre, ReadingStatus, Book, ReadingNote } from './types/book';
 export type { User } from './types/user';
