@@ -49,7 +49,7 @@ export class BooksService {
     }
 
     const items: SearchBookItemDto[] = (data.item ?? []).map((item) => ({
-      id: item.isbn13 || `${item.title}-${item.author}`, // TODO isbn이 같은 책의 두 권 이상 검색되는 경우가 있음
+      id: String(item.itemId),
       title: item.title,
       author: item.author,
       publisher: item.publisher,
