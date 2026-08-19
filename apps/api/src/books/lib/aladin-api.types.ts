@@ -1,4 +1,5 @@
 export interface AladinBookItem {
+  itemId: number;
   title: string;
   author: string;
   pubDate: string;
