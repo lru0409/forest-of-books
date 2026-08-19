@@ -29,6 +29,13 @@ enum Genre {
   OTHER
 }
 
+enum ReadingStatus {
+  NOT_STARTED
+  READING
+  COMPLETED
+  ON_HOLD
+}
+
 model User {
   id              String   @id @default(cuid())
   email           String?  @unique
@@ -42,6 +49,39 @@ model User {
   preferredGenres Genre[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  libraryEntries LibraryEntry[]
+}
+
+model Book {
+  id        String   @id @default(cuid())
+  isbn      String?  @unique
+  title     String
+  author    String
+  genre     Genre
+  publisher String?
+  coverUrl  String?
+  createdAt DateTime @default(now())
+
+  libraryEntries LibraryEntry[]
+}
+
+model LibraryEntry {
+  id        String        @id @default(cuid())
+  userId    String
+  bookId    String
+  status    ReadingStatus @default(NOT_STARTED)
+  color     String        @default("#A27873")
+  rating    Int?
+  comment   String?
+  note      String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+  book Book @relation(fields: [bookId], references: [id])
+
+  @@unique([userId, bookId])
 }
 
 model EmailVerificationCode {
