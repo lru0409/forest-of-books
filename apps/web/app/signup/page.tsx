@@ -24,14 +24,14 @@ function SignUpContent() {
   if (step === Step.GENRES && !canProceedToGenresStep) return null;
 
   return (
-    <Container className="relative flex min-h-170 justify-center">
+    <Container className="relative flex min-h-170 justify-center" showBottomNav={false}>
       <ProgressBar
         step={step}
         total={TOTAL_STEPS}
         isSubmitting={isSubmitting}
         onComplete={handleProgressComplete}
       />
-      <div className="flex w-125 min-w-80 pt-16 pb-10">
+      <div className="flex w-125 min-w-80 pt-16">
         {step === Step.EMAIL_PASSWORD && <EmailPasswordStep />}
         {step === Step.PROFILE && <ProfileStep />}
         {step === Step.GENRES && (
