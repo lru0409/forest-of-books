@@ -8,5 +8,7 @@ export class PrismaService {
   readonly user: PrismaClientType['user'] = prisma.user;
   readonly emailVerificationCode: PrismaClientType['emailVerificationCode'] =
     prisma.emailVerificationCode;
+  readonly book: PrismaClientType['book'] = prisma.book;
+  readonly libraryEntry: PrismaClientType['libraryEntry'] = prisma.libraryEntry;
   readonly $transaction: PrismaClientType['$transaction'] = prisma.$transaction.bind(prisma);
 }
