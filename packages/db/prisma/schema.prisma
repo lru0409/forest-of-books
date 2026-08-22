@@ -72,6 +72,7 @@ model LibraryEntry {
   bookId    String
   status    ReadingStatus @default(NOT_STARTED)
   color     String        @default("#A27873")
+  isPublic  Boolean       @default(false)
   rating    Int?
   comment   String?
   note      String?

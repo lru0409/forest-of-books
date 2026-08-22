@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsEnum,
   IsInt,
   IsOptional,
@@ -43,6 +44,10 @@ export class CreateLibraryEntryNoteDto {
   @IsOptional()
   @IsString()
   color?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isPublic?: boolean;
 
   @IsOptional()
   @IsInt()

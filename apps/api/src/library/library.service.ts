@@ -9,15 +9,15 @@ import {
   LibraryEntryListItemResponseDto,
 } from './dto';
 
-// TODO: 서재 아이템 public 여부 토글 기능
-
 @Injectable()
 export class LibraryService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findByUser(userId: string): Promise<LibraryEntryListItemResponseDto[]> {
+  async findByUser(userId: string, viewerId?: string): Promise<LibraryEntryListItemResponseDto[]> {
+    const isOwner = viewerId === userId;
+
     const entries = await this.prisma.libraryEntry.findMany({
-      where: { userId },
+      where: { userId, ...(!isOwner && { isPublic: true }) },
       include: { book: true },
       orderBy: { createdAt: 'desc' },
     });
@@ -25,12 +25,16 @@ export class LibraryService {
     return entries.map(toListItemDto);
   }
 
-  async findOne(entryId: string): Promise<LibraryEntryDetailResponseDto> {
+  async findOne(entryId: string, viewerId?: string): Promise<LibraryEntryDetailResponseDto> {
     const entry = await this.prisma.libraryEntry.findUnique({
       where: { id: entryId },
       include: { book: true },
     });
     if (!entry) throw new NotFoundException('서재 항목을 찾을 수 없습니다.');
+    const isOwner = viewerId === entry.userId;
+    if (!entry.isPublic && !isOwner) {
+      throw new NotFoundException('서재 항목을 찾을 수 없습니다.');
+    }
 
     return toDetailDto(entry);
   }
@@ -51,6 +55,7 @@ export class LibraryService {
           bookId: book.id,
           ...(dto.note?.status !== undefined && { status: dto.note.status }),
           ...(dto.note?.color !== undefined && { color: dto.note.color }),
+          ...(dto.note?.isPublic !== undefined && { isPublic: dto.note.isPublic }),
           ...(dto.note?.rating !== undefined && { rating: dto.note.rating }),
           ...(dto.note?.comment !== undefined && { comment: dto.note.comment }),
           ...(dto.note?.note !== undefined && { note: dto.note.note }),
@@ -77,6 +82,7 @@ function toListItemDto(entry: LibraryEntry & { book: Book }): LibraryEntryListIt
     coverUrl: entry.book.coverUrl,
     status: entry.status,
     color: entry.color,
+    isPublic: entry.isPublic,
   };
 }
 
