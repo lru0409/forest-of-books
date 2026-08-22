@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/comm
 import type { Request } from 'express';
 
 import { User } from '@repo/db';
+import { OptionalAuth } from 'src/auth/decorators/optional-auth.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 import { CreateLibraryEntryDto } from './dto/create-library-entry.dto';
@@ -14,8 +15,14 @@ export class LibraryController {
   constructor(private readonly libraryService: LibraryService) {}
 
   @Get()
-  findByUser(@Param('userId') userId: string): Promise<LibraryEntryListItemResponseDto[]> {
-    return this.libraryService.findByUser(userId);
+  @OptionalAuth()
+  @UseGuards(JwtAuthGuard)
+  findByUser(
+    @Param('userId') userId: string,
+    @Req() req: Request,
+  ): Promise<LibraryEntryListItemResponseDto[]> {
+    const viewerId = (req.user as User | undefined)?.id;
+    return this.libraryService.findByUser(userId, viewerId);
   }
 }
 
@@ -34,7 +41,13 @@ export class LibraryEntryController {
   }
 
   @Get(':entryId')
-  findOne(@Param('entryId') entryId: string): Promise<LibraryEntryDetailResponseDto> {
-    return this.libraryService.findOne(entryId);
+  @OptionalAuth()
+  @UseGuards(JwtAuthGuard)
+  findOne(
+    @Param('entryId') entryId: string,
+    @Req() req: Request,
+  ): Promise<LibraryEntryDetailResponseDto> {
+    const viewerId = (req.user as User | undefined)?.id;
+    return this.libraryService.findOne(entryId, viewerId);
   }
 }

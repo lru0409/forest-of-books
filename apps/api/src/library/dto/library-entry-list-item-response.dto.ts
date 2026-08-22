@@ -8,4 +8,5 @@ export class LibraryEntryListItemResponseDto {
   coverUrl!: string | null;
   status!: ReadingStatus;
   color!: string;
+  isPublic!: boolean;
 }
