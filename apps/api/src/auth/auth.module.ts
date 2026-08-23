@@ -30,6 +30,6 @@ import { GoogleStrategy } from './strategies/google.strategy';
     KakaoStrategy,
     GoogleStrategy,
   ],
-  exports: [JwtAuthGuard],
+  exports: [JwtAuthGuard, JwtModule],
 })
 export class AuthModule {}
