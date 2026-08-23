@@ -1,4 +1,9 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 import type { Book, LibraryEntry } from '@repo/db';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -7,6 +12,7 @@ import {
   CreateLibraryEntryDto,
   LibraryEntryDetailResponseDto,
   LibraryEntryListItemResponseDto,
+  UpdateLibraryEntryDto,
 } from './dto';
 
 @Injectable()
@@ -70,6 +76,46 @@ export class LibraryService {
       }
       throw error;
     }
+  }
+
+  async update(
+    entryId: string,
+    currentUserId: string,
+    dto: UpdateLibraryEntryDto,
+  ): Promise<LibraryEntryDetailResponseDto> {
+    await this.ensureCanEdit(entryId, currentUserId);
+
+    const entry = await this.prisma.libraryEntry.update({
+      where: { id: entryId },
+      data: {
+        ...(dto.status !== undefined && { status: dto.status }),
+        ...(dto.color !== undefined && { color: dto.color }),
+        ...(dto.isPublic !== undefined && { isPublic: dto.isPublic }),
+        ...(dto.rating !== undefined && { rating: dto.rating }),
+        ...(dto.comment !== undefined && { comment: dto.comment }),
+        ...(dto.note !== undefined && { note: dto.note }),
+      },
+      include: { book: true },
+    });
+
+    return toDetailDto(entry);
+  }
+
+  async remove(entryId: string, currentUserId: string): Promise<void> {
+    await this.ensureCanEdit(entryId, currentUserId);
+
+    await this.prisma.libraryEntry.delete({ where: { id: entryId } });
+  }
+
+  private async ensureCanEdit(entryId: string, currentUserId: string): Promise<void> {
+    const entry = await this.prisma.libraryEntry.findUnique({ where: { id: entryId } });
+    if (!entry) throw new NotFoundException('서재 항목을 찾을 수 없습니다.');
+    if (entry.userId === currentUserId) return;
+
+    if (entry.isPublic) {
+      throw new ForbiddenException('본인 서재 항목만 수정할 수 있습니다.');
+    }
+    throw new NotFoundException('서재 항목을 찾을 수 없습니다.');
   }
 }
 
