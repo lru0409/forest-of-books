@@ -4,6 +4,8 @@ import Lottie from 'lottie-react';
 
 import bookLoaderData from './book-loader.json';
 
+// TODO: 제거
+
 interface BookLoaderProps {
   size?: number;
   className?: string;
