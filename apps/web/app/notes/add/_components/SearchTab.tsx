@@ -1,9 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
-import { BookOpen, SearchX, LoaderCircle } from 'lucide-react';
+import { BookOpen, SearchX, LoaderCircle, Search, CircleX } from 'lucide-react';
 
-import { BookCover, BookLoader, SearchInput } from '@/components/common';
+import { BookCover, SearchInput, StatusNotice } from '@/components/common';
 import { Button } from '@/components/ui';
 import { useDebounce, type Book } from '@/lib';
 import booksService from '@/services/books';
@@ -164,49 +164,43 @@ export function SearchTab({ onAdd, onGoToManual }: SearchTabProps) {
       />
       <div className="flex flex-1 flex-col">
         {viewState === 'idle' && (
-          <SearchStatus
-            icon={
-              <BookOpen
-                className="text-primary mb-5 size-18"
-                strokeWidth={1.2}
-                aria-hidden="true"
-              />
-            }
-            message="등록하고 싶은 책을 검색하세요."
+          <StatusNotice
+            className="flex-1"
+            icon={<Search className="text-primary size-10" strokeWidth={2.5} aria-hidden="true" />}
+            title="등록하고 싶은 책을 검색하세요."
           />
         )}
         {viewState === 'loading' && (
-          <SearchStatus icon={<BookLoader size={120} />} message="불러오는 중..." />
-        )}
-        {viewState === 'empty' && (
-          <SearchStatus
+          <StatusNotice
+            className="flex-1"
             icon={
-              <BookOpen
-                className="text-primary mb-5 size-18"
-                strokeWidth={1.2}
+              <LoaderCircle
+                className="text-primary size-9 animate-spin"
+                strokeWidth={2.5}
                 aria-hidden="true"
               />
             }
-            message={
-              <>
-                검색 결과가 없어요.
-                <br />
-                직접 입력해서 등록해주세요
-              </>
-            }
+            title="불러오는 중..."
+          />
+        )}
+        {viewState === 'empty' && (
+          <StatusNotice
+            className="flex-1"
+            icon={<CircleX className="text-primary size-12" strokeWidth={1.6} aria-hidden="true" />}
+            title="검색 결과가 없어요."
+            description="직접 입력해서 등록해주세요"
             action={
-              <Button variant="outline" size="xs" onClick={onGoToManual}>
+              <Button size="sm" className="mt-2" onClick={onGoToManual}>
                 직접 입력하기
               </Button>
             }
           />
         )}
         {viewState === 'error' && (
-          <SearchStatus
-            icon={
-              <SearchX className="text-primary mb-5 size-18" strokeWidth={1.2} aria-hidden="true" />
-            }
-            message={error}
+          <StatusNotice
+            className="flex-1"
+            icon={<SearchX className="text-primary size-12" strokeWidth={2} aria-hidden="true" />}
+            title={error ?? '오류가 발생했어요.'}
           />
         )}
         {viewState === 'results' && (
@@ -241,22 +235,6 @@ export function SearchTab({ onAdd, onGoToManual }: SearchTabProps) {
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-interface SearchStatusProps {
-  icon: React.ReactNode;
-  message: React.ReactNode;
-  action?: React.ReactNode;
-}
-
-function SearchStatus({ icon, message, action }: SearchStatusProps) {
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center">
-      {icon}
-      <p className="text-primary mb-3 text-center text-base font-medium">{message}</p>
-      {action}
     </div>
   );
 }

@@ -16,6 +16,7 @@ import {
 } from '@/lib';
 import { MOCK_BOOKS, MOCK_READING_NOTES } from './mockBooks';
 import { Container } from '@/components/layout';
+import { StatusNotice } from '@/components/common';
 import { type ViewMode, type BookWithNote } from './types';
 import {
   BookShelf,
@@ -178,17 +179,14 @@ const BooksView = ({
 }) => {
   if (books.length === 0) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center">
-        <BookOpen className="text-primary mb-5 size-18" strokeWidth={1.2} aria-hidden="true" />
-        <p className="text-primary mb-1.5 text-lg font-semibold">
-          {isFiltered ? '조건에 맞는 책이 없어요' : '책장이 비어있어요'}
-        </p>
-        <p className="text-secondary text-base font-semibold">
-          {isFiltered
-            ? '검색어나 필터 조건을 바꿔보세요.'
-            : '책을 추가해 나만의 서재를 채워보세요.'}
-        </p>
-      </div>
+      <StatusNotice
+        className="flex-1"
+        icon={<BookOpen className="text-primary size-18" strokeWidth={1.2} aria-hidden="true" />}
+        title={isFiltered ? '조건에 맞는 책이 없어요' : '책장이 비어있어요'}
+        description={
+          isFiltered ? '검색어나 필터 조건을 바꿔보세요.' : '책을 추가해 나만의 서재를 채워보세요.'
+        }
+      />
     );
   }
 
