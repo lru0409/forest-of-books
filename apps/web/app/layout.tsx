@@ -4,6 +4,7 @@ import { Noto_Sans_KR } from 'next/font/google';
 
 import { cn } from '@/lib';
 import { DialogProvider } from '@/context/dialog';
+import { AuthProvider } from '@/providers/AuthProvider';
 
 const notoSansKR = Noto_Sans_KR({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -20,7 +21,9 @@ export default function RootLayout({
   return (
     <html lang="ko" className={cn('font-sans', notoSansKR.variable)}>
       <body>
-        <DialogProvider>{children}</DialogProvider>
+        <AuthProvider>
+          <DialogProvider>{children}</DialogProvider>
+        </AuthProvider>
       </body>
     </html>
   );

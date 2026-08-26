@@ -18,7 +18,7 @@ function useRegistration() {
 
   const { email, password, nickname, bio, profileImageUrl, isSocialLogin, update } =
     useSignupStore();
-  const { setToken } = useAuthStore();
+  const setToken = useAuthStore((state) => state.setToken);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const progressResolveRef = useRef<(() => void) | null>(null);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
-import { BookOpen, SearchX, LoaderCircle, Search, CircleX } from 'lucide-react';
+import { SearchX, LoaderCircle, Search, CircleX } from 'lucide-react';
 
 import { BookCover, SearchInput, StatusNotice } from '@/components/common';
 import { Button } from '@/components/ui';
