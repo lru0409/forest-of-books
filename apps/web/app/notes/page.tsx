@@ -11,12 +11,14 @@ import {
   useLocalStorage,
   type Genre,
   type ReadingStatus,
-  type Book,
   type ReadingNote,
+  type LibraryEntryListItem,
 } from '@/lib';
-import { MOCK_BOOKS, MOCK_READING_NOTES } from './mockBooks';
 import { Container } from '@/components/layout';
+import { Button } from '@/components/ui/button';
 import { StatusNotice } from '@/components/common';
+import { useAuthStore } from '@/store/authStore';
+import LibraryService from '@/services/library';
 import { type ViewMode, type BookWithNote } from './types';
 import {
   BookShelf,
@@ -25,8 +27,6 @@ import {
   BookDetailAside,
   PANEL_TRANSITION_MS,
 } from './_components';
-
-const books = MOCK_BOOKS;
 
 function parseFilterParam<T extends string>(value: string | null, validValues: readonly T[]): T[] {
   if (!value) return [...validValues];
@@ -41,6 +41,9 @@ export default function NotesPage() {
   const searchParamsString = searchParams.toString();
   const selectedBookId = searchParams.get('book');
 
+  const token = useAuthStore((state) => state.token);
+  const user = useAuthStore((state) => state.user);
+
   const [viewMode, setViewMode] = useLocalStorage<ViewMode>('notes-view-mode', 'shelf');
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') ?? '');
   const [selectedGenres, setSelectedGenres] = useState<Genre[]>(() =>
@@ -49,12 +52,40 @@ export default function NotesPage() {
   const [selectedStatuses, setSelectedStatuses] = useState<ReadingStatus[]>(() =>
     parseFilterParam(searchParams.get('statuses'), READING_STATUSES),
   );
-  const [notes, setNotes] = useState<Record<string, ReadingNote>>(MOCK_READING_NOTES);
 
-  const [displayedBook, setDisplayedBook] = useState<Book | undefined>(undefined);
+  const [books, setBooks] = useState<BookWithNote[]>([]);
+  const [notes, setNotes] = useState<Record<string, ReadingNote>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(false);
+
+  const [displayedBook, setDisplayedBook] = useState<BookWithNote | undefined>(undefined);
   const [isClosing, setIsClosing] = useState(false);
   const [isEntering, setIsEntering] = useState(false);
   const wasOpenRef = useRef(false);
+
+  useEffect(() => {
+    if (!user || !token) return;
+
+    setIsLoading(true);
+    setError(false);
+    LibraryService.getUserLibrary(user.id, token).then((result) => {
+      if (result.isSuccess) {
+        const entries: LibraryEntryListItem[] = result.data;
+        setBooks(entries.map((entry) => ({ ...entry, coverUrl: entry.coverUrl ?? undefined })));
+        setNotes(
+          Object.fromEntries(
+            entries.map((entry) => [
+              entry.id,
+              { status: entry.status, color: entry.color, isPublic: entry.isPublic },
+            ]),
+          ),
+        );
+      } else {
+        setError(true);
+      }
+      setIsLoading(false);
+    });
+  }, [user, token]);
 
   const hasActiveFilters =
     searchQuery.trim() !== '' ||
@@ -108,7 +139,7 @@ export default function NotesPage() {
         const matchesStatus = selectedStatuses.includes(book.status);
         return matchesQuery && matchesGenre && matchesStatus;
       });
-  }, [notes, debouncedSearchQuery, selectedGenres, selectedStatuses]);
+  }, [books, notes, debouncedSearchQuery, selectedGenres, selectedStatuses]);
 
   useEffect(() => {
     const selectedBook = selectedBookId ? books.find((book) => book.id === selectedBookId) : null;
@@ -129,11 +160,55 @@ export default function NotesPage() {
       const timer = setTimeout(() => setDisplayedBook(undefined), PANEL_TRANSITION_MS);
       return () => clearTimeout(timer);
     }
-  }, [selectedBookId]);
+  }, [selectedBookId, books]);
 
   const handleUpdateNote = (bookId: string, patch: Partial<ReadingNote>) => {
     setNotes((current) => ({ ...current, [bookId]: { ...current[bookId]!, ...patch } }));
   };
+
+  if (!token) {
+    return (
+      <Container>
+        <StatusNotice
+          className="h-full"
+          icon={<BookOpen className="text-primary size-18" strokeWidth={1.2} aria-hidden="true" />}
+          title="로그인이 필요해요"
+          description="로그인하고 나만의 서재를 확인해보세요."
+          action={
+            <Button className="mt-6 w-full" onClick={() => router.push('/signin')}>
+              로그인하러 가기
+            </Button>
+          }
+        />
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container>
+        <StatusNotice
+          className="h-full"
+          icon={<BookOpen className="text-primary size-18" strokeWidth={1.2} aria-hidden="true" />}
+          title="서재를 불러오지 못했어요"
+          description="잠시 후 다시 시도해주세요."
+        />
+      </Container>
+    );
+  }
+
+  if (!user || isLoading) {
+    return (
+      <Container>
+        <StatusNotice
+          className="h-full"
+          icon={<BookOpen className="text-primary size-18" strokeWidth={1.2} aria-hidden="true" />}
+          title="서재를 불러오는 중이에요"
+          description="잠시만 기다려주세요."
+        />
+      </Container>
+    );
+  }
 
   return (
     <Container
