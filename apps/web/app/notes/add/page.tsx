@@ -7,6 +7,8 @@ import { ChevronLeft } from 'lucide-react';
 import { Container } from '@/components/layout';
 import { SegmentedToggle, type SegmentedToggleOption } from '@/components/common';
 import { type Book } from '@/lib';
+import { useAuthStore } from '@/store/authStore';
+import LibraryService from '@/services/library';
 import { SearchTab, ManualTab } from './_components';
 import { type Mode } from './types';
 
@@ -17,11 +19,18 @@ const MODE_OPTIONS: SegmentedToggleOption<Mode>[] = [
 
 export default function AddBookPage() {
   const router = useRouter();
+  const token = useAuthStore((state) => state.token);
   const [mode, setMode] = useState<Mode>('search');
 
-  const handleAdd = (book: Book) => {
-    console.log('TODO [Add Book]', book);
-    router.push('/notes');
+  const handleAdd = async (book: Omit<Book, 'id'>) => {
+    if (!token) return false;
+
+    const result = await LibraryService.createEntry(book, token);
+    if (result.isSuccess) {
+      router.push('/notes');
+      return true;
+    }
+    return false;
   };
 
   return (
@@ -50,7 +59,7 @@ export default function AddBookPage() {
           {mode === 'search' ? (
             <SearchTab onAdd={handleAdd} onGoToManual={() => setMode('manual')} />
           ) : (
-            <ManualTab onAdd={(book) => handleAdd({ ...book, id: crypto.randomUUID() })} />
+            <ManualTab onAdd={handleAdd} />
           )}
         </div>
       </div>

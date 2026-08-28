@@ -11,18 +11,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Modal } from '@/components/layout';
+import { useDialog } from '@/context/dialog';
 import { GENRES, GENRE_LABELS, type Book, type Genre } from '@/lib';
 
 interface ManualTabProps {
-  onAdd: (book: Omit<Book, 'id'>) => void;
+  onAdd: (book: Omit<Book, 'id'>) => Promise<boolean>;
 }
 
 export function ManualTab({ onAdd }: ManualTabProps) {
+  const { openDialog, closeDialog } = useDialog();
+
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [publisher, setPublisher] = useState('');
   const [genre, setGenre] = useState<Genre | ''>('');
   const [touched, setTouched] = useState({ title: false, author: false, genre: false });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const titleFeedback: { state: InputState; message?: string } = useMemo(() => {
     if (title.trim() === '') return { state: 'error', message: '제목을 입력해주세요.' };
@@ -44,15 +49,31 @@ export function ManualTab({ onAdd }: ManualTabProps) {
     authorFeedback.state !== 'error' &&
     genreFeedback.state !== 'error';
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canSubmit) return;
-    onAdd({
+    if (!canSubmit || isSubmitting) return;
+
+    setIsSubmitting(true);
+    const success = await onAdd({
       title: title.trim(),
       author: author.trim(),
       genre: genre as Genre,
       ...(publisher.trim() !== '' && { publisher: publisher.trim() }),
     });
+    if (!success) {
+      setIsSubmitting(false);
+      openDialog(
+        <Modal
+          title={'등록에 실패했어요.\n잠시 후 다시 시도해주세요.'}
+          buttons={[
+            <Button key="close" onClick={closeDialog}>
+              확인
+            </Button>,
+          ]}
+          showCloseButton={false}
+        />,
+      );
+    }
   };
 
   return (
@@ -70,6 +91,7 @@ export function ManualTab({ onAdd }: ManualTabProps) {
             placeholder="제목을 입력하세요."
             state={touched.title ? titleFeedback.state : 'default'}
             message={touched.title ? titleFeedback.message : undefined}
+            disabled={isSubmitting}
           />
         </div>
         <div>
@@ -84,6 +106,7 @@ export function ManualTab({ onAdd }: ManualTabProps) {
             placeholder="저자를 입력하세요."
             state={touched.author ? authorFeedback.state : 'default'}
             message={touched.author ? authorFeedback.message : undefined}
+            disabled={isSubmitting}
           />
         </div>
         <div>
@@ -96,6 +119,7 @@ export function ManualTab({ onAdd }: ManualTabProps) {
             value={publisher}
             onChange={(e) => setPublisher(e.target.value)}
             placeholder="출판사를 입력하세요."
+            disabled={isSubmitting}
           />
         </div>
         <div>
@@ -108,6 +132,7 @@ export function ManualTab({ onAdd }: ManualTabProps) {
             onOpenChange={(open) => {
               if (!open) setTouched((prev) => ({ ...prev, genre: true }));
             }}
+            disabled={isSubmitting}
           >
             <SelectTrigger
               id="genre"
@@ -129,7 +154,7 @@ export function ManualTab({ onAdd }: ManualTabProps) {
           )}
         </div>
       </div>
-      <Button type="submit" className="mt-5" disabled={!canSubmit}>
+      <Button type="submit" className="mt-5" disabled={!canSubmit} isLoading={isSubmitting}>
         등록하기
       </Button>
     </form>

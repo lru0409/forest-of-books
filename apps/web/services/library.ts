@@ -1,4 +1,10 @@
-import { type ApiResponse, type LibraryEntryListItem, apiRequest } from '@/lib';
+import {
+  type ApiResponse,
+  type Book,
+  type LibraryEntryListItem,
+  type LibraryEntryDetailItem,
+  apiRequest,
+} from '@/lib';
 
 function getUserLibrary(
   userId: string,
@@ -9,6 +15,18 @@ function getUserLibrary(
   });
 }
 
+function createEntry(
+  book: Omit<Book, 'id'>,
+  token: string,
+): Promise<ApiResponse<LibraryEntryDetailItem>> {
+  return apiRequest('/library', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: { book },
+  });
+}
+
 export default {
   getUserLibrary,
+  createEntry,
 };
