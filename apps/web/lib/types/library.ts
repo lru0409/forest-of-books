@@ -10,3 +10,12 @@ export interface LibraryEntryListItem {
   color: string;
   isPublic: boolean;
 }
+
+export interface LibraryEntryDetailItem extends LibraryEntryListItem {
+  publisher: string | null;
+  rating: number | null;
+  comment: string | null;
+  note: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
