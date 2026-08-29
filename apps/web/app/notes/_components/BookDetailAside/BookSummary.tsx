@@ -4,7 +4,7 @@ import {
   READING_STATUS_LABELS,
   READING_STATUS_ICONS,
   READING_STATUS_STYLES,
-  type Book,
+  type LibraryEntryListItem,
   type ReadingStatus,
 } from '@/lib';
 import {
@@ -17,25 +17,23 @@ import {
 import { GenreBadge } from '@/components/common';
 
 interface BookSummaryProps {
-  book: Book;
-  color: string;
-  status: ReadingStatus;
+  item: LibraryEntryListItem;
   onStatusChange: (status: ReadingStatus) => void;
 }
 
-export function BookSummary({ book, color, status, onStatusChange }: BookSummaryProps) {
+export function BookSummary({ item, onStatusChange }: BookSummaryProps) {
   return (
     <div className="flex gap-4">
-      <div className="h-28 w-20 rounded-sm shadow-sm" style={{ backgroundColor: color }} />
+      <div className="h-28 w-20 rounded-sm shadow-sm" style={{ backgroundColor: item.color }} />
       <div className="flex-1 pt-1">
         <h2 className="text-primary font-heading line-clamp-2 text-xl font-semibold">
-          {book.title}
+          {item.title}
         </h2>
-        <p className="text-secondary mt-1 text-sm">{book.author}</p>
+        <p className="text-secondary mt-1 text-sm">{item.author}</p>
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <GenreBadge genre={book.genre} />
-          <ReadingStatusSelect status={status} onChange={onStatusChange} />
+          <GenreBadge genre={item.genre} />
+          <ReadingStatusSelect status={item.status} onChange={onStatusChange} />
         </div>
       </div>
     </div>

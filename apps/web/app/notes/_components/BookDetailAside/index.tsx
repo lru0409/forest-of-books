@@ -2,10 +2,28 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  LoaderCircle,
+  Maximize2,
+  Minimize2,
+  TriangleAlert,
+} from 'lucide-react';
 
-import { cn, useLocalStorage, useMediaQuery, type Book, type ReadingNote } from '@/lib';
-import { Textarea } from '@/components/ui/textarea';
+import {
+  cn,
+  useLocalStorage,
+  useMediaQuery,
+  type LibraryEntryListItem,
+  type LibraryEntryDetailItem,
+  type LibraryEntryNotePatch,
+} from '@/lib';
+import { Textarea } from '@/components/ui';
+import { StatusNotice } from '@/components/common';
+import { useAuthStore } from '@/store/authStore';
+import LibraryService from '@/services/library';
+
 import { BookSummary } from './BookSummary';
 import { RecordHeader } from './RecordHeader';
 import { RecordSection } from './RecordSection';
@@ -19,17 +37,17 @@ const PANEL_MAX_WIDTH_RATIO = 0.7;
 export const PANEL_TRANSITION_MS = 300;
 
 interface BookDetailAsideProps {
-  book: Book;
-  note: ReadingNote | undefined;
-  onUpdateNote: (patch: Partial<ReadingNote>) => void;
+  item: LibraryEntryListItem;
+  updateItem: (patch: LibraryEntryNotePatch) => void;
+  deleteItem: () => void;
   isClosing: boolean;
   isEntering: boolean;
 }
 
 export const BookDetailAside = ({
-  book,
-  note,
-  onUpdateNote,
+  item,
+  updateItem,
+  deleteItem,
   isClosing,
   isEntering,
 }: BookDetailAsideProps) => {
@@ -84,9 +102,9 @@ export const BookDetailAside = ({
     >
       {!isFullscreenView && <ResizeHandle onResizeStart={() => setIsResizing(true)} />}
       <BookDetailPanel
-        book={book}
-        note={note}
-        onUpdateNote={onUpdateNote}
+        item={item}
+        updateItem={updateItem}
+        deleteItem={deleteItem}
         isFullscreen={isFullscreenView}
         showFullscreenToggle={!isMobile}
         onToggleFullscreen={() => setIsFullscreen(!isFullscreenView)}
@@ -110,17 +128,15 @@ function ResizeHandle({ onResizeStart }: { onResizeStart: () => void }) {
   );
 }
 
-export function BookDetailPanel({
-  book,
-  note,
-  onUpdateNote,
+function BookDetailPanel({
+  item,
   isFullscreen,
   showFullscreenToggle,
   onToggleFullscreen,
 }: {
-  book: Book;
-  note: ReadingNote | undefined;
-  onUpdateNote: (patch: Partial<ReadingNote>) => void;
+  item: LibraryEntryListItem;
+  updateItem: (patch: LibraryEntryNotePatch) => void;
+  deleteItem: () => void;
   isFullscreen: boolean;
   showFullscreenToggle: boolean;
   onToggleFullscreen: () => void;
@@ -128,12 +144,37 @@ export function BookDetailPanel({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const token = useAuthStore((state) => state.token);
 
   const [isEditing, setIsEditing] = useState(false);
+  const [data, setData] = useState<LibraryEntryDetailItem | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
+
+  useEffect(() => {
+    if (!token) return;
+
+    setData(null);
+    setIsError(false);
+    setIsLoading(true);
+    LibraryService.getLibraryEntry(item.id, token).then((result) => {
+      if (result.isSuccess) {
+        setData(result.data);
+      } else {
+        setIsError(true);
+      }
+      setIsLoading(false);
+    });
+  }, [item.id, token]);
+
+  // 수정/삭제 API 연동 전까지는 편집 상호작용을 로컬 상태에만 반영한다.
+  const handleUpdateNote = (patch: LibraryEntryNotePatch) => {
+    setData((current) => (current ? { ...current, ...patch } : current));
+  };
 
   const handleClose = () => {
     const params = new URLSearchParams(searchParams);
-    params.delete('book');
+    params.delete('item');
     if (params.size === 0) {
       router.push(pathname, { scroll: false });
       return;
@@ -141,18 +182,16 @@ export function BookDetailPanel({
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
-  const startEditing = () => setIsEditing(true);
+  const startEditing = () => {
+    if (!data) return;
+    setIsEditing(true);
+  };
 
   const finishEditing = () => {
     const now = new Date().toISOString();
-    onUpdateNote({ updatedAt: now, createdAt: note?.createdAt ?? now });
+    handleUpdateNote({ updatedAt: now, createdAt: data?.createdAt ?? now });
     setIsEditing(false);
   };
-
-  if (!note) {
-    // TODO: 에러 처리
-    return null;
-  }
 
   return (
     <div className="border-primary/15 h-full w-full flex-col overflow-y-auto overscroll-contain border-l bg-white px-2 pt-3.5 pb-6 md:px-3.5 md:pt-5 md:pb-8">
@@ -186,72 +225,85 @@ export function BookDetailPanel({
       </div>
 
       <div className="mx-auto w-full max-w-2xl min-w-2xs px-4">
-        <BookSummary
-          book={book}
-          color={note.color}
-          status={note.status}
-          onStatusChange={(status) => onUpdateNote({ status })}
-        />
+        <BookSummary item={item} onStatusChange={(status) => handleUpdateNote({ status })} />
 
         <div className="border-primary/20 mt-8 mb-6 flex flex-1 border-t" />
 
-        <RecordHeader
-          createdAt={note.createdAt}
-          updatedAt={note.updatedAt}
-          isEditing={isEditing}
-          onToggleEdit={isEditing ? finishEditing : startEditing}
-        />
-
-        <div className="flex flex-col gap-4">
-          <RecordSection
-            title="평점"
-            isEditing={isEditing}
-            hasValue={!!note.rating}
-            emptyMessage="아직 평점을 남기지 않았어요."
-            editor={
-              <RatingInput
-                rating={note.rating ?? 0}
-                onChange={(rating) => onUpdateNote({ rating })}
-              />
+        {isLoading ? (
+          <div className="flex min-h-[60vh] flex-col items-center justify-center gap-1.5">
+            <LoaderCircle className="text-secondary size-6 animate-spin" strokeWidth={3} />
+            <p className="text-secondary text-sm">불러오는 중...</p>
+          </div>
+        ) : isError ? (
+          <StatusNotice
+            className="min-h-[60vh]"
+            icon={
+              <TriangleAlert className="text-primary size-14" strokeWidth={1.6} aria-hidden="true" />
             }
-            display={<RatingStars value={note.rating ?? 0} />}
+            title="상세 정보를 불러오지 못했어요"
+            description="잠시 후 다시 시도해주세요."
           />
+        ) : (
+          <>
+            <RecordHeader
+              createdAt={data?.createdAt}
+              updatedAt={data?.updatedAt}
+              isEditing={isEditing}
+              onToggleEdit={isEditing ? finishEditing : startEditing}
+            />
 
-          <RecordSection
-            title="한줄평"
-            isEditing={isEditing}
-            hasValue={!!note.comment}
-            emptyMessage="아직 한줄평을 남기지 않았어요."
-            editor={
-              <Textarea
-                value={note.comment ?? ''}
-                onChange={(e) => onUpdateNote({ comment: e.target.value })}
-                placeholder="이 책에 대한 한줄평을 남겨보세요."
-                maxLength={100}
-                showCounter
+            <div className="flex flex-col gap-4">
+              <RecordSection
+                title="평점"
+                isEditing={isEditing}
+                hasValue={!!data?.rating}
+                emptyMessage="아직 평점을 남기지 않았어요."
+                editor={
+                  <RatingInput
+                    rating={data?.rating ?? 0}
+                    onChange={(rating) => handleUpdateNote({ rating })}
+                  />
+                }
+                display={<RatingStars value={data?.rating ?? 0} />}
               />
-            }
-            display={<p className="text-sm text-black">{note.comment}</p>}
-          />
 
-          <RecordSection
-            title="자유 기록"
-            isEditing={isEditing}
-            hasValue={!!note.note}
-            emptyMessage="아직 기록을 남기지 않았어요."
-            editor={
-              <Textarea
-                value={note.note ?? ''}
-                onChange={(e) => onUpdateNote({ note: e.target.value })}
-                placeholder="자유롭게 기록을 남겨보세요."
-                className="flex-1"
-                maxLength={2000}
-                showCounter
+              <RecordSection
+                title="한줄평"
+                isEditing={isEditing}
+                hasValue={!!data?.comment}
+                emptyMessage="아직 한줄평을 남기지 않았어요."
+                editor={
+                  <Textarea
+                    value={data?.comment ?? ''}
+                    onChange={(e) => handleUpdateNote({ comment: e.target.value })}
+                    placeholder="이 책에 대한 한줄평을 남겨보세요."
+                    maxLength={100}
+                    showCounter
+                  />
+                }
+                display={<p className="text-sm text-black">{data?.comment}</p>}
               />
-            }
-            display={<p className="text-sm whitespace-pre-wrap text-black">{note.note}</p>}
-          />
-        </div>
+
+              <RecordSection
+                title="자유 기록"
+                isEditing={isEditing}
+                hasValue={!!data?.note}
+                emptyMessage="아직 기록을 남기지 않았어요."
+                editor={
+                  <Textarea
+                    value={data?.note ?? ''}
+                    onChange={(e) => handleUpdateNote({ note: e.target.value })}
+                    placeholder="자유롭게 기록을 남겨보세요."
+                    className="flex-1"
+                    maxLength={2000}
+                    showCounter
+                  />
+                }
+                display={<p className="text-sm whitespace-pre-wrap text-black">{data?.note}</p>}
+              />
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

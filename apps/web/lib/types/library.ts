@@ -19,3 +19,10 @@ export interface LibraryEntryDetailItem extends LibraryEntryListItem {
   createdAt: string;
   updatedAt: string;
 }
+
+export type LibraryEntryNotePatch = Partial<
+  Pick<
+    LibraryEntryDetailItem,
+    'status' | 'color' | 'isPublic' | 'rating' | 'comment' | 'note' | 'createdAt' | 'updatedAt'
+  >
+>;

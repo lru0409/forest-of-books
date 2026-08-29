@@ -18,4 +18,8 @@ export { apiRequest } from './api-request';
 export type { ApiResponse } from './types/api';
 export type { Genre, ReadingStatus, Book, ReadingNote } from './types/book';
 export type { User } from './types/user';
-export type { LibraryEntryListItem, LibraryEntryDetailItem } from './types/library';
+export type {
+  LibraryEntryListItem,
+  LibraryEntryDetailItem,
+  LibraryEntryNotePatch,
+} from './types/library';

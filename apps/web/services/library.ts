@@ -15,6 +15,15 @@ function getUserLibrary(
   });
 }
 
+function getLibraryEntry(
+  entryId: string,
+  token: string,
+): Promise<ApiResponse<LibraryEntryDetailItem>> {
+  return apiRequest(`/library/${entryId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
 function createEntry(
   book: Omit<Book, 'id'>,
   token: string,
@@ -28,5 +37,6 @@ function createEntry(
 
 export default {
   getUserLibrary,
+  getLibraryEntry,
   createEntry,
 };
