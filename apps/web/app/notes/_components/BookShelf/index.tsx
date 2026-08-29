@@ -3,11 +3,11 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { type BookWithNote } from '../../types';
+import { type LibraryEntryListItem } from '@/lib';
 import { Item } from './Item';
 
 interface BookShelfProps {
-  books: BookWithNote[];
+  items: LibraryEntryListItem[];
 }
 
 const BOOK_WIDTH = 48;
@@ -16,7 +16,7 @@ const ROW_PADDING_X = 0; // 한 줄의 실제 padding (양쪽 합, 각 0px)
 const MIN_SIDE_MARGIN_X = 20; // 선반 양쪽에 최소로 남기고 싶은 여백 (양쪽 합, 각 10px)
 const DEFAULT_BOOKS_PER_SHELF = 10;
 
-export function BookShelf({ books }: BookShelfProps) {
+export function BookShelf({ items }: BookShelfProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [booksPerShelf, setBooksPerShelf] = useState(DEFAULT_BOOKS_PER_SHELF);
   const [firstBookOffset, setFirstBookOffset] = useState(0);
@@ -42,9 +42,9 @@ export function BookShelf({ books }: BookShelfProps) {
     return () => observer.disconnect();
   }, []);
 
-  const shelves: BookWithNote[][] = [];
-  for (let i = 0; i < books.length; i += booksPerShelf) {
-    shelves.push(books.slice(i, i + booksPerShelf));
+  const shelves: LibraryEntryListItem[][] = [];
+  for (let i = 0; i < items.length; i += booksPerShelf) {
+    shelves.push(items.slice(i, i + booksPerShelf));
   }
 
   return (
@@ -58,8 +58,8 @@ export function BookShelf({ books }: BookShelfProps) {
           >
             {/* 책들 */}
             <div className="z-1 -mb-2 flex gap-1.5" style={{ marginLeft: firstBookOffset }}>
-              {shelfBooks.map((book) => (
-                <Item key={book.id} book={book} />
+              {shelfBooks.map((item) => (
+                <Item key={item.id} item={item} />
               ))}
             </div>
 
