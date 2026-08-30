@@ -1,4 +1,6 @@
-import type { Genre, ReadingStatus } from './book';
+import type { Genre } from './book';
+
+export type ReadingStatus = 'NOT_STARTED' | 'READING' | 'COMPLETED' | 'ON_HOLD';
 
 export interface LibraryEntryListItem {
   id: string;
@@ -11,7 +13,7 @@ export interface LibraryEntryListItem {
   isPublic: boolean;
 }
 
-export interface LibraryEntryDetailItem extends LibraryEntryListItem {
+export interface LibraryEntryDetailItem {
   publisher: string | null;
   rating: number | null;
   comment: string | null;
@@ -21,8 +23,6 @@ export interface LibraryEntryDetailItem extends LibraryEntryListItem {
 }
 
 export type LibraryEntryNotePatch = Partial<
-  Pick<
-    LibraryEntryDetailItem,
-    'status' | 'color' | 'isPublic' | 'rating' | 'comment' | 'note' | 'createdAt' | 'updatedAt'
-  >
+  Pick<LibraryEntryListItem, 'status' | 'color' | 'isPublic'> &
+    Pick<LibraryEntryDetailItem, 'rating' | 'comment' | 'note' | 'createdAt' | 'updatedAt'>
 >;

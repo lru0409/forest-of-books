@@ -14,8 +14,6 @@ export type Genre =
   | 'COMICS'
   | 'OTHER';
 
-export type ReadingStatus = 'NOT_STARTED' | 'READING' | 'COMPLETED' | 'ON_HOLD';
-
 export type Book = {
   id: string;
   title: string;
@@ -24,14 +22,4 @@ export type Book = {
   publisher?: string;
   coverUrl?: string;
   isbn?: string;
-};
-
-export type ReadingNote = {
-  status: ReadingStatus;
-  color: string;
-  rating?: number;
-  comment?: string;
-  note?: string;
-  createdAt?: string;
-  updatedAt?: string;
 };
