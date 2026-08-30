@@ -146,17 +146,50 @@ export default function NotesPage() {
     }
   }, [selectedItemId, items]);
 
-  const handleUpdateItem = (itemId: string, patch: LibraryEntryNotePatch) => {
-    // TODO: PATCH /library/:entryId 연동
-    setItems((current) =>
-      current.map((item) => (item.id === itemId ? { ...item, ...patch } : item)),
-    );
+  const handleUpdateItem = async (
+    itemId: string,
+    patch: LibraryEntryNotePatch,
+  ): Promise<boolean> => {
+    if (!token) return false;
+
+    // 목록에 보이는 필드만 낙관적으로 반영, 실패하면 롤백한다.
+    const listPatch: Partial<Pick<LibraryEntryListItem, 'status' | 'color' | 'isPublic'>> = {};
+    if ('status' in patch) listPatch.status = patch.status;
+    if ('color' in patch) listPatch.color = patch.color;
+    if ('isPublic' in patch) listPatch.isPublic = patch.isPublic;
+    const hasListPatch = Object.keys(listPatch).length > 0;
+
+    const previousItems = items;
+    if (hasListPatch) {
+      setItems((current) =>
+        current.map((item) => (item.id === itemId ? { ...item, ...listPatch } : item)),
+      );
+    }
+
+    // await new Promise((resolve) => setTimeout(resolve, 3000));
+    // return false;
+
+    const result = await LibraryService.updateEntry(itemId, patch, token);
+    if (!result.isSuccess) {
+      if (hasListPatch) setItems(previousItems);
+      return false;
+    }
+    return true;
   };
 
-  const handleDeleteItem = (itemId: string) => {
-    // TODO: DELETE /library/:entryId 연동
+  const handleDeleteItem = async (itemId: string): Promise<boolean> => {
+    if (!token) return false;
+
+    // await new Promise((resolve) => setTimeout(resolve, 3000));
+    // return false;
+
+    // 삭제는 성공 확인 후에만 목록에서 제거한다.
+    const result = await LibraryService.deleteEntry(itemId, token);
+    if (!result.isSuccess) return false;
+
     setItems((current) => current.filter((item) => item.id !== itemId));
     router.push(pathname, { scroll: false });
+    return true;
   };
 
   if (!token) {

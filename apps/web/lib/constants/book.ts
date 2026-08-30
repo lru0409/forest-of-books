@@ -1,6 +1,7 @@
 import { Circle, CheckCircle2, PauseCircle, PlayCircle, type LucideIcon } from 'lucide-react';
 
-import type { Genre, ReadingStatus } from '../types/book';
+import type { Genre } from '../types/book';
+import type { ReadingStatus } from '../types/library';
 
 export const GENRE_LABELS: Record<Genre, string> = {
   NOVEL: '소설',

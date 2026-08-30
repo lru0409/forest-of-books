@@ -3,24 +3,25 @@ import {
   type Book,
   type LibraryEntryListItem,
   type LibraryEntryDetailItem,
+  type LibraryEntryNotePatch,
   apiRequest,
 } from '@/lib';
 
 function getUserLibrary(
   userId: string,
-  token: string,
+  token?: string | null,
 ): Promise<ApiResponse<LibraryEntryListItem[]>> {
   return apiRequest(`/users/${userId}/library`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   });
 }
 
 function getLibraryEntry(
   entryId: string,
-  token: string,
+  token?: string | null,
 ): Promise<ApiResponse<LibraryEntryDetailItem>> {
   return apiRequest(`/library/${entryId}`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   });
 }
 
@@ -35,8 +36,29 @@ function createEntry(
   });
 }
 
+function updateEntry(
+  entryId: string,
+  patch: LibraryEntryNotePatch,
+  token: string,
+): Promise<ApiResponse<LibraryEntryDetailItem>> {
+  return apiRequest(`/library/${entryId}`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}` },
+    body: patch,
+  });
+}
+
+function deleteEntry(entryId: string, token: string): Promise<ApiResponse> {
+  return apiRequest(`/library/${entryId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
 export default {
   getUserLibrary,
   getLibraryEntry,
   createEntry,
+  updateEntry,
+  deleteEntry,
 };

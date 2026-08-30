@@ -16,9 +16,10 @@ export {
 export { API_URL } from './constants/api';
 export { apiRequest } from './api-request';
 export type { ApiResponse } from './types/api';
-export type { Genre, ReadingStatus, Book, ReadingNote } from './types/book';
+export type { Genre, Book } from './types/book';
 export type { User } from './types/user';
 export type {
+  ReadingStatus,
   LibraryEntryListItem,
   LibraryEntryDetailItem,
   LibraryEntryNotePatch,
