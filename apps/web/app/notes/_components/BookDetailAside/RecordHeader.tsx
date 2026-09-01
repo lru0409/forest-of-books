@@ -1,4 +1,4 @@
-import { Check, Pencil } from 'lucide-react';
+import { Check, LoaderCircle, Pencil } from 'lucide-react';
 
 import { formatDate } from '@/lib';
 import { Switch } from '@/components/ui/switch';
@@ -7,6 +7,7 @@ interface RecordHeaderProps {
   createdAt: string | undefined;
   updatedAt: string | undefined;
   isEditing: boolean;
+  isSaving: boolean;
   onToggleEdit: () => void;
   isPublic: boolean;
   onTogglePublic: (isPublic: boolean) => void;
@@ -16,6 +17,7 @@ export function RecordHeader({
   createdAt,
   updatedAt,
   isEditing,
+  isSaving,
   onToggleEdit,
   isPublic,
   onTogglePublic,
@@ -47,9 +49,12 @@ export function RecordHeader({
           type="button"
           aria-label={isEditing ? '기록 저장' : '기록 수정'}
           onClick={onToggleEdit}
-          className="hover:bg-primary-foreground/50 flex size-9 cursor-pointer items-center justify-center rounded-full transition-colors"
+          disabled={isSaving}
+          className="hover:bg-primary-foreground/50 flex size-9 cursor-pointer items-center justify-center rounded-full transition-colors disabled:pointer-events-none disabled:opacity-50"
         >
-          {isEditing ? (
+          {isSaving ? (
+            <LoaderCircle className="size-4.5 animate-spin" strokeWidth={2.5} aria-hidden="true" />
+          ) : isEditing ? (
             <Check className="size-4.5" aria-hidden="true" />
           ) : (
             <Pencil className="size-4.5" aria-hidden="true" />

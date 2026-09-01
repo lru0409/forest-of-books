@@ -158,6 +158,7 @@ function BookDetailPanel({
   const [noteDraft, setNoteDraft] = useState<LibraryEntryDetailItem | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -241,42 +242,8 @@ function BookDetailPanel({
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
-  // TODO: delete 중에 로딩 처리 필요할 듯
   const handleDeleteClick = () => {
-    openDialog(
-      <Modal
-        title="정말 삭제할까요?"
-        content={'이 작업은 되돌릴 수 없습니다.\n신중하게 진행해 주세요.'}
-        buttons={[
-          <Button key="cancel" variant="outline" onClick={closeDialog}>
-            취소
-          </Button>,
-          <Button
-            key="delete"
-            variant="destructive"
-            onClick={async () => {
-              const success = await deleteItem();
-              closeDialog();
-              if (!success) {
-                openDialog(
-                  <Modal
-                    title={'삭제에 실패했어요.\n잠시 후 다시 시도해주세요.'}
-                    buttons={[
-                      <Button key="close" onClick={closeDialog}>
-                        확인
-                      </Button>,
-                    ]}
-                    showCloseButton={false}
-                  />,
-                );
-              }
-            }}
-          >
-            삭제
-          </Button>,
-        ]}
-      />,
-    );
+    openDialog(<DeleteConfirmModal onDelete={deleteItem} />);
   };
 
   const startEditing = () => {
@@ -284,14 +251,15 @@ function BookDetailPanel({
     setIsEditing(true);
   };
 
-  // TODO: update 중에 로딩 처리 필요할 듯
   const finishEditing = async () => {
     const patch: LibraryEntryNotePatch = {
       rating: noteDraft?.rating,
       comment: noteDraft?.comment,
       note: noteDraft?.note,
     };
+    setIsSaving(true);
     const success = await updateItem(patch);
+    setIsSaving(false);
     if (!success) {
       showSaveErrorDialog();
       return;
@@ -354,6 +322,7 @@ function BookDetailPanel({
           isError={isError}
           noteDraft={noteDraft}
           isEditing={isEditing}
+          isSaving={isSaving}
           onToggleEdit={isEditing ? finishEditing : startEditing}
           isPublic={item.isPublic}
           onTogglePublic={handleTogglePublic}
@@ -364,11 +333,56 @@ function BookDetailPanel({
   );
 }
 
+function DeleteConfirmModal({ onDelete }: { onDelete: () => Promise<boolean> }) {
+  const { openDialog, closeDialog } = useDialog();
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  return (
+    <Modal
+      title="정말 삭제할까요?"
+      content={'이 작업은 되돌릴 수 없습니다.\n신중하게 진행해 주세요.'}
+      buttons={[
+        <Button key="cancel" variant="outline" disabled={isDeleting} onClick={closeDialog}>
+          취소
+        </Button>,
+        <Button
+          key="delete"
+          variant="destructive"
+          isLoading={isDeleting}
+          onClick={async () => {
+            setIsDeleting(true);
+            const success = await onDelete();
+            setIsDeleting(false);
+            closeDialog();
+            if (!success) {
+              openDialog(
+                <Modal
+                  title={'삭제에 실패했어요.\n잠시 후 다시 시도해주세요.'}
+                  buttons={[
+                    <Button key="close" onClick={closeDialog}>
+                      확인
+                    </Button>,
+                  ]}
+                  showCloseButton={false}
+                />,
+              );
+            }
+          }}
+        >
+          삭제
+        </Button>,
+      ]}
+      showCloseButton={false}
+    />
+  );
+}
+
 interface RecordPanelProps {
   isLoading: boolean;
   isError: boolean;
   noteDraft: LibraryEntryDetailItem | null;
   isEditing: boolean;
+  isSaving: boolean;
   onToggleEdit: () => void;
   isPublic: boolean;
   onTogglePublic: (isPublic: boolean) => void;
@@ -380,6 +394,7 @@ function RecordPanel({
   isError,
   noteDraft,
   isEditing,
+  isSaving,
   onToggleEdit,
   isPublic,
   onTogglePublic,
@@ -413,6 +428,7 @@ function RecordPanel({
         createdAt={noteDraft?.createdAt}
         updatedAt={noteDraft?.updatedAt}
         isEditing={isEditing}
+        isSaving={isSaving}
         onToggleEdit={onToggleEdit}
         isPublic={isPublic}
         onTogglePublic={onTogglePublic}

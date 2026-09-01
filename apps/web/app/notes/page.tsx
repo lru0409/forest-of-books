@@ -166,9 +166,6 @@ export default function NotesPage() {
       );
     }
 
-    // await new Promise((resolve) => setTimeout(resolve, 3000));
-    // return false;
-
     const result = await LibraryService.updateEntry(itemId, patch, token);
     if (!result.isSuccess) {
       if (hasListPatch) setItems(previousItems);
@@ -179,9 +176,6 @@ export default function NotesPage() {
 
   const handleDeleteItem = async (itemId: string): Promise<boolean> => {
     if (!token) return false;
-
-    // await new Promise((resolve) => setTimeout(resolve, 3000));
-    // return false;
 
     // 삭제는 성공 확인 후에만 목록에서 제거한다.
     const result = await LibraryService.deleteEntry(itemId, token);
