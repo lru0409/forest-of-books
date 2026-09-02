@@ -1,190 +1,39 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { BookOpen, UserRoundKey, TriangleAlert, LoaderCircle } from 'lucide-react';
 
-import {
-  GENRES,
-  READING_STATUSES,
-  useDebounce,
-  useLocalStorage,
-  type Genre,
-  type ReadingStatus,
-  type LibraryEntryListItem,
-  type LibraryEntryNotePatch,
-} from '@/lib';
+import { useLocalStorage, type LibraryEntryListItem } from '@/lib';
 import { Container } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { StatusNotice } from '@/components/common';
 import { useAuthStore } from '@/store/authStore';
-import LibraryService from '@/services/library';
 import { type ViewMode } from './types';
-import {
-  BookShelf,
-  BookCardGrid,
-  FilterBar,
-  BookDetailAside,
-  PANEL_TRANSITION_MS,
-} from './_components';
-
-// TODO: 로직을 훅으로 분리
-
-// TODO: 유틸 함수로 재사용?
-function parseFilterParam<T extends string>(value: string | null, validValues: readonly T[]): T[] {
-  if (!value) return [...validValues];
-  const values = value.split(',').filter((item): item is T => validValues.includes(item as T));
-  return values.length > 0 ? values : [...validValues];
-}
+import { BookShelf, BookCardGrid, FilterBar, BookDetailAside } from './_components';
+import { useLibrary, useLibraryFilters, useSelectedLibraryItem } from './_hooks';
 
 export default function NotesPage() {
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const searchParamsString = searchParams.toString();
-  const selectedItemId = searchParams.get('item');
 
   const token = useAuthStore((state) => state.token);
   const user = useAuthStore((state) => state.user);
 
   const [viewMode, setViewMode] = useLocalStorage<ViewMode>('notes-view-mode', 'shelf');
-  const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') ?? '');
-  const [selectedGenres, setSelectedGenres] = useState<Genre[]>(() =>
-    parseFilterParam(searchParams.get('genres'), GENRES),
-  );
-  const [selectedStatuses, setSelectedStatuses] = useState<ReadingStatus[]>(() =>
-    parseFilterParam(searchParams.get('statuses'), READING_STATUSES),
-  );
 
-  const [items, setItems] = useState<LibraryEntryListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(false);
-
-  const [selectedItem, setSelectedItem] = useState<LibraryEntryListItem | undefined>(undefined);
-  const [isClosing, setIsClosing] = useState(false);
-  const [isEntering, setIsEntering] = useState(false);
-  const wasOpenRef = useRef(false);
-
-  useEffect(() => {
-    if (!user || !token) return;
-
-    setIsLoading(true);
-    setError(false);
-    LibraryService.getUserLibrary(user.id, token).then((result) => {
-      if (result.isSuccess) {
-        setItems(result.data);
-      } else {
-        setError(true);
-      }
-      setIsLoading(false);
-    });
-  }, [user, token]);
-
-  const debouncedSearchQuery = useDebounce(searchQuery);
-
-  useEffect(() => {
-    const params = new URLSearchParams(searchParamsString);
-
-    if (debouncedSearchQuery) {
-      params.set('q', debouncedSearchQuery);
-    } else {
-      params.delete('q');
-    }
-
-    if (selectedGenres.length < GENRES.length) {
-      params.set('genres', selectedGenres.join(','));
-    } else {
-      params.delete('genres');
-    }
-
-    if (selectedStatuses.length < READING_STATUSES.length) {
-      params.set('statuses', selectedStatuses.join(','));
-    } else {
-      params.delete('statuses');
-    }
-
-    const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
-  }, [
-    debouncedSearchQuery,
+  const { items, isLoading, isError, updateItem, deleteItem } = useLibrary({
+    userId: user?.id,
+    token,
+  });
+  const {
+    searchQuery,
+    setSearchQuery,
     selectedGenres,
+    setSelectedGenres,
     selectedStatuses,
-    pathname,
-    router,
-    searchParamsString,
-  ]);
-
-  const filteredItems = useMemo(() => {
-    const query = debouncedSearchQuery.trim().toLowerCase();
-    return items.filter(({ title, author, genre, status }) => {
-      const matchesQuery =
-        query === '' || title.toLowerCase().includes(query) || author.toLowerCase().includes(query);
-      const matchesGenre = selectedGenres.includes(genre);
-      const matchesStatus = selectedStatuses.includes(status);
-      return matchesQuery && matchesGenre && matchesStatus;
-    });
-  }, [items, debouncedSearchQuery, selectedGenres, selectedStatuses]);
-
-  useEffect(() => {
-    const selectedItem = selectedItemId ? items.find((item) => item.id === selectedItemId) : null;
-    if (selectedItem) {
-      const isNewlyOpening = !wasOpenRef.current;
-      setSelectedItem(selectedItem);
-      setIsClosing(false);
-      wasOpenRef.current = true;
-
-      if (isNewlyOpening) {
-        setIsEntering(true);
-        const timer = setTimeout(() => setIsEntering(false), 20);
-        return () => clearTimeout(timer);
-      }
-    } else if (wasOpenRef.current) {
-      wasOpenRef.current = false;
-      setIsClosing(true);
-      const timer = setTimeout(() => setSelectedItem(undefined), PANEL_TRANSITION_MS);
-      return () => clearTimeout(timer);
-    }
-  }, [selectedItemId, items]);
-
-  const handleUpdateItem = async (
-    itemId: string,
-    patch: LibraryEntryNotePatch,
-  ): Promise<boolean> => {
-    if (!token) return false;
-
-    // 목록에 보이는 필드만 낙관적으로 반영, 실패하면 롤백한다.
-    const listPatch: Partial<Pick<LibraryEntryListItem, 'status' | 'color' | 'isPublic'>> = {};
-    if ('status' in patch) listPatch.status = patch.status;
-    if ('color' in patch) listPatch.color = patch.color;
-    if ('isPublic' in patch) listPatch.isPublic = patch.isPublic;
-    const hasListPatch = Object.keys(listPatch).length > 0;
-
-    const previousItems = items;
-    if (hasListPatch) {
-      setItems((current) =>
-        current.map((item) => (item.id === itemId ? { ...item, ...listPatch } : item)),
-      );
-    }
-
-    const result = await LibraryService.updateEntry(itemId, patch, token);
-    if (!result.isSuccess) {
-      if (hasListPatch) setItems(previousItems);
-      return false;
-    }
-    return true;
-  };
-
-  const handleDeleteItem = async (itemId: string): Promise<boolean> => {
-    if (!token) return false;
-
-    // 삭제는 성공 확인 후에만 목록에서 제거한다.
-    const result = await LibraryService.deleteEntry(itemId, token);
-    if (!result.isSuccess) return false;
-
-    setItems((current) => current.filter((item) => item.id !== itemId));
-    router.push(pathname, { scroll: false });
-    return true;
-  };
+    setSelectedStatuses,
+    filteredItems,
+  } = useLibraryFilters(items);
+  const { selectedItem, isClosing, isEntering } = useSelectedLibraryItem(items);
 
   if (!token) {
     return (
@@ -206,7 +55,7 @@ export default function NotesPage() {
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <Container>
         <StatusNotice
@@ -264,8 +113,8 @@ export default function NotesPage() {
         selectedItem && (
           <BookDetailAside
             item={selectedItem}
-            updateItem={(patch) => handleUpdateItem(selectedItem.id, patch)}
-            deleteItem={() => handleDeleteItem(selectedItem.id)}
+            updateItem={(patch) => updateItem(selectedItem.id, patch)}
+            deleteItem={() => deleteItem(selectedItem.id)}
             isClosing={isClosing}
             isEntering={isEntering}
           />

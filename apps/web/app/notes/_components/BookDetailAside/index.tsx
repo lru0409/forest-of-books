@@ -181,7 +181,6 @@ function BookDetailPanel({
     setNoteDraft((current) => (current ? { ...current, ...patch } : current));
   };
 
-  // TODO: notes/page에서 범용적으로 처리하는 건 어떨지 고민
   const showSaveErrorDialog = () => {
     openDialog(
       <Modal
