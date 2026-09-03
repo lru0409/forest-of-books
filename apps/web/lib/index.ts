@@ -1,4 +1,4 @@
-export { cn, parseFilterParam } from './utils';
+export { cn, parseFilterParam, formatRatingLabel } from './utils';
 export { formatDate } from './date';
 export { useDebounce } from './hooks/useDebounce';
 export { useMediaQuery } from './hooks/useMediaQuery';
