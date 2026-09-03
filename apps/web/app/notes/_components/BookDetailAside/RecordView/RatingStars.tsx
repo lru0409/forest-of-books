@@ -1,7 +1,8 @@
 'use client';
 
 import { Star } from 'lucide-react';
-import { formatRatingLabel } from './utils';
+
+import { formatRatingLabel } from '@/lib/utils';
 
 const RATING_MAX = 5;
 

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { Star } from 'lucide-react';
+
 import { cn } from '@/lib/utils';
 import { formatRatingLabel } from './utils';
 
