@@ -3,8 +3,7 @@
 import { useRef, useState } from 'react';
 import { Star } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
-import { formatRatingLabel } from './utils';
+import { cn, formatRatingLabel } from '@/lib/utils';
 
 const RATING_MAX = 5;
 const RATING_STEP = 0.5;
