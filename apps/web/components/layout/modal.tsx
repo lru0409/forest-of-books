@@ -13,6 +13,7 @@ type ModalProps = {
   buttons?: ReactNode[];
   showCloseButton?: boolean;
   buttonLayout?: 'horizontal' | 'vertical';
+  preventClose?: boolean;
 };
 
 export function Modal({
@@ -21,9 +22,14 @@ export function Modal({
   buttons,
   showCloseButton = true,
   buttonLayout = 'horizontal',
+  preventClose = false,
 }: ModalProps) {
   return (
-    <DialogContent showCloseButton={showCloseButton}>
+    <DialogContent
+      showCloseButton={showCloseButton}
+      onEscapeKeyDown={(e) => preventClose && e.preventDefault()}
+      onPointerDownOutside={(e) => preventClose && e.preventDefault()}
+    >
       <div className="flex flex-col items-center gap-4">
         <DialogTitle
           className={cn(
