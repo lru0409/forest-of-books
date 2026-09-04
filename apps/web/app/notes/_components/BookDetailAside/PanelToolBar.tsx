@@ -119,6 +119,7 @@ const DeleteConfirmModal = ({ onDelete }: { onDelete: () => Promise<boolean> }) 
         </Button>,
       ]}
       showCloseButton={false}
+      preventClose={isDeleting}
     />
   );
 };
