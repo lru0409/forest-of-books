@@ -1,5 +1,7 @@
 export { BookLoader } from './BookLoader';
 export { BookCover } from './BookCover';
+export { BookColorPalette } from './BookColorPalette';
+export { BookColorPicker } from './BookColorPicker';
 export { ReadingStatusBadge } from './ReadingStatusBadge';
 export { GenreBadge } from './GenreBadge';
 export { MultiSelectFilter } from './MultiSelectFilter';
