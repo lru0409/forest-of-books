@@ -22,10 +22,10 @@ export default function AddBookPage() {
   const token = useAuthStore((state) => state.token);
   const [mode, setMode] = useState<Mode>('search');
 
-  const handleAdd = async (book: Omit<Book, 'id'>) => {
+  const handleAdd = async (book: Omit<Book, 'id'>, color: string) => {
     if (!token) return false;
 
-    const result = await LibraryService.createEntry(book, token);
+    const result = await LibraryService.createEntry(book, color, token);
     if (result.isSuccess) {
       router.push('/notes');
       return true;

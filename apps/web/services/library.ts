@@ -27,12 +27,13 @@ function getLibraryEntry(
 
 function createEntry(
   book: Omit<Book, 'id'>,
+  color: string,
   token: string,
 ): Promise<ApiResponse<LibraryEntryDetailItem>> {
   return apiRequest('/library', {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
-    body: { book },
+    body: { book, note: { color } },
   });
 }
 

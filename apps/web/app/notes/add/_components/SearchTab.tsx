@@ -3,15 +3,17 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { SearchX, LoaderCircle, Search, CircleX } from 'lucide-react';
 
-import { BookCover, SearchInput, StatusNotice } from '@/components/common';
+import { BookColorPicker, BookCover, SearchInput, StatusNotice } from '@/components/common';
 import { Button } from '@/components/ui';
 import { Modal } from '@/components/layout';
 import { useDialog } from '@/context/dialog';
-import { useDebounce, cn, type Book } from '@/lib';
+import { useDebounce, type Book } from '@/lib';
 import booksService from '@/services/books';
 
+// TODO: 로직을 훅으로 분리
+
 interface SearchTabProps {
-  onAdd: (book: Book) => Promise<boolean>;
+  onAdd: (book: Book, color: string) => Promise<boolean>;
   onGoToManual: () => void;
 }
 
@@ -89,7 +91,6 @@ export function SearchTab({ onAdd, onGoToManual }: SearchTabProps) {
   const [state, dispatch] = useReducer(searchReducer, initialSearchState);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const requestIdRef = useRef(0);
-  const [addingId, setAddingId] = useState<string | null>(null);
 
   const debouncedQuery = useDebounce(query);
   const isSearching = debouncedQuery.trim() !== '';
@@ -151,13 +152,12 @@ export function SearchTab({ onAdd, onGoToManual }: SearchTabProps) {
     return () => observer.disconnect();
   }, [hasMore, loadMore]);
 
-  const handleAddClick = async (book: Book) => {
-    if (addingId) return;
-
-    setAddingId(book.id);
-    const success = await onAdd(book);
-    if (!success) {
-      setAddingId(null);
+  // TODO: 409일 때 처리
+  const handleConfirmAdd = async (book: Book, color: string) => {
+    const success = await onAdd(book, color);
+    if (success) {
+      closeDialog();
+    } else {
       openDialog(
         <Modal
           title={'등록에 실패했어요.\n잠시 후 다시 시도해주세요.'}
@@ -231,43 +231,27 @@ export function SearchTab({ onAdd, onGoToManual }: SearchTabProps) {
         )}
         {viewState === 'results' && (
           <div className="flex flex-col gap-1">
-            {results.map((book, index) => {
-              const isAdding = addingId === book.id;
-              return (
-                <button
-                  key={book.id}
-                  type="button"
-                  onClick={() => handleAddClick(book)}
-                  disabled={addingId !== null}
-                  aria-busy={isAdding}
-                  className={cn(
-                    'flex w-full items-center gap-4 rounded-lg p-2 text-left transition-colors',
-                    addingId !== null
-                      ? 'cursor-not-allowed opacity-60'
-                      : 'hover:bg-primary/8 cursor-pointer',
-                  )}
-                >
-                  <div className="relative">
-                    <BookCover book={book} index={index} />
-                    {isAdding && (
-                      <div className="absolute inset-0 flex items-center justify-center rounded-sm bg-white/60">
-                        <LoaderCircle
-                          className="text-primary size-5 animate-spin"
-                          strokeWidth={3}
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex flex-1 flex-col gap-1">
-                    <span className="line-clamp-2 text-base font-semibold">{book.title}</span>
-                    <span className="text-secondary line-clamp-1 text-sm">
-                      {book.author}
-                      {book.publisher ? ` | ${book.publisher}` : ''}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
+            {results.map((book, index) => (
+              <button
+                key={book.id}
+                type="button"
+                onClick={() =>
+                  openDialog(
+                    <ColorSelectModal onConfirm={(color) => handleConfirmAdd(book, color)} />,
+                  )
+                }
+                className="hover:bg-primary/8 flex w-full cursor-pointer items-center gap-4 rounded-lg p-2 text-left transition-colors"
+              >
+                <BookCover book={book} index={index} />
+                <div className="flex flex-1 flex-col gap-1">
+                  <span className="line-clamp-2 text-base font-semibold">{book.title}</span>
+                  <span className="text-secondary line-clamp-1 text-sm">
+                    {book.author}
+                    {book.publisher ? ` | ${book.publisher}` : ''}
+                  </span>
+                </div>
+              </button>
+            ))}
           </div>
         )}
         {hasMore && (
@@ -282,5 +266,40 @@ export function SearchTab({ onAdd, onGoToManual }: SearchTabProps) {
         )}
       </div>
     </div>
+  );
+}
+
+function ColorSelectModal({ onConfirm }: { onConfirm: (color: string) => Promise<void> }) {
+  const [color, setColor] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleConfirmClick = async () => {
+    if (color === null || isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      await onConfirm(color);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Modal
+      title="색상을 선택해주세요"
+      content={<BookColorPicker value={color} onChange={setColor} disabled={isSubmitting} />}
+      buttons={[
+        <Button
+          key="confirm"
+          disabled={color === null || isSubmitting}
+          isLoading={isSubmitting}
+          onClick={handleConfirmClick}
+        >
+          등록
+        </Button>,
+      ]}
+      showCloseButton={!isSubmitting}
+      preventClose={isSubmitting}
+    />
   );
 }
