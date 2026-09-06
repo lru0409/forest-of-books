@@ -92,7 +92,10 @@ describe('LibraryEntryController', () => {
 
   describe('create', () => {
     it('요청 유저 id로 service.create 호출', async () => {
-      const dto = { book: { title: '토지', author: '박경리', genre: 'NOVEL' as const } };
+      const dto = {
+        book: { title: '토지', author: '박경리', genre: 'NOVEL' as const },
+        note: { color: '#A27873' },
+      };
       mockLibraryService.create.mockResolvedValue({});
 
       await controller.create(requestWithUser('user-1'), dto);

@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import {
   IsBoolean,
   IsEnum,
+  IsIn,
   IsInt,
   IsOptional,
   IsString,
@@ -12,6 +13,8 @@ import {
 } from 'class-validator';
 
 import { Genre, ReadingStatus } from '@repo/db';
+
+import { BOOK_COLORS } from '../constants/book-colors.constant';
 
 export class CreateLibraryEntryBookDto {
   @IsString()
@@ -41,9 +44,8 @@ export class CreateLibraryEntryNoteDto {
   @IsEnum(ReadingStatus)
   status?: ReadingStatus;
 
-  @IsOptional()
-  @IsString()
-  color?: string;
+  @IsIn(BOOK_COLORS)
+  color!: string;
 
   @IsOptional()
   @IsBoolean()
@@ -70,8 +72,7 @@ export class CreateLibraryEntryDto {
   @Type(() => CreateLibraryEntryBookDto)
   book!: CreateLibraryEntryBookDto;
 
-  @IsOptional()
   @ValidateNested()
   @Type(() => CreateLibraryEntryNoteDto)
-  note?: CreateLibraryEntryNoteDto;
+  note!: CreateLibraryEntryNoteDto;
 }
