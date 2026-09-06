@@ -43,6 +43,13 @@ export class LibraryController {
 export class LibraryEntryController {
   constructor(private readonly libraryService: LibraryService) {}
 
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  findMine(@Req() req: Request): Promise<LibraryEntryListItemResponseDto[]> {
+    const currentUser = req.user as User;
+    return this.libraryService.findByUser(currentUser.id, currentUser.id);
+  }
+
   @Post()
   @UseGuards(JwtAuthGuard)
   create(

@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { type LibraryEntryListItem, type LibraryEntryNotePatch } from '@/lib';
 import LibraryService from '@/services/library';
 
-function useLibrary({ userId, token }: { userId?: string; token: string | null }) {
+function useLibrary({ token }: { token: string | null }) {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -13,11 +13,11 @@ function useLibrary({ userId, token }: { userId?: string; token: string | null }
   const [isError, setIsError] = useState(false);
 
   useEffect(() => {
-    if (!userId || !token) return;
+    if (!token) return;
 
     setIsLoading(true);
     setIsError(false);
-    LibraryService.getUserLibrary(userId, token).then((result) => {
+    LibraryService.getMyLibrary(token).then((result) => {
       if (result.isSuccess) {
         setItems(result.data);
       } else {
@@ -25,7 +25,7 @@ function useLibrary({ userId, token }: { userId?: string; token: string | null }
       }
       setIsLoading(false);
     });
-  }, [userId, token]);
+  }, [token]);
 
   const updateItem = useCallback(
     async (itemId: string, patch: LibraryEntryNotePatch): Promise<boolean> => {

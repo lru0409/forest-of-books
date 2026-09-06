@@ -90,6 +90,16 @@ describe('LibraryEntryController', () => {
     jest.clearAllMocks();
   });
 
+  describe('findMine', () => {
+    it('요청 유저 id를 userId와 viewerId 양쪽에 전달', async () => {
+      mockLibraryService.findByUser.mockResolvedValue([]);
+
+      await controller.findMine(requestWithUser('user-1'));
+
+      expect(mockLibraryService.findByUser).toHaveBeenCalledWith('user-1', 'user-1');
+    });
+  });
+
   describe('create', () => {
     it('요청 유저 id로 service.create 호출', async () => {
       const dto = {

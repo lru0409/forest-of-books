@@ -20,10 +20,7 @@ export default function NotesPage() {
 
   const [viewMode, setViewMode] = useLocalStorage<ViewMode>('notes-view-mode', 'shelf');
 
-  const { items, isLoading, isError, updateItem, deleteItem } = useLibrary({
-    userId: user?.id,
-    token,
-  });
+  const { items, isLoading, isError, updateItem, deleteItem } = useLibrary({ token });
   const {
     searchQuery,
     setSearchQuery,

@@ -16,6 +16,12 @@ function getUserLibrary(
   });
 }
 
+function getMyLibrary(token: string): Promise<ApiResponse<LibraryEntryListItem[]>> {
+  return apiRequest('/library', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
 function getLibraryEntry(
   entryId: string,
   token?: string | null,
@@ -58,6 +64,7 @@ function deleteEntry(entryId: string, token: string): Promise<ApiResponse> {
 
 export default {
   getUserLibrary,
+  getMyLibrary,
   getLibraryEntry,
   createEntry,
   updateEntry,
