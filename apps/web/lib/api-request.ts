@@ -1,3 +1,5 @@
+import { useAuthStore } from '@/store/authStore';
+
 import { API_URL } from './constants/api';
 import { type ApiResponse } from './types/api';
 
@@ -5,6 +7,8 @@ interface ApiRequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
   headers?: Record<string, string>;
+  // TODO: httpOnly 쿠키 기반으로 전환 시 credentials: 'include'를 기본값으로 하고,
+  // 각 서비스 호출부의 수동 Authorization 헤더 첨부 제거.
   credentials?: RequestCredentials;
   timeoutMs?: number;
 }
@@ -29,6 +33,9 @@ export async function apiRequest<T = undefined, E = undefined>(
     });
     const responseBody = await res.json().catch(() => ({}));
     if (!res.ok) {
+      if (res.status === 401) {
+        useAuthStore.getState().clearToken();
+      }
       return {
         isSuccess: false,
         statusCode: res.status,

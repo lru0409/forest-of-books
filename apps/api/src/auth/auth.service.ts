@@ -19,6 +19,7 @@ export class AuthService {
     private prisma: PrismaService,
   ) {}
 
+  // TODO: 보안 강화 리팩토링 시 access token은 httpOnly 쿠키로, refresh token 발급/로테이션 추가 검토.
   issueToken(userId: string): string {
     return this.jwtService.sign({ sub: userId });
   }
