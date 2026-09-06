@@ -213,11 +213,13 @@ describe('LibraryService', () => {
       isbn: '9780000000000',
     };
 
+    const noteInput = { color: '#A27873' };
+
     it('isbn이 있으면 upsert로 book 공유', async () => {
       mockPrisma.book.upsert.mockResolvedValue(book);
       mockPrisma.libraryEntry.create.mockResolvedValue(entry);
 
-      await service.create('user-1', { book: bookInput });
+      await service.create('user-1', { book: bookInput, note: noteInput });
 
       expect(mockPrisma.book.upsert).toHaveBeenCalledWith({
         where: { isbn: bookInput.isbn },
@@ -232,20 +234,20 @@ describe('LibraryService', () => {
       mockPrisma.book.create.mockResolvedValue({ ...book, isbn: null });
       mockPrisma.libraryEntry.create.mockResolvedValue(entry);
 
-      await service.create('user-1', { book: manualBook });
+      await service.create('user-1', { book: manualBook, note: noteInput });
 
       expect(mockPrisma.book.create).toHaveBeenCalledWith({ data: manualBook });
       expect(mockPrisma.book.upsert).not.toHaveBeenCalled();
     });
 
-    it('note 없이 생성하면 userId/bookId만 담아 create', async () => {
+    it('note에는 color만 있으면 userId/bookId/color만 담아 create', async () => {
       mockPrisma.book.upsert.mockResolvedValue(book);
       mockPrisma.libraryEntry.create.mockResolvedValue(entry);
 
-      await service.create('user-1', { book: bookInput });
+      await service.create('user-1', { book: bookInput, note: noteInput });
 
       expect(mockPrisma.libraryEntry.create).toHaveBeenCalledWith({
-        data: { userId: 'user-1', bookId: 'book-1' },
+        data: { userId: 'user-1', bookId: 'book-1', color: '#A27873' },
         include: { book: true },
       });
     });
@@ -256,11 +258,17 @@ describe('LibraryService', () => {
 
       await service.create('user-1', {
         book: bookInput,
-        note: { status: 'COMPLETED', isPublic: true },
+        note: { ...noteInput, status: 'COMPLETED', isPublic: true },
       });
 
       expect(mockPrisma.libraryEntry.create).toHaveBeenCalledWith({
-        data: { userId: 'user-1', bookId: 'book-1', status: 'COMPLETED', isPublic: true },
+        data: {
+          userId: 'user-1',
+          bookId: 'book-1',
+          color: '#A27873',
+          status: 'COMPLETED',
+          isPublic: true,
+        },
         include: { book: true },
       });
     });
@@ -270,9 +278,9 @@ describe('LibraryService', () => {
       const p2002Error = Object.assign(new Error('unique constraint'), { code: 'P2002' });
       mockPrisma.libraryEntry.create.mockRejectedValue(p2002Error);
 
-      await expect(service.create('user-1', { book: bookInput })).rejects.toBeInstanceOf(
-        ConflictException,
-      );
+      await expect(
+        service.create('user-1', { book: bookInput, note: noteInput }),
+      ).rejects.toBeInstanceOf(ConflictException);
     });
 
     it('P2002가 아닌 에러는 그대로 던짐', async () => {
@@ -280,7 +288,9 @@ describe('LibraryService', () => {
       const otherError = new Error('db down');
       mockPrisma.libraryEntry.create.mockRejectedValue(otherError);
 
-      await expect(service.create('user-1', { book: bookInput })).rejects.toBe(otherError);
+      await expect(
+        service.create('user-1', { book: bookInput, note: noteInput }),
+      ).rejects.toBe(otherError);
     });
   });
 

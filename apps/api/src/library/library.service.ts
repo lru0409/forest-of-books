@@ -59,12 +59,12 @@ export class LibraryService {
         data: {
           userId,
           bookId: book.id,
-          ...(dto.note?.status !== undefined && { status: dto.note.status }),
-          ...(dto.note?.color !== undefined && { color: dto.note.color }),
-          ...(dto.note?.isPublic !== undefined && { isPublic: dto.note.isPublic }),
-          ...(dto.note?.rating !== undefined && { rating: dto.note.rating }),
-          ...(dto.note?.comment !== undefined && { comment: dto.note.comment }),
-          ...(dto.note?.note !== undefined && { note: dto.note.note }),
+          color: dto.note.color,
+          ...(dto.note.status !== undefined && { status: dto.note.status }),
+          ...(dto.note.isPublic !== undefined && { isPublic: dto.note.isPublic }),
+          ...(dto.note.rating !== undefined && { rating: dto.note.rating }),
+          ...(dto.note.comment !== undefined && { comment: dto.note.comment }),
+          ...(dto.note.note !== undefined && { note: dto.note.note }),
         },
         include: { book: true },
       });
