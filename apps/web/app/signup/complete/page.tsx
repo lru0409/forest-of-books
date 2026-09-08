@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
+import { PartyPopper } from 'lucide-react';
 
 import { Container } from '@/components/layout';
 import { Button } from '@/components/ui';
@@ -18,14 +18,9 @@ export default function SignupCompletePage() {
   return (
     <Container className="flex justify-center">
       <div className="flex w-125 min-w-80 flex-col">
-        <div className="flex flex-1 flex-col items-center justify-center gap-3">
+        <div className="flex flex-1 flex-col items-center justify-center gap-8">
           <div className="animate-emerge delay-100">
-            <Image
-              src="/images/graphics/complete.png"
-              alt="회원가입 완료"
-              width={200}
-              height={200}
-            />
+            <PartyPopper className="text-primary size-30" strokeWidth={1.4} />
           </div>
 
           <div className="animate-emerge flex flex-col items-center gap-5 delay-300">

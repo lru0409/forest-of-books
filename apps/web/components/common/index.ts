@@ -1,4 +1,3 @@
-export { BookLoader } from './BookLoader';
 export { BookCover } from './BookCover';
 export { BookColorPalette } from './BookColorPalette';
 export { BookColorPicker } from './BookColorPicker';
