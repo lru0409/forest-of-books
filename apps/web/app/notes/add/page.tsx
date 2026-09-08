@@ -35,7 +35,7 @@ export default function AddBookPage() {
 
   return (
     <Container className="flex justify-center pb-8 md:pb-0">
-      <div className="relative mt-16 flex w-125 min-w-80 flex-col pb-10">
+      <div className="relative mt-16 flex w-125 flex-col pb-10">
         <button
           type="button"
           onClick={() => router.back()}

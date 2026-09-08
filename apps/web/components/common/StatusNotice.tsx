@@ -14,7 +14,7 @@ export function StatusNotice({ icon, title, description, action, className }: St
   return (
     <div
       className={cn(
-        'mx-auto flex w-100 flex-col items-center justify-center text-center',
+        'mx-auto flex max-w-100 flex-col items-center justify-center text-center',
         className,
       )}
     >

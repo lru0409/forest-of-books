@@ -12,12 +12,12 @@ interface ContainerProps {
 
 export function Container({ children, aside, className, showBottomNav = true }: ContainerProps) {
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
+    <div className="flex h-dvh min-w-80 flex-col md:flex-row">
       <MobileHeader />
       <Sidebar />
       <main
         className={cn(
-          'min-w-0 flex-1 px-6 pt-6 pb-20 md:px-10 md:pt-8 md:pb-10',
+          'min-h-0 min-w-0 flex-1 overflow-y-auto px-6 pt-6 pb-20 md:px-10 md:pt-8 md:pb-10',
           !showBottomNav && 'pb-10',
           className,
         )}

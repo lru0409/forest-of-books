@@ -63,7 +63,7 @@ export default function SignIn() {
 
   return (
     <Container className="flex min-h-170 w-full justify-center">
-      <div className="flex w-125 min-w-80 flex-col justify-center">
+      <div className="flex w-125 flex-col justify-center">
         {/* 브랜드 */}
         <h1 className="mb-14 text-center text-5xl font-bold">책의 숲</h1>
 

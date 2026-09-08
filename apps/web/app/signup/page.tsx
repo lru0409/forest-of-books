@@ -31,7 +31,7 @@ function SignUpContent() {
         isSubmitting={isSubmitting}
         onComplete={handleProgressComplete}
       />
-      <div className="flex w-125 min-w-80 pt-16">
+      <div className="flex w-125 pt-16">
         {step === Step.EMAIL_PASSWORD && <EmailPasswordStep />}
         {step === Step.PROFILE && <ProfileStep />}
         {step === Step.GENRES && (
