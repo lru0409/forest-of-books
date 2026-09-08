@@ -9,11 +9,13 @@ import { cn } from '@/lib/utils';
 type SelectState = 'default' | 'info' | 'error' | 'success';
 
 const stateStyles: Record<SelectState, string> = {
-  default: 'border-input data-[state=open]:border-primary data-[state=open]:ring-1',
-  info: 'border-input data-[state=open]:border-primary data-[state=open]:ring-1',
+  default:
+    'border-input data-[state=open]:border-primary data-[state=open]:ring-1 focus-visible:border-primary focus-visible:ring-1',
+  info: 'border-input data-[state=open]:border-primary data-[state=open]:ring-1 focus-visible:border-primary focus-visible:ring-1',
   error:
-    'border-destructive data-[state=open]:border-destructive data-[state=open]:ring-1 data-[state=open]:ring-destructive',
-  success: 'border-input data-[state=open]:border-primary data-[state=open]:ring-1',
+    'border-destructive data-[state=open]:border-destructive data-[state=open]:ring-1 data-[state=open]:ring-destructive focus-visible:border-destructive focus-visible:ring-1 focus-visible:ring-destructive',
+  success:
+    'border-input data-[state=open]:border-primary data-[state=open]:ring-1 focus-visible:border-primary focus-visible:ring-1',
 };
 
 function Select({ ...props }: React.ComponentProps<typeof SelectPrimitive.Root>) {

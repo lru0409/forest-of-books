@@ -44,7 +44,15 @@ export function BookColorPicker({
           disabled={disabled}
           className={cn(
             'flex h-8 w-full items-center justify-between gap-2 rounded-xl border bg-white px-4 py-6 text-base outline-none disabled:cursor-not-allowed disabled:opacity-50',
-            state === 'error' ? 'border-destructive' : 'border-input',
+            state === 'error'
+              ? cn(
+                  'border-destructive focus-visible:border-destructive focus-visible:ring-destructive focus-visible:ring-1',
+                  open && 'border-destructive ring-destructive ring-1',
+                )
+              : cn(
+                  'border-input focus-visible:border-primary focus-visible:ring-1',
+                  open && 'border-primary ring-1',
+                ),
           )}
         >
           <span className="flex items-center gap-2">
