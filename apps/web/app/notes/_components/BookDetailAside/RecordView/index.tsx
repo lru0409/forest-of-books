@@ -1,12 +1,11 @@
 import { type ReactNode } from 'react';
 import { LoaderCircle, TriangleAlert } from 'lucide-react';
 
-import { type LibraryEntryNotePatch } from '@/lib';
+import { type LibraryEntryDetailItem, type LibraryEntryNotePatch } from '@/lib';
 import { StatusNotice } from '@/components/common';
 import { Textarea, Button } from '@/components/ui';
 import { Modal } from '@/components/layout';
 import { useDialog } from '@/context/dialog';
-import { useAuthStore } from '@/store/authStore';
 import useLibraryEntryRecord from './useLibraryEntryRecord';
 
 import { RecordHeader } from './RecordHeader';
@@ -14,25 +13,24 @@ import { RatingInput } from './RatingInput';
 import { RatingStars } from './RatingStars';
 
 interface RecordViewProps {
-  itemId: string;
+  detail: LibraryEntryDetailItem | null;
+  isLoading: boolean;
+  isError: boolean;
   updateItem: (patch: LibraryEntryNotePatch) => Promise<boolean>;
   isPublic: boolean;
 }
 
-export const RecordView = ({ itemId, updateItem, isPublic }: RecordViewProps) => {
+export const RecordView = ({
+  detail,
+  isLoading,
+  isError,
+  updateItem,
+  isPublic,
+}: RecordViewProps) => {
   const { openDialog, closeDialog } = useDialog();
-  const token = useAuthStore((state) => state.token);
 
-  const {
-    noteDraft,
-    isLoading,
-    isError,
-    isEditing,
-    isSaving,
-    updateNoteDraft,
-    startEditing,
-    finishEditing,
-  } = useLibraryEntryRecord({ itemId, token, updateItem });
+  const { noteDraft, isEditing, isSaving, updateNoteDraft, startEditing, finishEditing } =
+    useLibraryEntryRecord({ detail, updateItem });
 
   const showSaveErrorDialog = () => {
     openDialog(

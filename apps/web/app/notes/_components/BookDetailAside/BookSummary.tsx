@@ -18,10 +18,11 @@ import { GenreBadge } from '@/components/common';
 
 interface BookSummaryProps {
   item: LibraryEntryListItem;
+  publisher?: string | null;
   onStatusChange: (status: ReadingStatus) => void;
 }
 
-export function BookSummary({ item, onStatusChange }: BookSummaryProps) {
+export function BookSummary({ item, publisher, onStatusChange }: BookSummaryProps) {
   return (
     <div className="flex gap-4">
       <div className="h-28 w-20 rounded-sm shadow-sm" style={{ backgroundColor: item.color }} />
@@ -29,8 +30,10 @@ export function BookSummary({ item, onStatusChange }: BookSummaryProps) {
         <h2 className="text-primary font-heading line-clamp-2 text-xl font-semibold">
           {item.title}
         </h2>
-        {/* TODO: 출판사도 같이 표시하면 좋을 듯 */}
-        <p className="text-secondary mt-1 text-sm">{item.author}</p>
+        <p className="text-secondary mt-1 text-sm">
+          {item.author}
+          {publisher ? ` | ${publisher}` : ''}
+        </p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <GenreBadge genre={item.genre} />
           <ReadingStatusSelect status={item.status} onChange={onStatusChange} />

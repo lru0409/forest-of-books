@@ -6,6 +6,7 @@ import {
   cn,
   useLocalStorage,
   useMediaQuery,
+  type LibraryEntryDetailItem,
   type LibraryEntryListItem,
   type LibraryEntryNotePatch,
   type ReadingStatus,
@@ -13,6 +14,8 @@ import {
 import { Button } from '@/components/ui';
 import { Modal } from '@/components/layout';
 import { useDialog } from '@/context/dialog';
+import { useAuthStore } from '@/store/authStore';
+import LibraryService from '@/services/library';
 
 import { PanelToolBar } from './PanelToolBar';
 import { BookSummary } from './BookSummary';
@@ -132,6 +135,27 @@ function BookDetailPanel({
   onToggleFullscreen: () => void;
 }) {
   const { openDialog, closeDialog } = useDialog();
+  const token = useAuthStore((state) => state.token);
+
+  const [detail, setDetail] = useState<LibraryEntryDetailItem | null>(null);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const [isDetailError, setIsDetailError] = useState(false);
+
+  useEffect(() => {
+    if (!token) return;
+
+    setDetail(null);
+    setIsDetailError(false);
+    setIsDetailLoading(true);
+    LibraryService.getLibraryEntry(item.id, token).then((result) => {
+      if (result.isSuccess) {
+        setDetail(result.data);
+      } else {
+        setIsDetailError(true);
+      }
+      setIsDetailLoading(false);
+    });
+  }, [item.id, token]);
 
   const showSaveErrorDialog = () => {
     openDialog(
@@ -161,9 +185,19 @@ function BookDetailPanel({
         deleteItem={deleteItem}
       />
       <div className="mx-auto w-full max-w-2xl min-w-2xs px-4">
-        <BookSummary item={item} onStatusChange={handleStatusChange} />
+        <BookSummary
+          item={item}
+          publisher={detail?.publisher}
+          onStatusChange={handleStatusChange}
+        />
         <div className="border-primary/20 mt-8 mb-6 flex flex-1 border-t" />
-        <RecordView itemId={item.id} updateItem={updateItem} isPublic={item.isPublic} />
+        <RecordView
+          detail={detail}
+          isLoading={isDetailLoading}
+          isError={isDetailError}
+          updateItem={updateItem}
+          isPublic={item.isPublic}
+        />
       </div>
     </div>
   );

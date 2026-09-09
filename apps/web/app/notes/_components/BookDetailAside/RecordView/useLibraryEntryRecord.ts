@@ -1,38 +1,22 @@
 import { useState, useEffect } from 'react';
 
 import { type LibraryEntryDetailItem, type LibraryEntryNotePatch } from '@/lib';
-import LibraryService from '@/services/library';
 
 function useLibraryEntryRecord({
-  itemId,
-  token,
+  detail,
   updateItem,
 }: {
-  itemId: string;
-  token: string | null;
+  detail: LibraryEntryDetailItem | null;
   updateItem: (patch: LibraryEntryNotePatch) => Promise<boolean>;
 }) {
-  const [noteDraft, setNoteDraft] = useState<LibraryEntryDetailItem | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isError, setIsError] = useState(false);
+  const [noteDraft, setNoteDraft] = useState<LibraryEntryDetailItem | null>(detail);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (!token) return;
-
-    setNoteDraft(null);
-    setIsError(false);
-    setIsLoading(true);
-    LibraryService.getLibraryEntry(itemId, token).then((result) => {
-      if (result.isSuccess) {
-        setNoteDraft(result.data);
-      } else {
-        setIsError(true);
-      }
-      setIsLoading(false);
-    });
-  }, [itemId, token]);
+    setNoteDraft(detail);
+    setIsEditing(false);
+  }, [detail]);
 
   // rating/comment/note: 편집 중엔 로컬 state만 갱신, 저장 시점에만 한 번에 커밋한다.
   const updateNoteDraft = (patch: Pick<LibraryEntryNotePatch, 'rating' | 'comment' | 'note'>) => {
@@ -64,8 +48,6 @@ function useLibraryEntryRecord({
 
   return {
     noteDraft,
-    isLoading,
-    isError,
     isEditing,
     isSaving,
     updateNoteDraft,
