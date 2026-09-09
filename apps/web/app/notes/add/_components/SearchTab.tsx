@@ -13,11 +13,10 @@ import booksService from '@/services/books';
 // TODO: 로직을 훅으로 분리
 
 interface SearchTabProps {
-  onAdd: (book: Book, color: string) => Promise<boolean>;
+  onAdd: (book: Book, color: string) => Promise<'success' | 'conflict' | 'error'>;
   onGoToManual: () => void;
 }
 
-// TODO: 이미 등록된 책 클릭 시 처리
 // TODO: 로직을 훅으로 분리
 
 interface SearchState {
@@ -152,15 +151,17 @@ export function SearchTab({ onAdd, onGoToManual }: SearchTabProps) {
     return () => observer.disconnect();
   }, [hasMore, loadMore]);
 
-  // TODO: 409일 때 처리
   const handleConfirmAdd = async (book: Book, color: string) => {
-    const success = await onAdd(book, color);
-    if (success) {
+    const result = await onAdd(book, color);
+    if (result === 'success') {
       closeDialog();
-    } else {
+      return;
+    }
+
+    if (result === 'conflict') {
       openDialog(
         <Modal
-          title={'등록에 실패했어요.\n잠시 후 다시 시도해주세요.'}
+          title="이미 서재에 등록된 책이에요."
           buttons={[
             <Button key="close" onClick={closeDialog}>
               확인
@@ -169,7 +170,20 @@ export function SearchTab({ onAdd, onGoToManual }: SearchTabProps) {
           showCloseButton={false}
         />,
       );
+      return;
     }
+
+    openDialog(
+      <Modal
+        title={'등록에 실패했어요.\n잠시 후 다시 시도해주세요.'}
+        buttons={[
+          <Button key="close" onClick={closeDialog}>
+            확인
+          </Button>,
+        ]}
+        showCloseButton={false}
+      />,
+    );
   };
 
   const viewState = (() => {

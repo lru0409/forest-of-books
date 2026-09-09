@@ -19,7 +19,7 @@ import { GENRES, GENRE_LABELS, type Book, type Genre } from '@/lib';
 // TODO: 로직을 훅으로 분리
 
 interface ManualTabProps {
-  onAdd: (book: Omit<Book, 'id'>, color: string) => Promise<boolean>;
+  onAdd: (book: Omit<Book, 'id'>, color: string) => Promise<'success' | 'conflict' | 'error'>;
 }
 
 export function ManualTab({ onAdd }: ManualTabProps) {
@@ -69,7 +69,7 @@ export function ManualTab({ onAdd }: ManualTabProps) {
     if (!canSubmit || isSubmitting) return;
 
     setIsSubmitting(true);
-    const success = await onAdd(
+    const result = await onAdd(
       {
         title: title.trim(),
         author: author.trim(),
@@ -78,7 +78,7 @@ export function ManualTab({ onAdd }: ManualTabProps) {
       },
       color as string,
     );
-    if (!success) {
+    if (result !== 'success') {
       setIsSubmitting(false);
       openDialog(
         <Modal
@@ -140,7 +140,6 @@ export function ManualTab({ onAdd }: ManualTabProps) {
             disabled={isSubmitting}
           />
         </div>
-        {/* TODO: 장르, 색상 항목 tab focus 시 border 두껍게 처리 */}
         <div className="flex flex-col gap-4 sm:flex-row">
           <div className="flex-1">
             <label htmlFor="genre" className="mb-2 block text-lg font-semibold">
