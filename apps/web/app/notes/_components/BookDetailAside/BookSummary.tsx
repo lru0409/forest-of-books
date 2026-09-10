@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { GenreBadge } from '@/components/common';
+import { BookCover, GenreBadge } from '@/components/common';
 
 interface BookSummaryProps {
   item: LibraryEntryListItem;
@@ -24,8 +24,8 @@ interface BookSummaryProps {
 
 export function BookSummary({ item, publisher, onStatusChange }: BookSummaryProps) {
   return (
-    <div className="flex gap-4">
-      <div className="h-28 w-20 rounded-sm shadow-sm" style={{ backgroundColor: item.color }} />
+    <div className="flex gap-5">
+      <BookCover coverUrl={item.coverUrl} title={item.title} color={item.color} size="lg" />
       <div className="flex-1 pt-1">
         <h2 className="text-primary font-heading line-clamp-2 text-xl font-semibold">
           {item.title}

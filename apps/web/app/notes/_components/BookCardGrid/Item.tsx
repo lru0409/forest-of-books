@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
-import { ReadingStatusBadge, GenreBadge } from '@/components/common';
+import { ReadingStatusBadge, GenreBadge, BookCover } from '@/components/common';
 import { type LibraryEntryListItem } from '@/lib';
 
 interface ItemProps {
@@ -43,10 +43,12 @@ export function Item({ item, index = 0 }: ItemProps) {
           </div>
         </div>
 
-        {/* 표지 자리 */}
-        <div
-          className="-my-1 -mr-1 h-30 w-20 rounded-sm shadow-sm"
-          style={{ backgroundColor: color }}
+        <BookCover
+          coverUrl={item.coverUrl}
+          title={title}
+          color={color}
+          size="lg"
+          className="-my-1 -mr-1"
         />
       </div>
     </div>

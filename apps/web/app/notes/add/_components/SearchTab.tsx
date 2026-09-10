@@ -256,7 +256,7 @@ export function SearchTab({ onAdd, onGoToManual }: SearchTabProps) {
                 }
                 className="hover:bg-primary/8 flex w-full cursor-pointer items-center gap-4 rounded-lg p-2 text-left transition-colors"
               >
-                <BookCover book={book} index={index} />
+                <BookCover coverUrl={book.coverUrl ?? null} title={book.title} />
                 <div className="flex flex-1 flex-col gap-1">
                   <span className="line-clamp-2 text-base font-semibold">{book.title}</span>
                   <span className="text-secondary line-clamp-1 text-sm">
