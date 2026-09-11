@@ -114,7 +114,7 @@ export const ProfileStep = () => {
         </p>
 
         <div className="mb-14 flex flex-col items-center">
-          <div className="bg-primary/70 border-primary mb-4 size-35 overflow-hidden rounded-full border-2">
+          <div className="mb-4 size-35 overflow-hidden rounded-full shadow-[0_0_10px_5px_color-mix(in_srgb,var(--color-primary-foreground)_50%,transparent)]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={displayProfileImageUrl}
