@@ -8,7 +8,7 @@ import { Button, Input, Textarea } from '@/components/ui';
 import { useSignupStore } from '@/store/signupStore';
 import { Step } from '../../constants';
 import { ProfileImageOverlay } from './ProfileImageOverlay';
-import useProfileStep from '../../_hooks/useProfileStep';
+import useProfileStep from './useProfileStep';
 
 export const ProfileStep = () => {
   const router = useRouter();

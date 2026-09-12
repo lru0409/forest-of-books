@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 
 import { isValidNickname } from '@/lib';
 import authService from '@/services/auth';
-import { PROFILE_IMAGE_ACCEPTED_TYPES, PROFILE_IMAGE_MAX_FILE_SIZE } from '../constants';
+import { PROFILE_IMAGE_ACCEPTED_TYPES, PROFILE_IMAGE_MAX_FILE_SIZE } from '../../constants';
 import type { InputState } from '@/components/ui/input';
 import type { TextareaState } from '@/components/ui/textarea';
 import { useSignupStore } from '@/store/signupStore';

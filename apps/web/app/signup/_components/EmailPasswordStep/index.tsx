@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { Step } from '../constants';
+import { Step } from '../../constants';
 import { Button, Input } from '@/components/ui';
 import { useSignupStore } from '@/store/signupStore';
-import useEmailPasswordStep from '../_hooks/useEmaillPasswordStep';
+import useEmailPasswordStep from './useEmailPasswordStep';
 
 export const EmailPasswordStep = () => {
   const router = useRouter();

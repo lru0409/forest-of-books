@@ -1,155 +1,24 @@
 'use client';
 
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import { useState } from 'react';
 import { SearchX, LoaderCircle, Search, CircleX } from 'lucide-react';
 
 import { BookColorPicker, BookCover, SearchInput, StatusNotice } from '@/components/common';
 import { Button } from '@/components/ui';
 import { Modal } from '@/components/layout';
 import { useDialog } from '@/context/dialog';
-import { useDebounce, type Book } from '@/lib';
-import booksService from '@/services/books';
-
-// TODO: 로직을 훅으로 분리
+import type { Book } from '@/lib';
+import { useBookSearch } from './useBookSearch';
 
 interface SearchTabProps {
   onAdd: (book: Book, color: string) => Promise<'success' | 'conflict' | 'error'>;
   onGoToManual: () => void;
 }
 
-// TODO: 로직을 훅으로 분리
-
-interface SearchState {
-  results: Book[];
-  total: number;
-  page: number;
-  isLoading: boolean;
-  isLoadingMore: boolean;
-  error: string | null;
-}
-
-const initialSearchState: SearchState = {
-  results: [],
-  total: 0,
-  page: 1,
-  isLoading: false,
-  isLoadingMore: false,
-  error: null,
-};
-
-type SearchAction =
-  | { type: 'RESET' }
-  | { type: 'FETCH_START' }
-  | { type: 'FETCH_SUCCESS'; results: Book[]; total: number }
-  | { type: 'FETCH_ERROR' }
-  | { type: 'LOAD_MORE_START' }
-  | { type: 'LOAD_MORE_SUCCESS'; results: Book[] }
-  | { type: 'LOAD_MORE_ERROR' };
-
-function searchReducer(state: SearchState, action: SearchAction): SearchState {
-  switch (action.type) {
-    case 'RESET':
-      return initialSearchState;
-    case 'FETCH_START':
-      return { ...initialSearchState, isLoading: true };
-    case 'FETCH_SUCCESS':
-      return {
-        ...state,
-        results: action.results,
-        total: action.total,
-        page: 1,
-        isLoading: false,
-        error: null,
-      };
-    case 'FETCH_ERROR':
-      return {
-        ...state,
-        isLoading: false,
-        error: '검색에 실패했어요. 잠시 후 다시 시도해주세요.',
-      };
-    case 'LOAD_MORE_START':
-      return { ...state, isLoadingMore: true };
-    case 'LOAD_MORE_SUCCESS':
-      return {
-        ...state,
-        results: [...state.results, ...action.results],
-        page: state.page + 1,
-        isLoadingMore: false,
-      };
-    case 'LOAD_MORE_ERROR':
-      return { ...state, isLoadingMore: false };
-    default:
-      return state;
-  }
-}
-
 export function SearchTab({ onAdd, onGoToManual }: SearchTabProps) {
   const { openDialog, closeDialog } = useDialog();
-
-  const [query, setQuery] = useState('');
-  const [state, dispatch] = useReducer(searchReducer, initialSearchState);
-  const sentinelRef = useRef<HTMLDivElement>(null);
-  const requestIdRef = useRef(0);
-
-  const debouncedQuery = useDebounce(query);
-  const isSearching = debouncedQuery.trim() !== '';
-  const { results, total, page, isLoading, isLoadingMore, error } = state;
-  const hasMore = results.length < total;
-
-  useEffect(() => {
-    requestIdRef.current += 1;
-    const requestId = requestIdRef.current;
-
-    if (!isSearching) {
-      dispatch({ type: 'RESET' });
-      return;
-    }
-
-    const fetchResults = async () => {
-      dispatch({ type: 'FETCH_START' });
-      const response = await booksService.searchBooks(debouncedQuery.trim());
-      if (requestIdRef.current !== requestId) return;
-      if (!response.isSuccess) {
-        dispatch({ type: 'FETCH_ERROR' });
-      } else {
-        dispatch({
-          type: 'FETCH_SUCCESS',
-          results: response.data.items,
-          total: response.data.total,
-        });
-      }
-    };
-
-    fetchResults();
-  }, [debouncedQuery, isSearching]);
-
-  const loadMore = useCallback(async () => {
-    if (isLoading || isLoadingMore || !hasMore) return;
-
-    const requestId = requestIdRef.current;
-    const nextPage = page + 1;
-    dispatch({ type: 'LOAD_MORE_START' });
-
-    const response = await booksService.searchBooks(debouncedQuery.trim(), nextPage);
-    if (requestIdRef.current !== requestId) return;
-    if (response.isSuccess) {
-      dispatch({ type: 'LOAD_MORE_SUCCESS', results: response.data.items });
-    } else {
-      dispatch({ type: 'LOAD_MORE_ERROR' });
-    }
-  }, [debouncedQuery, hasMore, isLoading, isLoadingMore, page]);
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel || !hasMore) return;
-
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0]?.isIntersecting) loadMore();
-    });
-    observer.observe(sentinel);
-
-    return () => observer.disconnect();
-  }, [hasMore, loadMore]);
+  const { query, setQuery, results, error, isLoadingMore, hasMore, viewState, sentinelRef } =
+    useBookSearch();
 
   const handleConfirmAdd = async (book: Book, color: string) => {
     const result = await onAdd(book, color);
@@ -185,14 +54,6 @@ export function SearchTab({ onAdd, onGoToManual }: SearchTabProps) {
       />,
     );
   };
-
-  const viewState = (() => {
-    if (!isSearching) return 'idle';
-    if (isLoading) return 'loading';
-    if (error) return 'error';
-    if (results.length === 0) return 'empty';
-    return 'results';
-  })();
 
   return (
     <div className="flex flex-1 flex-col gap-4">
@@ -245,7 +106,7 @@ export function SearchTab({ onAdd, onGoToManual }: SearchTabProps) {
         )}
         {viewState === 'results' && (
           <div className="flex flex-col gap-1">
-            {results.map((book, index) => (
+            {results.map((book) => (
               <button
                 key={book.id}
                 type="button"
