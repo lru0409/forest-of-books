@@ -13,12 +13,14 @@ export {
   READING_STATUS_STYLES,
   BOOK_COLORS,
 } from './constants/book';
+export { MOCK_BADGES } from './constants/badge';
 export { API_URL } from './constants/api';
 export { LOGIN_REQUIRED_ROUTES, GUEST_ONLY_ROUTES } from './constants/auth';
 export { apiRequest } from './api-request';
 export type { ApiResponse } from './types/api';
 export type { Genre, Book } from './types/book';
 export type { User } from './types/user';
+export type { Badge } from './types/badge';
 export type {
   ReadingStatus,
   LibraryEntryListItem,

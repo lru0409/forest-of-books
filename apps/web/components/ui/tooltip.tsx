@@ -28,10 +28,11 @@ function TooltipTrigger({ ...props }: React.ComponentProps<typeof TooltipPrimiti
 
 function TooltipContent({
   className,
+  arrowClassName = 'fill-popover',
   sideOffset = 8,
   children,
   ...props
-}: React.ComponentProps<typeof TooltipPrimitive.Content>) {
+}: React.ComponentProps<typeof TooltipPrimitive.Content> & { arrowClassName?: string }) {
   return (
     <TooltipPrimitive.Portal>
       <TooltipPrimitive.Content
@@ -44,7 +45,7 @@ function TooltipContent({
         {...props}
       >
         {children}
-        <TooltipPrimitive.Arrow className="fill-white" width={18} height={9} />
+        <TooltipPrimitive.Arrow className={arrowClassName} width={18} height={9} />
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>
   );

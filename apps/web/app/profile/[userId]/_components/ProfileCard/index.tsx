@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { User as UserIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { GenreBadge } from '@/components/common';
-import { type User } from '@/lib';
+import { MOCK_BADGES, type Badge, type User } from '@/lib';
 import { useAuthStore } from '@/store/authStore';
+import { useDialog } from '@/context/dialog';
+import { Avatar } from './Avatar';
+import { BadgeCollectionModal } from './BadgeCollectionModal';
 
 interface ProfileCardProps {
   user: User;
@@ -16,24 +18,48 @@ interface ProfileCardProps {
 }
 
 export function ProfileCard({ user, isOwner, bookCount }: ProfileCardProps) {
+  const { openDialog, closeDialog } = useDialog();
+
+  // TODO: 뱃지 API 연동 시 유저별 획득/선택 뱃지로 교체
+  const MOCK_EARNED_BADGE_IDS = MOCK_BADGES.slice(0, 4).map((badge) => badge.id);
+  const [selectedBadge, setSelectedBadge] = useState<Badge | null>(MOCK_BADGES[0] ?? null);
+
+  const handleSelectBadge = (badge: Badge) => {
+    setSelectedBadge(badge);
+    closeDialog();
+  };
+
+  const handleOpenBadges = () => {
+    openDialog(
+      <BadgeCollectionModal
+        totalBadges={MOCK_BADGES}
+        earnedBadgeIds={[
+          'first-complete',
+          'book-worm',
+          'social-butterfly',
+          'comment-rich',
+          'first-sentence-killer',
+          'critic',
+        ]}
+        selectedBadgeId={selectedBadge?.id ?? null}
+        isOwner={isOwner}
+        onSelect={handleSelectBadge}
+      />,
+    );
+  };
+
   return (
     <div className="bg-primary flex flex-col items-center rounded-3xl px-4 pt-8 pb-4 text-center shadow-lg">
-      <div className="mb-3">
-        {user.profileImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={user.profileImage}
-            alt={user.nickname}
-            className="size-32 rounded-full object-cover shadow-md"
-          />
-        ) : (
-          <div className="bg-background flex size-32 items-center justify-center rounded-full shadow-md">
-            <UserIcon className="text-primary size-12" />
-          </div>
-        )}
+      <div className="mb-3.5">
+        <Avatar
+          profileImageUrl={user.profileImage}
+          nickname={user.nickname}
+          badge={selectedBadge ?? undefined}
+          onClickBadge={handleOpenBadges}
+        />
       </div>
 
-      <div className="mb-5 flex flex-col gap-0.5">
+      <div className="mb-6 flex flex-col gap-0.5">
         <p className="text-background text-xl font-semibold">{user.nickname}</p>
         {user.bio && <p className="text-primary-foreground text-sm">&quot;{user.bio}&quot;</p>}
       </div>
