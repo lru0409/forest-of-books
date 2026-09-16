@@ -1,3 +1,4 @@
+export { AuthRequiredNotice } from './AuthRequiredNotice';
 export { BookCover } from './BookCover';
 export { BookColorPalette } from './BookColorPalette';
 export { BookColorPicker } from './BookColorPicker';

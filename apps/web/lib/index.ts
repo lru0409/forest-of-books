@@ -15,7 +15,7 @@ export {
 } from './constants/book';
 export { MOCK_BADGES } from './constants/badge';
 export { API_URL } from './constants/api';
-export { LOGIN_REQUIRED_ROUTES, GUEST_ONLY_ROUTES } from './constants/auth';
+export { LOGIN_REQUIRED_ROUTES, GUEST_ONLY_ROUTES, AUTH_NOTICE_ROUTES } from './constants/auth';
 export { apiRequest } from './api-request';
 export type { ApiResponse } from './types/api';
 export type { Genre, Book } from './types/book';

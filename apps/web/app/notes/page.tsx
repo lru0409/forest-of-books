@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { BookOpen, UserRoundKey, TriangleAlert, LoaderCircle } from 'lucide-react';
+import { BookOpen, TriangleAlert, LoaderCircle } from 'lucide-react';
 
 import { useLocalStorage, type LibraryEntryListItem } from '@/lib';
 import { Container } from '@/components/layout';
@@ -31,26 +31,6 @@ export default function NotesPage() {
     filteredItems,
   } = useLibraryFilters(items);
   const { selectedItem, isClosing, isEntering } = useSelectedLibraryItem(items);
-
-  if (!token) {
-    return (
-      <Container>
-        <StatusNotice
-          className="h-full"
-          icon={
-            <UserRoundKey className="text-primary size-18" strokeWidth={1.6} aria-hidden="true" />
-          }
-          title="로그인이 필요해요"
-          description="로그인하고 나만의 서재를 확인해보세요."
-          action={
-            <Button className="mt-6 w-full" onClick={() => router.push('/signin')}>
-              로그인하러 가기
-            </Button>
-          }
-        />
-      </Container>
-    );
-  }
 
   if (isError) {
     return (
