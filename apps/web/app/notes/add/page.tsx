@@ -38,8 +38,8 @@ export default function AddBookPage() {
   };
 
   return (
-    <Container className="flex justify-center pb-8 md:pb-0">
-      <div className="relative mt-16 flex w-125 flex-col pb-10">
+    <Container className="flex items-start justify-center md:pb-0">
+      <div className="relative mt-16 flex min-h-[calc(100%-4rem)] w-125 flex-col">
         <button
           type="button"
           onClick={() => router.back()}

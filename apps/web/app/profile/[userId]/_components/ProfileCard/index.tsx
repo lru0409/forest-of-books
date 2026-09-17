@@ -21,7 +21,6 @@ export function ProfileCard({ user, isOwner, bookCount }: ProfileCardProps) {
   const { openDialog, closeDialog } = useDialog();
 
   // TODO: 뱃지 API 연동 시 유저별 획득/선택 뱃지로 교체
-  const MOCK_EARNED_BADGE_IDS = MOCK_BADGES.slice(0, 4).map((badge) => badge.id);
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(MOCK_BADGES[0] ?? null);
 
   const handleSelectBadge = (badge: Badge) => {
@@ -102,16 +101,14 @@ export function ProfileCard({ user, isOwner, bookCount }: ProfileCardProps) {
 const ProfileActions = ({ isOwner }: { isOwner: boolean }) => {
   const router = useRouter();
   const clearToken = useAuthStore((state) => state.clearToken);
-  const clearUser = useAuthStore((state) => state.clearUser);
-
-  // TODO: 팔로우 API 연동
-  const [isFollowing, setIsFollowing] = useState(false);
 
   const handleLogout = () => {
     clearToken();
-    clearUser();
-    router.push('/');
+    router.push('/profile');
   };
+
+  // TODO: 팔로우 API 연동
+  const [isFollowing, setIsFollowing] = useState(false);
 
   if (isOwner) {
     return (

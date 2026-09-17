@@ -98,7 +98,7 @@ export default function NotesPage() {
         )
       }
     >
-      <div className="flex h-full flex-col md:min-w-[400px]">
+      <div className="flex min-h-full flex-col md:min-w-[400px]">
         <FilterBar
           searchQuery={searchQuery}
           onSearchQueryChange={setSearchQuery}
