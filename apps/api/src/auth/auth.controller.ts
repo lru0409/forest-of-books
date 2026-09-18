@@ -23,10 +23,7 @@ import {
   LoginDto,
   CheckNicknameResponseDto,
   AuthTokenResponseDto,
-  MeResponseDto,
 } from './dto';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import type { User } from '@repo/db';
 
 @Controller('auth')
 export class AuthController {
@@ -147,13 +144,5 @@ export class AuthController {
   async login(@Body() body: LoginDto): Promise<AuthTokenResponseDto> {
     const token = await this.authService.login(body);
     return { token };
-  }
-
-  @Get('me')
-  @UseGuards(JwtAuthGuard)
-  me(@Req() req: Request): MeResponseDto {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...user } = req.user as User;
-    return user;
   }
 }

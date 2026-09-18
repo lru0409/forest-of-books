@@ -6,4 +6,3 @@ export * from './social-register.dto';
 export * from './login.dto';
 export * from './check-nickname-response.dto';
 export * from './auth-token-response.dto';
-export * from './me-response.dto';

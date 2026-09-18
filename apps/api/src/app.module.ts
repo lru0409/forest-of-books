@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { UploadModule } from './upload/upload.module';
 import { BooksModule } from './books/books.module';
 import { LibraryModule } from './library/library.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { LibraryModule } from './library/library.module';
     UploadModule,
     BooksModule,
     LibraryModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

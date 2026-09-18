@@ -333,19 +333,4 @@ describe('AuthController', () => {
       expect(result).toEqual({ token: 'user.jwt' });
     });
   });
-
-  // ─────────────────────────────────────────────
-  // me
-  // ─────────────────────────────────────────────
-  describe('me', () => {
-    it('req.user에서 password를 제외하고 반환', () => {
-      const req = {
-        user: { id: 'user-1', email: 'user@example.com', nickname: 'tester', password: 'hashed' },
-      } as unknown as Request;
-
-      const result = controller.me(req);
-
-      expect(result).toEqual({ id: 'user-1', email: 'user@example.com', nickname: 'tester' });
-    });
-  });
 });
