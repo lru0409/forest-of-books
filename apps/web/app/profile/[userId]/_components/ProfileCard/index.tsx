@@ -5,14 +5,14 @@ import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { GenreBadge } from '@/components/common';
-import { MOCK_BADGES, type Badge, type User } from '@/lib';
+import { MOCK_BADGES, type Badge, type PublicUserProfile } from '@/lib';
 import { useAuthStore } from '@/store/authStore';
 import { useDialog } from '@/context/dialog';
 import { Avatar } from './Avatar';
 import { BadgeCollectionModal } from './BadgeCollectionModal';
 
 interface ProfileCardProps {
-  user: User;
+  user: PublicUserProfile;
   isOwner: boolean;
   bookCount: number;
 }

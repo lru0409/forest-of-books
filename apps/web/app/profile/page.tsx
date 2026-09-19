@@ -1,23 +1,22 @@
 'use client';
 
-// import { useEffect } from 'react';
-// import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { LoaderCircle } from 'lucide-react';
 
 import { Container } from '@/components/layout';
 import { StatusNotice } from '@/components/common';
-// import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/store/authStore';
 
 export default function ProfilePage() {
-  // const router = useRouter();
-  // const user = useAuthStore((state) => state.user);
+  const router = useRouter();
+  const user = useAuthStore((state) => state.user);
 
-  // TODO: profile/[userId] 페이지 커밋 후 주석 해제
-  // useEffect(() => {
-  //   if (user) {
-  //     router.replace(`/profile/${user.id}`);
-  //   }
-  // }, [user, router]);
+  useEffect(() => {
+    if (user) {
+      router.replace(`/profile/${user.id}`);
+    }
+  }, [user, router]);
 
   return (
     <Container>
