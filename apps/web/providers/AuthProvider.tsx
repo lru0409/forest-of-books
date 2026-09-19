@@ -2,7 +2,7 @@
 
 import { useEffect, type ReactNode } from 'react';
 
-import AuthService from '@/services/auth';
+import UsersService from '@/services/users';
 import { useAuthStore } from '@/store/authStore';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -14,7 +14,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!token || user) return;
 
-    AuthService.getMe(token).then((result) => {
+    UsersService.getMe(token).then((result) => {
       if (result.isSuccess) {
         setUser(result.data);
       } else {

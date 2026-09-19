@@ -19,7 +19,7 @@ export { LOGIN_REQUIRED_ROUTES, GUEST_ONLY_ROUTES, AUTH_NOTICE_ROUTES } from './
 export { apiRequest } from './api-request';
 export type { ApiResponse } from './types/api';
 export type { Genre, Book } from './types/book';
-export type { User } from './types/user';
+export type { Me, PublicUserProfile } from './types/user';
 export type { Badge } from './types/badge';
 export type {
   ReadingStatus,

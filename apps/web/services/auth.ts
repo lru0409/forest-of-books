@@ -1,4 +1,4 @@
-import { type Genre, type ApiResponse, type User, apiRequest } from '@/lib';
+import { type Genre, type ApiResponse, apiRequest } from '@/lib';
 
 function sendEmailVerificationCode(email: string): Promise<ApiResponse> {
   return apiRequest('/auth/email-verifications', {
@@ -72,12 +72,6 @@ function login(email: string, password: string): Promise<ApiResponse<{ token: st
   });
 }
 
-function getMe(token: string | null): Promise<ApiResponse<User>> {
-  return apiRequest('/auth/me', {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-}
-
 export default {
   socialRegister,
   generalRegister,
@@ -86,5 +80,4 @@ export default {
   verifyEmailCode,
   uploadProfileImage,
   login,
-  getMe,
 };
