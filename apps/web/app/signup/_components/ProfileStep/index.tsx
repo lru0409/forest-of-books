@@ -3,11 +3,11 @@
 import { useState, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { PROFILE_IMAGE_ACCEPTED_TYPES } from '../../constants';
 import { Button, Input, Textarea } from '@/components/ui';
+import { ProfileImageOverlay } from '@/components/common';
+import { PROFILE_IMAGE_ACCEPTED_TYPES } from '@/lib';
 import { useSignupStore } from '@/store/signupStore';
 import { Step } from '../../constants';
-import { ProfileImageOverlay } from './ProfileImageOverlay';
 import useProfileStep from './useProfileStep';
 
 export const ProfileStep = () => {
@@ -164,7 +164,7 @@ export const ProfileStep = () => {
         />
       )}
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 pb-10">
         <Button type="button" variant="outline" className="flex-1" onClick={() => router.back()}>
           이전
         </Button>

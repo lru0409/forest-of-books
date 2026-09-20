@@ -5,6 +5,7 @@ export { BookColorPicker } from './BookColorPicker';
 export { ReadingStatusBadge } from './ReadingStatusBadge';
 export { GenreBadge } from './GenreBadge';
 export { MultiSelectFilter } from './MultiSelectFilter';
+export { ProfileImageOverlay } from './ProfileImageOverlay';
 export { SearchInput } from './SearchInput';
 export { SegmentedToggle, type SegmentedToggleOption } from './SegmentedToggle';
 export { StatusNotice } from './StatusNotice';

@@ -22,7 +22,7 @@ export const ProfileImageOverlay = ({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
       onClick={onClose}
     >
-      <div className="grid grid-cols-3 gap-5" onClick={(e) => e.stopPropagation()}>
+      <div className="grid grid-cols-3 gap-5">
         {Array.from({ length: TOTAL }, (_, index) => (
           <button
             key={index}
