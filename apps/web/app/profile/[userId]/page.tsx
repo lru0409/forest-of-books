@@ -7,6 +7,7 @@ import { TriangleAlert, LoaderCircle, UserRoundX } from 'lucide-react';
 import { type LibraryEntryListItem, type PublicUserProfile } from '@/lib';
 import { Container } from '@/components/layout';
 import { StatusNotice } from '@/components/common';
+import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/authStore';
 import LibraryService from '@/services/library';
 import UsersService from '@/services/users';
@@ -26,9 +27,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const isOwner = currentUser?.id === userId;
 
   const [user, setUser] = useState<PublicUserProfile | null>(null);
-  const [profileStatus, setProfileStatus] = useState<
-    'loading' | 'success' | 'error' | 'not-found'
-  >('loading');
+  const [profileStatus, setProfileStatus] = useState<'loading' | 'success' | 'error' | 'not-found'>(
+    'loading',
+  );
 
   const [items, setItems] = useState<LibraryEntryListItem[]>([]);
   const [itemsStatus, setItemsStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -118,13 +119,20 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     );
   }
 
+  const isEmpty = items.length === 0;
+
   return (
     <Container>
-      <div className="flex min-h-full flex-col gap-5 xl:flex-row xl:items-start xl:gap-8">
+      <div
+        className={cn(
+          'flex min-h-200 flex-col gap-5 xl:flex-row xl:items-start xl:gap-8',
+          isEmpty && 'xl:h-full',
+        )}
+      >
         <div className="w-full xl:sticky xl:top-0 xl:w-74 xl:min-w-74">
           <ProfileCard user={user} isOwner={isOwner} bookCount={items.length} />
         </div>
-        <div className="flex min-h-full flex-1 flex-col">
+        <div className={cn('flex flex-1 flex-col', isEmpty && 'xl:h-full')}>
           <BookList items={items} isOwner={isOwner} />
         </div>
       </div>

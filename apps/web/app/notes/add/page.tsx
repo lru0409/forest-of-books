@@ -38,7 +38,7 @@ export default function AddBookPage() {
   };
 
   return (
-    <Container className="flex items-start justify-center md:pb-0">
+    <Container className="flex items-start justify-center">
       <div className="relative mt-16 flex min-h-[calc(100%-4rem)] w-125 flex-col">
         <button
           type="button"
