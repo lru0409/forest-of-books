@@ -28,7 +28,6 @@ export function BookList({ items, isOwner }: BookListProps) {
   );
 }
 
-// TODO: 클릭 시 처리
 export function Item({ item, isOwner }: { item: LibraryEntryListItem; isOwner: boolean }) {
   const { title, author, genre, status, color, coverUrl, isPublic } = item;
 

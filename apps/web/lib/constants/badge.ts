@@ -22,7 +22,6 @@ import type { Badge } from '../types/badge';
 // - 고전러버: 출간 20년 이상 된 책 비율 높음
 // - 얼리어답터: 출간 1개월 이내 신간 등록 비율 높음
 
-// TODO: 뱃지 API 붙으면 서버 데이터로 교체
 export const MOCK_BADGES: Badge[] = [
   {
     id: 'first-complete',

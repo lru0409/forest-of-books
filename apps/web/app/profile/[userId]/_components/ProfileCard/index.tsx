@@ -20,7 +20,6 @@ interface ProfileCardProps {
 export function ProfileCard({ user, isOwner, bookCount }: ProfileCardProps) {
   const { openDialog, closeDialog } = useDialog();
 
-  // TODO: 뱃지 API 연동 시 유저별 획득/선택 뱃지로 교체
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(MOCK_BADGES[0] ?? null);
 
   const handleSelectBadge = (badge: Badge) => {
@@ -107,7 +106,6 @@ const ProfileActions = ({ isOwner }: { isOwner: boolean }) => {
     router.push('/profile');
   };
 
-  // TODO: 팔로우 API 연동
   const [isFollowing, setIsFollowing] = useState(false);
 
   if (isOwner) {

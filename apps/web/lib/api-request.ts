@@ -7,8 +7,6 @@ interface ApiRequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
   headers?: Record<string, string>;
-  // TODO: httpOnly 쿠키 기반으로 전환 시 credentials: 'include'를 기본값으로 하고,
-  // 각 서비스 호출부의 수동 Authorization 헤더 첨부 제거.
   credentials?: RequestCredentials;
   timeoutMs?: number;
 }

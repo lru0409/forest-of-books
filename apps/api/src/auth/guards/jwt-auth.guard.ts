@@ -23,7 +23,6 @@ export class JwtAuthGuard implements CanActivate {
 
     const req = context.switchToHttp().getRequest<Request & { user?: unknown }>();
 
-    // TODO: httpOnly 쿠키 기반으로 전환 시 req.cookies에서 토큰 읽도록 변경 필요.
     const authorization = req.headers.authorization;
     if (!authorization?.startsWith('Bearer ')) {
       if (isOptional) return true;

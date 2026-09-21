@@ -56,7 +56,7 @@ export class EmailVerificationService {
     await transporter.sendMail({
       from,
       to: email,
-      messageId: `<${randomUUID()}@forest-of-books>`, // TODO: @ 우측을 실제 도메인으로 변경 필요
+      messageId: `<${randomUUID()}@forest-of-books>`,
       subject: '책의 숲 - 이메일 인증 코드',
       text: `인증 코드는 ${code}입니다. 10분 안에 입력해 주세요.`,
       html: generateVerificationEmailHtml(code),
@@ -162,8 +162,6 @@ export class EmailVerificationService {
       orderBy: { verifiedAt: 'desc' },
     });
   }
-
-  // TODO: 어드민 만들어서 수동 호출 가능하도록
 
   @Cron('0 0 * * *')
   async cleanupExpiredCodes() {
