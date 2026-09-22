@@ -14,7 +14,7 @@ export function Sidebar() {
   return (
     <nav
       aria-label="주요 메뉴"
-      className="bg-primary hidden min-h-screen w-16 overflow-hidden transition-[width] duration-300 ease-in-out md:sticky md:top-0 md:block md:self-start lg:w-75"
+      className="bg-primary hidden w-16 overflow-hidden transition-[width] duration-300 ease-in-out md:block lg:w-75"
     >
       {/* 상단 영역 */}
       <div className="text-primary-foreground hidden items-center px-3.5 pt-5 pb-4 lg:flex">

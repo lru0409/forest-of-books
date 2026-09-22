@@ -1,21 +1,33 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { isValidNickname, PROFILE_IMAGE_ACCEPTED_TYPES, PROFILE_IMAGE_MAX_FILE_SIZE } from '@/lib';
 import authService from '@/services/auth';
 import type { InputState } from '@/components/ui/input';
 import type { TextareaState } from '@/components/ui/textarea';
-import { useSignupStore } from '@/store/signupStore';
 
 type NicknameCheckStatus = 'idle' | 'checking' | 'available' | 'unavailable' | 'error';
 
-function useProfileStep(nickname: string, bio: string) {
-  const { nicknameVerified: defaultNicknameVerified, profileImageUrl, update } = useSignupStore();
+interface UseProfileFieldsParams {
+  initialNickname: string;
+  initialBio: string;
+  initialProfileImageUrl: string;
+  initialNicknameVerified?: boolean;
+  onProfileImageChange?: (url: string) => void;
+}
 
+function useProfileFields({
+  initialNickname,
+  initialBio,
+  initialProfileImageUrl,
+  initialNicknameVerified = false,
+  onProfileImageChange,
+}: UseProfileFieldsParams) {
+  const [nickname, setNicknameState] = useState(initialNickname);
+  const [bio, setBio] = useState(initialBio);
+  const [profileImageUrl, setProfileImageUrl] = useState(initialProfileImageUrl);
   const [nicknameCheckStatus, setNicknameCheckStatus] = useState<NicknameCheckStatus>(
-    defaultNicknameVerified ? 'available' : 'idle',
+    initialNicknameVerified ? 'available' : 'idle',
   );
-
-  const [displayProfileImageUrl, setDisplayProfileImageUrl] = useState<string>(profileImageUrl);
   const [profileImageErrorMessage, setProfileImageErrorMessage] = useState<string | null>(null);
   const [isProfileImageUploading, setIsProfileImageUploading] = useState(false);
 
@@ -42,33 +54,34 @@ function useProfileStep(nickname: string, bio: string) {
     return { state: 'default' };
   }, [bio]);
 
-  const resetNicknameCheck = () => {
+  const setNickname = (value: string) => {
+    setNicknameState(value);
     setNicknameCheckStatus('idle');
   };
 
-  const handleCheckNickname = async (nickname: string) => {
+  const checkNickname = async () => {
     setNicknameCheckStatus('checking');
-    let nextStatus: NicknameCheckStatus = 'error';
-
     try {
       const result = await authService.checkNickname(nickname);
-      if (result.isSuccess) {
-        nextStatus = result.data.available ? 'available' : 'unavailable';
-      }
+      setNicknameCheckStatus(
+        result.isSuccess ? (result.data.available ? 'available' : 'unavailable') : 'error',
+      );
     } catch {
-      nextStatus = 'error';
-    } finally {
-      setNicknameCheckStatus(nextStatus);
+      setNicknameCheckStatus('error');
     }
   };
 
-  const handleSelectDefaultImage = (index: number) => {
-    if (displayProfileImageUrl && displayProfileImageUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(displayProfileImageUrl);
-    }
+  const selectedDefaultProfileImageIndex = useMemo(() => {
+    const match = profileImageUrl.match(/profile-defaults\/(\d+)\.png$/);
+    if (!match?.[1]) return null;
+    return parseInt(match[1], 10) - 1;
+  }, [profileImageUrl]);
+
+  const selectDefaultProfileImage = (index: number) => {
+    if (profileImageUrl.startsWith('blob:')) URL.revokeObjectURL(profileImageUrl);
     const url = `${process.env.NEXT_PUBLIC_BASE_URL}/images/profile-defaults/${index + 1}.png`;
-    setDisplayProfileImageUrl(url);
-    update({ profileImageUrl: url });
+    setProfileImageUrl(url);
+    onProfileImageChange?.(url);
   };
 
   const handleProfileImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,50 +100,55 @@ function useProfileStep(nickname: string, bio: string) {
     setProfileImageErrorMessage(null);
     setIsProfileImageUploading(true);
 
-    const prevDisplayImageUrl = displayProfileImageUrl;
-    const nextDisplayImageUrl = URL.createObjectURL(file);
-    setDisplayProfileImageUrl(nextDisplayImageUrl);
+    const prevProfileImageUrl = profileImageUrl;
+    const previewProfileImageUrl = URL.createObjectURL(file);
+    setProfileImageUrl(previewProfileImageUrl);
 
     try {
       const formData = new FormData();
       formData.append('file', file);
       const result = await authService.uploadProfileImage(formData);
       if (result.isSuccess) {
-        if (prevDisplayImageUrl.startsWith('blob:')) {
-          URL.revokeObjectURL(prevDisplayImageUrl);
-        }
-        update({ profileImageUrl: result.data.url });
+        if (prevProfileImageUrl.startsWith('blob:')) URL.revokeObjectURL(prevProfileImageUrl);
+        setProfileImageUrl(result.data.url);
+        onProfileImageChange?.(result.data.url);
         return;
       }
+      throw new Error('upload failed');
     } catch {
       setProfileImageErrorMessage('프로필 이미지 업로드에 실패했어요. 나중에 다시 시도해주세요.');
-      URL.revokeObjectURL(nextDisplayImageUrl);
-      setDisplayProfileImageUrl(prevDisplayImageUrl);
+      URL.revokeObjectURL(previewProfileImageUrl);
+      setProfileImageUrl(prevProfileImageUrl);
     } finally {
       setIsProfileImageUploading(false);
       e.target.value = '';
     }
   };
 
-  const canNicknameCheck = (() => {
-    if (!isNicknameValid) return false;
-    if (nicknameCheckStatus === 'checking') return false;
-    return true;
-  })();
-
   return {
-    nicknameCheckStatus,
-    canNicknameCheck,
-    nicknameFeedback,
-    bioFeedback,
-    displayProfileImageUrl,
-    profileImageErrorMessage,
-    isProfileImageUploading,
-    resetNicknameCheck,
-    handleCheckNickname,
-    handleSelectDefaultImage,
-    handleProfileImageFileChange,
+    nickname: {
+      value: nickname,
+      setValue: setNickname,
+      checkStatus: nicknameCheckStatus,
+      canCheck: isNicknameValid && nicknameCheckStatus !== 'checking',
+      check: checkNickname,
+      feedback: nicknameFeedback,
+      markUnavailable: () => setNicknameCheckStatus('unavailable'),
+    },
+    bio: {
+      value: bio,
+      setValue: setBio,
+      feedback: bioFeedback,
+    },
+    profileImage: {
+      url: profileImageUrl,
+      errorMessage: profileImageErrorMessage,
+      isUploading: isProfileImageUploading,
+      selectedDefaultIndex: selectedDefaultProfileImageIndex,
+      selectDefault: selectDefaultProfileImage,
+      handleFileChange: handleProfileImageFileChange,
+    },
   };
 }
 
-export default useProfileStep;
+export default useProfileFields;

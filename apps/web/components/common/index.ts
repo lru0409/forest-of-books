@@ -6,6 +6,7 @@ export { ReadingStatusBadge } from './ReadingStatusBadge';
 export { GenreBadge } from './GenreBadge';
 export { GenreSelector } from './GenreSelector';
 export { MultiSelectFilter } from './MultiSelectFilter';
+export { ProfileFieldsSection } from './ProfileFieldsSection';
 export { ProfileImageOverlay } from './ProfileImageOverlay';
 export { SearchInput } from './SearchInput';
 export { SegmentedToggle, type SegmentedToggleOption } from './SegmentedToggle';
