@@ -4,6 +4,7 @@ export { BookColorPalette } from './BookColorPalette';
 export { BookColorPicker } from './BookColorPicker';
 export { ReadingStatusBadge } from './ReadingStatusBadge';
 export { GenreBadge } from './GenreBadge';
+export { GenreSelector } from './GenreSelector';
 export { MultiSelectFilter } from './MultiSelectFilter';
 export { ProfileImageOverlay } from './ProfileImageOverlay';
 export { SearchInput } from './SearchInput';
