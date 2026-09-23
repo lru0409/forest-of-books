@@ -91,20 +91,15 @@ export function ProfileCard({ user, isOwner, bookCount }: ProfileCardProps) {
       </div>
 
       <div className="flex w-full gap-2">
-        <ProfileActions isOwner={isOwner} />
+        <ProfileActions isOwner={isOwner} userId={user.id} />
       </div>
     </div>
   );
 }
 
-const ProfileActions = ({ isOwner }: { isOwner: boolean }) => {
+const ProfileActions = ({ isOwner, userId }: { isOwner: boolean; userId: string }) => {
   const router = useRouter();
   const clearToken = useAuthStore((state) => state.clearToken);
-
-  const handleLogout = () => {
-    clearToken();
-    router.push('/profile');
-  };
 
   const [isFollowing, setIsFollowing] = useState(false);
 
@@ -115,10 +110,19 @@ const ProfileActions = ({ isOwner }: { isOwner: boolean }) => {
           variant="secondary"
           size="sm"
           className="text-primary bg-background flex-1 hover:bg-white"
+          onClick={() => router.push(`/profile/${userId}/edit`)}
         >
           프로필 수정
         </Button>
-        <Button variant="secondary" size="sm" className="flex-1" onClick={handleLogout}>
+        <Button
+          variant="secondary"
+          size="sm"
+          className="flex-1"
+          onClick={() => {
+            clearToken();
+            router.push('/profile');
+          }}
+        >
           로그아웃
         </Button>
       </>
