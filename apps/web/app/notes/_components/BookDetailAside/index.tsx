@@ -176,6 +176,11 @@ function BookDetailPanel({
     if (!success) showSaveErrorDialog();
   };
 
+  const handleColorChange = async (color: string) => {
+    const success = await updateItem({ color });
+    if (!success) showSaveErrorDialog();
+  };
+
   return (
     <div className="border-primary/15 h-full w-full flex-col overflow-y-auto overscroll-contain border-l bg-white px-2 pt-3.5 pb-6 md:px-3.5 md:pt-5 md:pb-8">
       <PanelToolBar
@@ -189,6 +194,7 @@ function BookDetailPanel({
           item={item}
           publisher={detail?.publisher}
           onStatusChange={handleStatusChange}
+          onColorChange={handleColorChange}
         />
         <div className="border-primary/20 mt-8 mb-6 flex flex-1 border-t" />
         <RecordView

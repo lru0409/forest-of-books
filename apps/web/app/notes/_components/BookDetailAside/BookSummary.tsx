@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import {
   cn,
   READING_STATUSES,
@@ -14,15 +16,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { BookCover, GenreBadge } from '@/components/common';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { BookCover, BookColorPalette, GenreBadge } from '@/components/common';
 
 interface BookSummaryProps {
   item: LibraryEntryListItem;
   publisher?: string | null;
   onStatusChange: (status: ReadingStatus) => void;
+  onColorChange: (color: string) => void;
 }
 
-export function BookSummary({ item, publisher, onStatusChange }: BookSummaryProps) {
+export function BookSummary({ item, publisher, onStatusChange, onColorChange }: BookSummaryProps) {
   return (
     <div className="flex gap-5">
       <BookCover coverUrl={item.coverUrl} title={item.title} color={item.color} size="lg" />
@@ -37,13 +41,14 @@ export function BookSummary({ item, publisher, onStatusChange }: BookSummaryProp
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <GenreBadge genre={item.genre} />
           <ReadingStatusSelect status={item.status} onChange={onStatusChange} />
+          <BookColorSwatch color={item.color} onChange={onColorChange} />
         </div>
       </div>
     </div>
   );
 }
 
-export function ReadingStatusSelect({
+function ReadingStatusSelect({
   status,
   onChange,
 }: {
@@ -56,13 +61,13 @@ export function ReadingStatusSelect({
         aria-label="읽기 상태 변경"
         emphasizeOpenState={false}
         className={cn(
-          'w-fit gap-1 rounded-full px-2.5 py-1.5 text-xs font-semibold',
+          'h-7.5 w-fit gap-1 rounded-full px-2 py-0 text-xs font-semibold',
           READING_STATUS_STYLES[status],
         )}
       >
         <SelectValue />
       </SelectTrigger>
-      <SelectContent className="rounded-2xl p-2">
+      <SelectContent className="rounded-2xl p-1.5">
         <div className="flex flex-col gap-1.5">
           {READING_STATUSES.map((value) => {
             const Icon = READING_STATUS_ICONS[value];
@@ -83,5 +88,41 @@ export function ReadingStatusSelect({
         </div>
       </SelectContent>
     </Select>
+  );
+}
+
+function BookColorSwatch({
+  color,
+  onChange,
+}: {
+  color: string;
+  onChange: (color: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-label="책 색상 변경"
+          className="group border-primary/20 flex size-7 cursor-pointer items-center justify-center rounded-full border"
+        >
+          <span
+            className="size-4.5 rounded-full transition-transform group-hover:scale-110"
+            style={{ backgroundColor: color }}
+          />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-auto rounded-2xl p-3">
+        <BookColorPalette
+          value={color}
+          onChange={(c) => {
+            onChange(c);
+            setOpen(false);
+          }}
+        />
+      </PopoverContent>
+    </Popover>
   );
 }
