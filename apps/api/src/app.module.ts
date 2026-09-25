@@ -10,6 +10,7 @@ import { UploadModule } from './upload/upload.module';
 import { BooksModule } from './books/books.module';
 import { LibraryModule } from './library/library.module';
 import { UsersModule } from './users/users.module';
+import { FollowModule } from './follow/follow.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { UsersModule } from './users/users.module';
     BooksModule,
     LibraryModule,
     UsersModule,
+    FollowModule,
   ],
   controllers: [AppController],
   providers: [AppService],
