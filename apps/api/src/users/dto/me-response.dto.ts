@@ -12,4 +12,6 @@ export class MeResponseDto implements Omit<User, 'password'> {
   preferredGenres!: Genre[];
   createdAt!: Date;
   updatedAt!: Date;
+  followerCount!: number;
+  followingCount!: number;
 }

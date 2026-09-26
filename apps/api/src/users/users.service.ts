@@ -1,25 +1,36 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 
 import type { User } from '@repo/db';
+import { FollowService } from 'src/follow/follow.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 import { MeResponseDto, UpdateUserProfileDto, UserProfileResponseDto } from './dto';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly followService: FollowService,
+  ) {}
 
-  getMe(user: User): MeResponseDto {
+  async getMe(user: User): Promise<MeResponseDto> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...me } = user;
-    return me;
+    const { followerCount, followingCount } = await this.followService.getCounts(user.id);
+    return { ...me, followerCount, followingCount };
   }
 
-  async findProfileById(id: string): Promise<UserProfileResponseDto> {
+  async findProfileById(id: string, viewerId?: string): Promise<UserProfileResponseDto> {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('유저를 찾을 수 없습니다.');
 
-    return toProfileDto(user);
+    const { followerCount, followingCount } = await this.followService.getCounts(id);
+    const isFollowing =
+      viewerId !== undefined && viewerId !== id
+        ? await this.followService.isFollowing(viewerId, id)
+        : false;
+
+    return toProfileDto(user, followerCount, followingCount, isFollowing);
   }
 
   async updateMyProfile(userId: string, dto: UpdateUserProfileDto): Promise<MeResponseDto> {
@@ -49,7 +60,12 @@ export class UsersService {
   }
 }
 
-function toProfileDto(user: User): UserProfileResponseDto {
+function toProfileDto(
+  user: User,
+  followerCount: number,
+  followingCount: number,
+  isFollowing: boolean,
+): UserProfileResponseDto {
   return {
     id: user.id,
     nickname: user.nickname,
@@ -57,5 +73,8 @@ function toProfileDto(user: User): UserProfileResponseDto {
     profileImage: user.profileImage,
     preferredGenres: user.preferredGenres,
     createdAt: user.createdAt,
+    followerCount,
+    followingCount,
+    isFollowing,
   };
 }

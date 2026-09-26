@@ -7,4 +7,7 @@ export class UserProfileResponseDto {
   profileImage!: string;
   preferredGenres!: Genre[];
   createdAt!: Date;
+  followerCount!: number;
+  followingCount!: number;
+  isFollowing!: boolean;
 }
