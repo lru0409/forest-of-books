@@ -20,7 +20,8 @@ const createMockUsersService = (): MockUsersService => ({
   updateMyProfile: jest.fn(),
 });
 
-const requestWithUser = (user: { id: string }): Request => ({ user }) as unknown as Request;
+const requestWithUser = (userId?: string): Request =>
+  ({ user: userId ? { id: userId } : undefined }) as unknown as Request;
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -45,10 +46,10 @@ describe('UsersController', () => {
   });
 
   describe('getMe', () => {
-    it('req.user로 service.getMe 호출', () => {
-      mockUsersService.getMe.mockReturnValue({ id: 'user-1' });
+    it('req.user로 service.getMe 호출', async () => {
+      mockUsersService.getMe.mockResolvedValue({ id: 'user-1' });
 
-      const result = controller.getMe(requestWithUser({ id: 'user-1' }));
+      const result = await controller.getMe(requestWithUser('user-1'));
 
       expect(mockUsersService.getMe).toHaveBeenCalledWith({ id: 'user-1' });
       expect(result).toEqual({ id: 'user-1' });
@@ -60,19 +61,27 @@ describe('UsersController', () => {
       const dto = { bio: '새 소개' };
       mockUsersService.updateMyProfile.mockResolvedValue({});
 
-      await controller.updateMe(requestWithUser({ id: 'user-1' }), dto);
+      await controller.updateMe(requestWithUser('user-1'), dto);
 
       expect(mockUsersService.updateMyProfile).toHaveBeenCalledWith('user-1', dto);
     });
   });
 
   describe('findOne', () => {
-    it('id로 service.findProfileById 호출', async () => {
+    it('id와 viewer id로 service.findProfileById 호출', async () => {
       mockUsersService.findProfileById.mockResolvedValue({});
 
-      await controller.findOne('user-1');
+      await controller.findOne('user-1', requestWithUser('viewer-1'));
 
-      expect(mockUsersService.findProfileById).toHaveBeenCalledWith('user-1');
+      expect(mockUsersService.findProfileById).toHaveBeenCalledWith('user-1', 'viewer-1');
+    });
+
+    it('로그인하지 않은 요청이면 viewer id 없이 호출', async () => {
+      mockUsersService.findProfileById.mockResolvedValue({});
+
+      await controller.findOne('user-1', requestWithUser());
+
+      expect(mockUsersService.findProfileById).toHaveBeenCalledWith('user-1', undefined);
     });
   });
 });

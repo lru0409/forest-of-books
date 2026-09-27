@@ -1,6 +1,8 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
+import type { User } from '@repo/db';
+import { FollowService } from 'src/follow/follow.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 import { UsersService } from './users.service';
@@ -12,6 +14,11 @@ type MockPrismaService = {
   };
 };
 
+type MockFollowService = {
+  getCounts: jest.Mock;
+  isFollowing: jest.Mock;
+};
+
 const createMockPrisma = (): MockPrismaService => ({
   user: {
     findUnique: jest.fn(),
@@ -19,7 +26,12 @@ const createMockPrisma = (): MockPrismaService => ({
   },
 });
 
-const user = {
+const createMockFollowService = (): MockFollowService => ({
+  getCounts: jest.fn().mockResolvedValue({ followerCount: 0, followingCount: 0 }),
+  isFollowing: jest.fn().mockResolvedValue(false),
+});
+
+const user: User = {
   id: 'user-1',
   email: 'user@example.com',
   password: 'hashed',
@@ -37,12 +49,18 @@ const user = {
 describe('UsersService', () => {
   let service: UsersService;
   let mockPrisma: MockPrismaService;
+  let mockFollowService: MockFollowService;
 
   beforeEach(async () => {
     mockPrisma = createMockPrisma();
+    mockFollowService = createMockFollowService();
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UsersService, { provide: PrismaService, useValue: mockPrisma }],
+      providers: [
+        UsersService,
+        { provide: PrismaService, useValue: mockPrisma },
+        { provide: FollowService, useValue: mockFollowService },
+      ],
     }).compile();
 
     service = module.get<UsersService>(UsersService);
@@ -56,8 +74,10 @@ describe('UsersService', () => {
   // getMe
   // ─────────────────────────────────────────────
   describe('getMe', () => {
-    it('password를 제외하고 반환', () => {
-      const result = service.getMe(user);
+    it('password를 제외하고 팔로우 카운트와 함께 반환', async () => {
+      mockFollowService.getCounts.mockResolvedValue({ followerCount: 2, followingCount: 4 });
+
+      const result = await service.getMe(user);
 
       expect(result).toEqual({
         id: 'user-1',
@@ -71,7 +91,10 @@ describe('UsersService', () => {
         preferredGenres: ['NOVEL'],
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
+        followerCount: 2,
+        followingCount: 4,
       });
+      expect(mockFollowService.getCounts).toHaveBeenCalledWith('user-1');
     });
   });
 
@@ -87,10 +110,12 @@ describe('UsersService', () => {
       );
     });
 
-    it('공개 프로필 필드만 매핑해서 반환', async () => {
+    it('공개 프로필 필드와 팔로우 정보를 매핑해서 반환', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(user);
+      mockFollowService.getCounts.mockResolvedValue({ followerCount: 3, followingCount: 5 });
+      mockFollowService.isFollowing.mockResolvedValue(true);
 
-      const result = await service.findProfileById('user-1');
+      const result = await service.findProfileById('user-1', 'viewer-1');
 
       expect(result).toEqual({
         id: 'user-1',
@@ -99,7 +124,29 @@ describe('UsersService', () => {
         profileImage: user.profileImage,
         preferredGenres: ['NOVEL'],
         createdAt: user.createdAt,
+        followerCount: 3,
+        followingCount: 5,
+        isFollowing: true,
       });
+      expect(mockFollowService.isFollowing).toHaveBeenCalledWith('viewer-1', 'user-1');
+    });
+
+    it('viewer가 없으면 isFollowing 조회 없이 false 반환', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(user);
+
+      const result = await service.findProfileById('user-1');
+
+      expect(result.isFollowing).toBe(false);
+      expect(mockFollowService.isFollowing).not.toHaveBeenCalled();
+    });
+
+    it('본인 프로필이면 isFollowing 조회 없이 false 반환', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(user);
+
+      const result = await service.findProfileById('user-1', 'user-1');
+
+      expect(result.isFollowing).toBe(false);
+      expect(mockFollowService.isFollowing).not.toHaveBeenCalled();
     });
   });
 
