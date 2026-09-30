@@ -35,8 +35,8 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const [itemsStatus, setItemsStatus] = useState<'loading' | 'success' | 'error'>('loading');
 
   useEffect(() => {
-    if (isOwner) {
-      setUser(currentUser);
+    if (isOwner && currentUser) {
+      setUser({ ...currentUser, isFollowing: false });
       setProfileStatus('success');
       return;
     }

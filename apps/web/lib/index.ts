@@ -24,6 +24,7 @@ export { apiRequest } from './api-request';
 export type { ApiResponse } from './types/api';
 export type { Genre, Book } from './types/book';
 export type { Me, PublicUserProfile } from './types/user';
+export type { FollowUser, FollowList } from './types/follow';
 export type { Badge } from './types/badge';
 export type {
   ReadingStatus,

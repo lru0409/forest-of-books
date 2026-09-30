@@ -53,7 +53,12 @@ export class FollowListController {
     @Req() req: Request,
   ): Promise<FollowListResponseDto> {
     const viewerId = (req.user as User | undefined)?.id;
-    return this.followService.getFollowers(userId, viewerId, query.cursor, query.limit);
+    return this.followService.getFollowers(
+      userId,
+      viewerId,
+      query.cursor,
+      query.limit ? Number(query.limit) : undefined,
+    );
   }
 
   @Get('following')
@@ -65,6 +70,11 @@ export class FollowListController {
     @Req() req: Request,
   ): Promise<FollowListResponseDto> {
     const viewerId = (req.user as User | undefined)?.id;
-    return this.followService.getFollowing(userId, viewerId, query.cursor, query.limit);
+    return this.followService.getFollowing(
+      userId,
+      viewerId,
+      query.cursor,
+      query.limit ? Number(query.limit) : undefined,
+    );
   }
 }
