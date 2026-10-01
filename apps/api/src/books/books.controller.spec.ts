@@ -39,10 +39,10 @@ describe('BooksController', () => {
       expect(mockBooksService.search).toHaveBeenCalledWith('토지', undefined, undefined);
     });
 
-    it('page/limit 문자열을 숫자로 변환하여 service 호출', async () => {
+    it('page/limit을 그대로 service에 전달', async () => {
       mockBooksService.search.mockResolvedValue({ total: 0, items: [] });
 
-      await controller.search({ query: '토지', page: '2', limit: '20' });
+      await controller.search({ query: '토지', page: 2, limit: 20 });
 
       expect(mockBooksService.search).toHaveBeenCalledWith('토지', 2, 20);
     });

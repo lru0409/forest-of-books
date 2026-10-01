@@ -10,10 +10,6 @@ export class BooksController {
 
   @Get('search')
   search(@Query() { query, page, limit }: SearchBooksDto): Promise<SearchBooksResponseDto> {
-    return this.booksService.search(
-      query,
-      page ? Number(page) : undefined,
-      limit ? Number(limit) : undefined,
-    );
+    return this.booksService.search(query, page, limit);
   }
 }

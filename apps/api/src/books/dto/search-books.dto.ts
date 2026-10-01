@@ -1,14 +1,19 @@
-import { IsString, IsOptional, IsNumberString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class SearchBooksDto {
   @IsString()
   query!: string;
 
   @IsOptional()
-  @IsNumberString()
-  page?: string;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number;
 
   @IsOptional()
-  @IsNumberString()
-  limit?: string;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  limit?: number;
 }
