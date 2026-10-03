@@ -91,7 +91,7 @@ export function useBookSearch() {
       return;
     }
 
-    const fetchResults = async () => {
+    const fetchFirstPage = async () => {
       dispatch({ type: 'FETCH_START' });
       const response = await booksService.searchBooks(debouncedQuery.trim());
       if (requestIdRef.current !== requestId) return;
@@ -106,7 +106,7 @@ export function useBookSearch() {
       }
     };
 
-    fetchResults();
+    fetchFirstPage();
   }, [debouncedQuery, isSearching]);
 
   const loadMore = useCallback(async () => {
