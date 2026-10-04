@@ -82,8 +82,10 @@ function FollowListStatus({ icon, description }: { icon?: React.ReactNode; descr
   );
 }
 
-// TODO: 비로그인 유저 대응
 // TODO: 팔로우/언팔로우 실패 처리
+// TODO: 낙관적 업데이트 적용 여부 확인
+// TODO: 팔로우/언팔로우 시 내 팔로잉 수 바로 갱신
+// TODO: row 클릭 시 해당 유저 프로필로 이동
 
 function FollowListRow({
   item,
@@ -92,6 +94,7 @@ function FollowListRow({
   item: FollowUser;
   onToggle: (userId: string, isFollowing: boolean) => void;
 }) {
+  const isLoggedIn = useAuthStore((state) => state.token !== null);
   const currentUserId = useAuthStore((state) => state.user?.id);
   const isSelf = currentUserId === item.id;
 
@@ -110,7 +113,7 @@ function FollowListRow({
         {item.bio && <p className="text-muted-foreground truncate text-xs">{item.bio}</p>}
       </div>
 
-      {!isSelf && (
+      {isLoggedIn && !isSelf && (
         <Button
           type="button"
           variant={isFollowing ? 'secondary' : 'default'}

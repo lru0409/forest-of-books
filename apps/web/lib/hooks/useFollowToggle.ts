@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 import { useAuthStore } from '@/store/authStore';
 import FollowService from '@/services/follow';
@@ -23,17 +22,13 @@ export function useFollowToggle({
   initialIsFollowing,
   onChange,
 }: UseFollowToggleOptions): UseFollowToggleResult {
-  const router = useRouter();
   const token = useAuthStore((state) => state.token);
 
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [isPending, setIsPending] = useState(false);
 
   const toggleFollow = async () => {
-    if (!token) {
-      router.push('/signin');
-      return;
-    }
+    if (!token) return;
 
     setIsPending(true);
     const request = isFollowing

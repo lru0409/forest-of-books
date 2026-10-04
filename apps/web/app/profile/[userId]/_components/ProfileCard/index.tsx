@@ -20,6 +20,7 @@ interface ProfileCardProps {
 
 export function ProfileCard({ user, isOwner, bookCount }: ProfileCardProps) {
   const { openDialog, closeDialog } = useDialog();
+  const isLoggedIn = useAuthStore((state) => state.token !== null);
 
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(MOCK_BADGES[0] ?? null);
 
@@ -63,7 +64,7 @@ export function ProfileCard({ user, isOwner, bookCount }: ProfileCardProps) {
         {user.bio && <p className="text-primary-foreground text-sm">&quot;{user.bio}&quot;</p>}
       </div>
 
-      <div className="mb-6 flex w-full flex-col gap-2">
+      <div className="flex w-full flex-col gap-2">
         <div className="flex justify-between gap-2">
           <div className="flex-1 rounded-xl bg-black/30 py-3">
             <p className="text-primary-foreground mb-1 text-xs">등록한 책</p>
@@ -99,14 +100,17 @@ export function ProfileCard({ user, isOwner, bookCount }: ProfileCardProps) {
         )}
       </div>
 
-      <div className="flex w-full gap-2">
-        <ProfileActions isOwner={isOwner} userId={user.id} isFollowing={user.isFollowing} />
-      </div>
+      {isLoggedIn && (
+        <div className="mt-6 flex w-full gap-2">
+          <ProfileActions isOwner={isOwner} userId={user.id} isFollowing={user.isFollowing} />
+        </div>
+      )}
     </div>
   );
 }
 
-// TODO: 비로그인 유저 대응
+// TODO: 팔로우/언팔로우 실패 처리
+// TODO: 낙관적 업데이트 여부 확인
 
 const ProfileActions = ({
   isOwner,

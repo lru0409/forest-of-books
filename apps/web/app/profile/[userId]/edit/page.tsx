@@ -15,6 +15,8 @@ interface EditProfilePageProps {
   params: Promise<{ userId: string }>;
 }
 
+// TODO: 잘 동작하도록 확인 필요
+
 export default function EditProfilePage({ params }: EditProfilePageProps) {
   const { userId } = use(params);
   const router = useRouter();
