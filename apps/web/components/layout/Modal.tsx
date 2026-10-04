@@ -30,7 +30,7 @@ export function Modal({
       onEscapeKeyDown={(e) => preventClose && e.preventDefault()}
       onPointerDownOutside={(e) => preventClose && e.preventDefault()}
     >
-      <div className="flex flex-col items-center gap-4">
+      <div className="flex min-w-0 flex-col items-center gap-4">
         <DialogTitle
           className={cn(
             'text-center font-semibold whitespace-pre-wrap',

@@ -1,15 +1,17 @@
 import { User } from 'lucide-react';
 
 import { type Badge } from '@/lib';
+import { cn } from '@/lib/utils';
 
 interface AvatarProps {
   profileImageUrl: string;
   nickname: string;
   badge?: Badge;
   onClickBadge?: () => void;
+  className?: string;
 }
 
-export function Avatar({ profileImageUrl, nickname, badge, onClickBadge }: AvatarProps) {
+export function Avatar({ profileImageUrl, nickname, badge, onClickBadge, className }: AvatarProps) {
   return (
     <div className="relative">
       {profileImageUrl ? (
@@ -17,11 +19,16 @@ export function Avatar({ profileImageUrl, nickname, badge, onClickBadge }: Avata
         <img
           src={profileImageUrl}
           alt={nickname}
-          className="size-36 rounded-full object-cover shadow-md"
+          className={cn('size-36 rounded-full object-cover shadow-md', className)}
         />
       ) : (
-        <div className="bg-background flex size-36 items-center justify-center rounded-full shadow-md">
-          <User className="text-primary size-14" />
+        <div
+          className={cn(
+            'bg-background text-primary flex size-36 items-center justify-center rounded-full shadow-md',
+            className,
+          )}
+        >
+          <User className="size-2/5" />
         </div>
       )}
 

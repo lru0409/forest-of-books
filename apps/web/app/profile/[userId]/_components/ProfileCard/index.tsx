@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { GenreBadge } from '@/components/common';
-import { MOCK_BADGES, type Badge, type PublicUserProfile } from '@/lib';
+import { MOCK_BADGES, type Badge, type PublicUserProfile, useFollowToggle } from '@/lib';
 import { useAuthStore } from '@/store/authStore';
 import { useDialog } from '@/context/dialog';
 import { Avatar } from './Avatar';
 import { BadgeCollectionModal } from './BadgeCollectionModal';
+import { FollowListModal } from './FollowListModal';
 
 interface ProfileCardProps {
   user: PublicUserProfile;
@@ -68,14 +69,22 @@ export function ProfileCard({ user, isOwner, bookCount }: ProfileCardProps) {
             <p className="text-primary-foreground mb-1 text-xs">등록한 책</p>
             <b className="text-lg text-white">{bookCount}</b>
           </div>
-          <div className="flex-1 rounded-xl bg-black/30 py-3">
+          <button
+            type="button"
+            className="flex-1 cursor-pointer rounded-xl bg-black/30 py-3"
+            onClick={() => openDialog(<FollowListModal userId={user.id} mode="followers" />)}
+          >
             <p className="text-primary-foreground mb-1 text-xs">팔로워</p>
-            <b className="text-lg text-white">0</b>
-          </div>
-          <div className="flex-1 rounded-xl bg-black/30 py-3">
+            <b className="text-lg text-white">{user.followerCount}</b>
+          </button>
+          <button
+            type="button"
+            className="flex-1 cursor-pointer rounded-xl bg-black/30 py-3"
+            onClick={() => openDialog(<FollowListModal userId={user.id} mode="following" />)}
+          >
             <p className="text-primary-foreground mb-1 text-xs">팔로잉</p>
-            <b className="text-lg text-white">0</b>
-          </div>
+            <b className="text-lg text-white">{user.followingCount}</b>
+          </button>
         </div>
 
         {user.preferredGenres.length > 0 && (
@@ -91,17 +100,30 @@ export function ProfileCard({ user, isOwner, bookCount }: ProfileCardProps) {
       </div>
 
       <div className="flex w-full gap-2">
-        <ProfileActions isOwner={isOwner} userId={user.id} />
+        <ProfileActions isOwner={isOwner} userId={user.id} isFollowing={user.isFollowing} />
       </div>
     </div>
   );
 }
 
-const ProfileActions = ({ isOwner, userId }: { isOwner: boolean; userId: string }) => {
+// TODO: 비로그인 유저 대응
+
+const ProfileActions = ({
+  isOwner,
+  userId,
+  isFollowing: initialIsFollowing,
+}: {
+  isOwner: boolean;
+  userId: string;
+  isFollowing: boolean;
+}) => {
   const router = useRouter();
   const clearToken = useAuthStore((state) => state.clearToken);
 
-  const [isFollowing, setIsFollowing] = useState(false);
+  const { isFollowing, isPending, toggleFollow } = useFollowToggle({
+    userId,
+    initialIsFollowing,
+  });
 
   if (isOwner) {
     return (
@@ -135,7 +157,8 @@ const ProfileActions = ({ isOwner, userId }: { isOwner: boolean; userId: string 
         variant="secondary"
         size="sm"
         className="flex-1"
-        onClick={() => setIsFollowing(false)}
+        disabled={isPending}
+        onClick={toggleFollow}
       >
         언팔로우
       </Button>
@@ -147,7 +170,8 @@ const ProfileActions = ({ isOwner, userId }: { isOwner: boolean; userId: string 
       variant="secondary"
       size="sm"
       className="text-primary bg-background flex-1 hover:bg-white"
-      onClick={() => setIsFollowing(true)}
+      disabled={isPending}
+      onClick={toggleFollow}
     >
       팔로우
     </Button>

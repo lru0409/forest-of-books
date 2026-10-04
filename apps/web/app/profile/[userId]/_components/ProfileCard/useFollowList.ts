@@ -73,7 +73,7 @@ function followListReducer(state: FollowListState, action: FollowListAction): Fo
   }
 }
 
-export type FollowListViewState = 'loading' | 'error' | 'empty' | 'results';
+type FollowListViewState ='loading' | 'error' | 'empty' | 'results';
 
 export function useFollowList(userId: string, mode: 'followers' | 'following') {
   const token = useAuthStore((state) => state.token);
