@@ -1,9 +1,11 @@
+import Link from 'next/link';
 import { AlertCircle, LoaderCircle, UserRoundX } from 'lucide-react';
 
 import { Modal } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { type FollowUser, useFollowToggle } from '@/lib';
 import { useAuthStore } from '@/store/authStore';
+import { useDialog } from '@/context/dialog';
 import { useFollowList } from './useFollowList';
 import { Avatar } from './Avatar';
 
@@ -85,7 +87,6 @@ function FollowListStatus({ icon, description }: { icon?: React.ReactNode; descr
 // TODO: 팔로우/언팔로우 실패 처리
 // TODO: 낙관적 업데이트 적용 여부 확인
 // TODO: 팔로우/언팔로우 시 내 팔로잉 수 바로 갱신
-// TODO: row 클릭 시 해당 유저 프로필로 이동
 
 function FollowListRow({
   item,
@@ -94,6 +95,7 @@ function FollowListRow({
   item: FollowUser;
   onToggle: (userId: string, isFollowing: boolean) => void;
 }) {
+  const { closeDialog } = useDialog();
   const isLoggedIn = useAuthStore((state) => state.token !== null);
   const currentUserId = useAuthStore((state) => state.user?.id);
   const isSelf = currentUserId === item.id;
@@ -105,24 +107,37 @@ function FollowListRow({
   });
 
   return (
-    <div className="flex items-center gap-3 rounded-lg px-2 py-2">
-      <Avatar profileImageUrl={item.profileImage} nickname={item.nickname} className="size-10" />
+    <div className="hover:bg-primary/8 relative flex items-center gap-3 rounded-lg p-2">
+      <Link
+        href={`/profile/${item.id}`}
+        onClick={closeDialog}
+        className="flex min-w-0 flex-1 items-center gap-3 after:absolute after:inset-0"
+      >
+        <Avatar profileImageUrl={item.profileImage} nickname={item.nickname} className="size-10" />
 
-      <div className="min-w-0 flex-1 text-left">
-        <p className="truncate text-sm font-semibold">{item.nickname}</p>
-        {item.bio && <p className="text-muted-foreground truncate text-xs">{item.bio}</p>}
-      </div>
+        <div className="min-w-0 flex-1 text-left">
+          <p className="truncate text-sm font-semibold">{item.nickname}</p>
+          {item.bio && <p className="text-muted-foreground truncate text-xs">{item.bio}</p>}
+        </div>
+      </Link>
 
       {isLoggedIn && !isSelf && (
         <Button
           type="button"
           variant={isFollowing ? 'secondary' : 'default'}
           size="xs"
+          className="relative z-10"
           disabled={isPending}
           onClick={toggleFollow}
         >
           {isFollowing ? '언팔로우' : '팔로우'}
         </Button>
+      )}
+
+      {isSelf && (
+        <div className="bg-primary/10 text-primary rounded-full px-2 py-1.5 text-xs font-bold">
+          나
+        </div>
       )}
     </div>
   );
