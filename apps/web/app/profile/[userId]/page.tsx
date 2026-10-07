@@ -24,6 +24,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
   const token = useAuthStore((state) => state.token);
   const currentUser = useAuthStore((state) => state.user);
+  const isAuthStoreHydrated = useAuthStore((state) => state.hasHydrated);
   const isOwner = currentUser?.id === userId;
 
   const [user, setUser] = useState<PublicUserProfile | null>(null);
@@ -35,6 +36,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const [itemsStatus, setItemsStatus] = useState<'loading' | 'success' | 'error'>('loading');
 
   useEffect(() => {
+    if (!isAuthStoreHydrated) return;
+
+    // TODO: 내 프로필인 경우 매번 패치할 필요 없는걸까?
     if (isOwner && currentUser) {
       setUser({ ...currentUser, isFollowing: false });
       setProfileStatus('success');
@@ -42,7 +46,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     }
 
     setProfileStatus('loading');
-    UsersService.getUserProfile(userId).then((result) => {
+    UsersService.getUserProfile(userId, token).then((result) => {
       if (result.isSuccess) {
         setUser(result.data);
         setProfileStatus('success');
@@ -52,9 +56,11 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         setProfileStatus('error');
       }
     });
-  }, [userId, isOwner, currentUser]);
+  }, [userId, isOwner, currentUser, token, isAuthStoreHydrated]);
 
   useEffect(() => {
+    if (!isAuthStoreHydrated) return;
+
     setItemsStatus('loading');
     const request = isOwner
       ? LibraryService.getMyLibrary(token as string)
@@ -69,7 +75,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         setItemsStatus('error');
       }
     });
-  }, [userId, token, isOwner, router]);
+  }, [userId, token, isOwner, router, isAuthStoreHydrated]);
 
   if (profileStatus === 'not-found') {
     return (
