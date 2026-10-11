@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 import { useDialog } from '@/context/dialog';
 import { Modal } from '@/components/layout';
@@ -22,7 +23,11 @@ function StepModal({ depth }: { depth: number }) {
         </div>
       }
       buttons={[
-        <Button key="next" variant="outline" onClick={() => openDialog(<StepModal depth={depth + 1} />)}>
+        <Button
+          key="next"
+          variant="outline"
+          onClick={() => openDialog(<StepModal depth={depth + 1} />)}
+        >
           다음 모달 열기
         </Button>,
         <Button key="back" onClick={closeDialog}>
@@ -131,9 +136,66 @@ export default function DialogTestPage() {
   const { openDialog, closeDialog } = useDialog();
 
   const stackCases = [
-    { label: '스택: 모달 여러 개 연달아 열기 (카운트 유지)', open: () => openDialog(<StepModal depth={1} />) },
-    { label: '스택: 폼 위에 확인 모달 (입력값 유지)', open: () => openDialog(<ProfileFormModal />) },
-    { label: '스택: 긴 목록 위에 실패 모달 (스크롤 유지)', open: () => openDialog(<LongListModal />) },
+    {
+      label: '스택: 모달 여러 개 연달아 열기 (카운트 유지)',
+      open: () => openDialog(<StepModal depth={1} />),
+    },
+    {
+      label: '스택: 폼 위에 확인 모달 (입력값 유지)',
+      open: () => openDialog(<ProfileFormModal />),
+    },
+    {
+      label: '스택: 긴 목록 위에 실패 모달 (스크롤 유지)',
+      open: () => openDialog(<LongListModal />),
+    },
+  ];
+
+  const toastCases = [
+    {
+      label: '로그인 만료 (실제 401 토스트와 같은 모양, 버튼은 이동 대신 닫기)',
+      show: () =>
+        toast('로그인이 만료되었어요.', {
+          id: 'session-expired',
+          duration: 8_000,
+          action: { label: '다시 로그인하기', onClick: () => toast.dismiss('session-expired') },
+        }),
+    },
+    { label: '기본', show: () => toast('로그인이 만료되었어요. 다시 로그인해주세요.') },
+    {
+      label: '제목 + 설명',
+      show: () => toast('로그인이 만료되었어요', { description: '다시 로그인해주세요.' }),
+    },
+    { label: '성공', show: () => toast.success('팔로우했어요') },
+    { label: '에러', show: () => toast.error('요청에 실패했어요. 잠시 후 다시 시도해주세요.') },
+    { label: '경고', show: () => toast.warning('네트워크가 불안정해요') },
+    { label: '정보', show: () => toast.info('새로운 팔로워가 있어요') },
+    {
+      label: '액션 버튼',
+      show: () =>
+        toast('로그인이 만료되었어요', {
+          action: { label: '로그인하기', onClick: () => toast.dismiss() },
+        }),
+    },
+    {
+      label: '긴 문구',
+      show: () =>
+        toast(
+          '로그인이 만료되어 로그아웃되었어요. 보고 있던 내용은 그대로 두었으니 다시 로그인한 뒤 이어서 진행해주세요.',
+        ),
+    },
+    {
+      label: '같은 id로 3번 연속 (중복 방지 확인)',
+      show: () => {
+        toast('로그인이 만료되었어요. 다시 로그인해주세요.', { id: 'session-expired' });
+        toast('로그인이 만료되었어요. 다시 로그인해주세요.', { id: 'session-expired' });
+        toast('로그인이 만료되었어요. 다시 로그인해주세요.', { id: 'session-expired' });
+      },
+    },
+    {
+      label: '여러 개 쌓기 (id 없이 3번)',
+      show: () => [1, 2, 3].forEach((n) => toast(`토스트 ${n}`)),
+    },
+    { label: '모두 닫기', show: () => toast.dismiss() },
   ];
 
   const cases = [
@@ -255,6 +317,13 @@ export default function DialogTestPage() {
       <h2 className="mt-6 text-lg font-semibold">모달 스택 샘플</h2>
       {stackCases.map(({ label, open }) => (
         <Button key={label} onClick={open}>
+          {label}
+        </Button>
+      ))}
+
+      <h2 className="mt-6 text-lg font-semibold">토스트 샘플</h2>
+      {toastCases.map(({ label, show }) => (
+        <Button key={label} variant="secondary" onClick={show}>
           {label}
         </Button>
       ))}

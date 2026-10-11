@@ -1,3 +1,5 @@
+import { toast } from 'sonner';
+
 import { useAuthStore } from '@/store/authStore';
 
 import { API_URL } from './constants/api';
@@ -32,7 +34,21 @@ export async function apiRequest<T = undefined, E = undefined>(
     const responseBody = await res.json().catch(() => ({}));
     if (!res.ok) {
       if (res.status === 401) {
-        useAuthStore.getState().clearToken();
+        const { token, clearToken } = useAuthStore.getState();
+        clearToken();
+        if (token) {
+          toast('로그인이 만료되었어요.', {
+            id: 'session-expired',
+            duration: 8_000,
+            action: {
+              label: '다시 로그인하기',
+              onClick: () => {
+                toast.dismiss('session-expired');
+                window.location.assign('/signin');
+              },
+            },
+          });
+        }
       }
       return {
         isSuccess: false,

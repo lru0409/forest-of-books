@@ -3,6 +3,7 @@ import './globals.css';
 import { Noto_Sans_KR } from 'next/font/google';
 
 import { cn } from '@/lib';
+import { Toaster } from '@/components/ui/sonner';
 import { DialogProvider } from '@/context/dialog';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { AuthGuard } from '@/providers/AuthGuard';
@@ -26,6 +27,7 @@ export default function RootLayout({
           <AuthGuard>
             <DialogProvider>{children}</DialogProvider>
           </AuthGuard>
+          <Toaster />
         </AuthProvider>
       </body>
     </html>
