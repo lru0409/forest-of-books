@@ -136,7 +136,7 @@ const ProfileActions = ({
           variant="secondary"
           size="sm"
           className="text-primary bg-background flex-1 hover:bg-white"
-          onClick={() => router.push(`/profile/${userId}/edit`)}
+          onClick={() => router.push('/profile/edit')}
         >
           프로필 수정
         </Button>

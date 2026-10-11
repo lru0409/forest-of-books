@@ -1,6 +1,5 @@
 'use client';
 
-import { use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft } from 'lucide-react';
 
@@ -11,31 +10,16 @@ import { type Me } from '@/lib';
 import { useAuthStore } from '@/store/authStore';
 import useEditProfileForm from './useEditProfileForm';
 
-interface EditProfilePageProps {
-  params: Promise<{ userId: string }>;
-}
+// TODO: 잘 동작하는지 확인 필요
 
-// TODO: 잘 동작하도록 확인 필요
-
-export default function EditProfilePage({ params }: EditProfilePageProps) {
-  const { userId } = use(params);
-  const router = useRouter();
-
-  const hasHydrated = useAuthStore((state) => state.hasHydrated);
+export default function EditProfilePage() {
   const currentUser = useAuthStore((state) => state.user);
-  const isOwner = currentUser?.id === userId;
 
-  useEffect(() => {
-    if (!hasHydrated) return;
-    if (!isOwner) router.replace(`/profile/${userId}`);
-  }, [hasHydrated, isOwner, userId, router]);
-
-  if (!currentUser || !isOwner) return null;
-
-  return <EditProfileForm userId={userId} user={currentUser} />;
+  if (!currentUser) return null;
+  return <EditProfileForm user={currentUser} />;
 }
 
-function EditProfileForm({ userId, user }: { userId: string; user: Me }) {
+function EditProfileForm({ user }: { user: Me }) {
   const router = useRouter();
 
   const {
@@ -45,7 +29,7 @@ function EditProfileForm({ userId, user }: { userId: string; user: Me }) {
     submitErrorMessage,
     isSubmitting,
     handleSubmit,
-  } = useEditProfileForm(user, () => router.push(`/profile/${userId}`));
+  } = useEditProfileForm(user, () => router.push(`/profile/${user.id}`));
 
   return (
     <Container className="flex items-start justify-center" showBottomNav={false}>

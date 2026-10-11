@@ -1,5 +1,6 @@
 export const LOGIN_REQUIRED_ROUTES: { path: string; redirectTo: string }[] = [
   { path: '/notes/add', redirectTo: '/notes' },
+  { path: '/profile/edit', redirectTo: '/profile' },
 ];
 
 export const GUEST_ONLY_ROUTES: { path: string; redirectTo: string }[] = [
