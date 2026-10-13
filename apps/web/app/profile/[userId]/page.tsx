@@ -4,15 +4,15 @@ import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { TriangleAlert, LoaderCircle, UserRoundX } from 'lucide-react';
 
-import { type LibraryEntryListItem, type PublicUserProfile } from '@/lib';
+import { type LibraryEntryListItem } from '@/lib';
 import { Container } from '@/components/layout';
 import { StatusNotice } from '@/components/common';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/authStore';
 import LibraryService from '@/services/library';
-import UsersService from '@/services/users';
 import { ProfileCard } from './_components/ProfileCard';
 import { BookList } from './_components/BookList';
+import { useProfile } from './useProfile';
 
 interface ProfilePageProps {
   params: Promise<{ userId: string }>;
@@ -23,40 +23,11 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const router = useRouter();
 
   const token = useAuthStore((state) => state.token);
-  const currentUser = useAuthStore((state) => state.user);
   const isAuthStoreHydrated = useAuthStore((state) => state.hasHydrated);
-  const isOwner = currentUser?.id === userId;
-
-  const [user, setUser] = useState<PublicUserProfile | null>(null);
-  const [profileStatus, setProfileStatus] = useState<'loading' | 'success' | 'error' | 'not-found'>(
-    'loading',
-  );
+  const { user, status: profileStatus, isOwner, refresh, markNotFound } = useProfile(userId);
 
   const [items, setItems] = useState<LibraryEntryListItem[]>([]);
   const [itemsStatus, setItemsStatus] = useState<'loading' | 'success' | 'error'>('loading');
-
-  useEffect(() => {
-    if (!isAuthStoreHydrated) return;
-
-    // TODO: 내 프로필인 경우 매번 패치할 필요 없는걸까?
-    if (isOwner && currentUser) {
-      setUser({ ...currentUser, isFollowing: false });
-      setProfileStatus('success');
-      return;
-    }
-
-    setProfileStatus('loading');
-    UsersService.getUserProfile(userId, token).then((result) => {
-      if (result.isSuccess) {
-        setUser(result.data);
-        setProfileStatus('success');
-      } else if (result.statusCode === 404) {
-        setProfileStatus('not-found');
-      } else {
-        setProfileStatus('error');
-      }
-    });
-  }, [userId, isOwner, currentUser, token, isAuthStoreHydrated]);
 
   useEffect(() => {
     if (!isAuthStoreHydrated) return;
@@ -136,7 +107,13 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         )}
       >
         <div className="w-full xl:sticky xl:top-0 xl:w-74 xl:min-w-74">
-          <ProfileCard user={user} isOwner={isOwner} bookCount={items.length} />
+          <ProfileCard
+            user={user}
+            isOwner={isOwner}
+            bookCount={items.length}
+            onUserNotFound={markNotFound}
+            onProfileRefresh={refresh}
+          />
         </div>
         <div className={cn('flex flex-1 flex-col', isEmpty && 'xl:h-full')}>
           <BookList items={items} isOwner={isOwner} />

@@ -12,18 +12,20 @@ import { Avatar } from './Avatar';
 interface FollowListModalProps {
   userId: string;
   mode: 'followers' | 'following';
+  isOwner: boolean;
+  onProfileRefresh: () => void;
 }
 
-export function FollowListModal({ userId, mode }: FollowListModalProps) {
+export function FollowListModal(props: FollowListModalProps) {
   return (
     <Modal
-      title={mode === 'followers' ? '팔로워' : '팔로잉'}
-      content={<FollowListBody userId={userId} mode={mode} />}
+      title={props.mode === 'followers' ? '팔로워' : '팔로잉'}
+      content={<FollowListBody {...props} />}
     />
   );
 }
 
-function FollowListBody({ userId, mode }: FollowListModalProps) {
+function FollowListBody({ userId, mode, isOwner, onProfileRefresh }: FollowListModalProps) {
   const { items, viewState, isLoadingMore, hasMore, sentinelRef, patchItem } = useFollowList(
     userId,
     mode,
@@ -57,7 +59,13 @@ function FollowListBody({ userId, mode }: FollowListModalProps) {
       {viewState === 'results' && (
         <div className="flex flex-col gap-1">
           {items.map((item) => (
-            <FollowListRow key={item.id} item={item} onToggle={patchItem} />
+            <FollowListRow
+              key={item.id}
+              item={item}
+              isOwner={isOwner}
+              onToggle={patchItem}
+              onProfileRefresh={onProfileRefresh}
+            />
           ))}
           {hasMore && (
             <div ref={sentinelRef} className="flex justify-center py-3">
@@ -84,18 +92,18 @@ function FollowListStatus({ icon, description }: { icon?: React.ReactNode; descr
   );
 }
 
-// TODO: 팔로우/언팔로우 실패 처리
-// TODO: 낙관적 업데이트 적용 여부 확인
-// TODO: 팔로우/언팔로우 시 내 팔로잉 수 바로 갱신
-
 function FollowListRow({
   item,
+  isOwner,
   onToggle,
+  onProfileRefresh,
 }: {
   item: FollowUser;
+  isOwner: boolean;
   onToggle: (userId: string, isFollowing: boolean) => void;
+  onProfileRefresh: () => void;
 }) {
-  const { closeDialog } = useDialog();
+  const { openDialog, closeDialog, closeAllDialogs } = useDialog();
   const isLoggedIn = useAuthStore((state) => state.token !== null);
   const currentUserId = useAuthStore((state) => state.user?.id);
   const isSelf = currentUserId === item.id;
@@ -103,7 +111,30 @@ function FollowListRow({
   const { isFollowing, isPending, toggleFollow } = useFollowToggle({
     userId: item.id,
     initialIsFollowing: item.isFollowing,
-    onChange: (next) => onToggle(item.id, next),
+    onChange: (next) => {
+      onToggle(item.id, next);
+      // 내 팔로잉 수는 내 프로필 카드에만 보임
+      if (isOwner) onProfileRefresh();
+    },
+    onError: ({ statusCode, action }) => {
+      const isNotFound = statusCode === 404;
+      if (isNotFound) onProfileRefresh();
+      const title = isNotFound
+        ? '존재하지 않는 사용자예요.'
+        : `${action === 'follow' ? '팔로우' : '언팔로우'}가 실패했어요.\n잠시 후 다시 시도해주세요.`;
+      openDialog(
+        <Modal
+          title={title}
+          buttons={[
+            // 404면 삭제된 유저가 목록에 남아 있으므로 목록 모달까지 닫음
+            <Button key="close" onClick={isNotFound ? closeAllDialogs : closeDialog}>
+              확인
+            </Button>,
+          ]}
+          showCloseButton={false}
+        />,
+      );
+    },
   });
 
   return (
@@ -126,8 +157,8 @@ function FollowListRow({
           type="button"
           variant={isFollowing ? 'secondary' : 'default'}
           size="xs"
-          className="relative z-10"
-          disabled={isPending}
+          className="relative z-10 min-w-16"
+          isLoading={isPending}
           onClick={toggleFollow}
         >
           {isFollowing ? '언팔로우' : '팔로우'}
