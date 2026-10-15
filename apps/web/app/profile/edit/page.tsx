@@ -10,8 +10,6 @@ import { type Me } from '@/lib';
 import { useAuthStore } from '@/store/authStore';
 import useEditProfileForm from './useEditProfileForm';
 
-// TODO: 잘 동작하는지 확인 필요
-
 export default function EditProfilePage() {
   const currentUser = useAuthStore((state) => state.user);
 
@@ -28,8 +26,9 @@ function EditProfileForm({ user }: { user: Me }) {
     toggleGenre,
     submitErrorMessage,
     isSubmitting,
+    isDirty,
     handleSubmit,
-  } = useEditProfileForm(user, () => router.push(`/profile/${user.id}`));
+  } = useEditProfileForm(user, () => router.replace(`/profile/${user.id}`));
 
   return (
     <Container className="flex items-start justify-center" showBottomNav={false}>
@@ -48,13 +47,15 @@ function EditProfileForm({ user }: { user: Me }) {
 
         <ProfileFieldsSection fields={profileFields} />
 
-        <label htmlFor="preferredGenres" className="mb-1 block text-lg font-semibold">
-          선호 장르
-        </label>
-        <p className="text-secondary mb-4 text-sm">좋아하는 장르를 선택해 주세요.</p>
+        <div role="group" aria-labelledby="preferredGenresLabel">
+          <h2 id="preferredGenresLabel" className="mb-1 block text-lg font-semibold">
+            선호 장르
+          </h2>
+          <p className="text-secondary mb-4 text-sm">좋아하는 장르를 선택해 주세요.</p>
 
-        <div className="mb-10">
-          <GenreSelector selected={preferredGenres} onToggle={toggleGenre} />
+          <div className="mb-10">
+            <GenreSelector selected={preferredGenres} onToggle={toggleGenre} />
+          </div>
         </div>
 
         {submitErrorMessage && (
@@ -64,6 +65,7 @@ function EditProfileForm({ user }: { user: Me }) {
         <Button
           className="w-full"
           disabled={
+            !isDirty ||
             isSubmitting ||
             profileFields.profileImage.isUploading ||
             profileFields.nickname.checkStatus !== 'available' ||

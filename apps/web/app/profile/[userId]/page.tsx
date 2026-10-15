@@ -1,7 +1,6 @@
 'use client';
 
 import { use, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { TriangleAlert, LoaderCircle, UserRoundX } from 'lucide-react';
 
 import { type LibraryEntryListItem } from '@/lib';
@@ -20,7 +19,6 @@ interface ProfilePageProps {
 
 export default function ProfilePage({ params }: ProfilePageProps) {
   const { userId } = use(params);
-  const router = useRouter();
 
   const token = useAuthStore((state) => state.token);
   const isAuthStoreHydrated = useAuthStore((state) => state.hasHydrated);
@@ -41,12 +39,13 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         setItems(result.data);
         setItemsStatus('success');
       } else if (isOwner && result.statusCode === 401) {
-        router.replace('/profile');
+        // apiRequest가 이미 로그아웃 처리 → isOwner가 바뀌어 effect가 게스트 기준으로 재실행됨
+        return;
       } else {
         setItemsStatus('error');
       }
     });
-  }, [userId, token, isOwner, router, isAuthStoreHydrated]);
+  }, [userId, token, isOwner, isAuthStoreHydrated]);
 
   if (profileStatus === 'not-found') {
     return (

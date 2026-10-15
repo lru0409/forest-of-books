@@ -12,6 +12,7 @@ interface UseProfileFieldsParams {
   initialBio: string;
   initialProfileImageUrl: string;
   initialNicknameVerified?: boolean;
+  originalNickname?: string; // profile edit 시에만 사용
   onProfileImageChange?: (url: string) => void;
 }
 
@@ -20,6 +21,7 @@ function useProfileFields({
   initialBio,
   initialProfileImageUrl,
   initialNicknameVerified = false,
+  originalNickname,
   onProfileImageChange,
 }: UseProfileFieldsParams) {
   const [nickname, setNicknameState] = useState(initialNickname);
@@ -56,7 +58,7 @@ function useProfileFields({
 
   const setNickname = (value: string) => {
     setNicknameState(value);
-    setNicknameCheckStatus('idle');
+    setNicknameCheckStatus(value === originalNickname ? 'available' : 'idle');
   };
 
   const checkNickname = async () => {
@@ -130,7 +132,8 @@ function useProfileFields({
       value: nickname,
       setValue: setNickname,
       checkStatus: nicknameCheckStatus,
-      canCheck: isNicknameValid && nicknameCheckStatus !== 'checking',
+      canCheck:
+        isNicknameValid && nickname !== originalNickname && nicknameCheckStatus !== 'checking',
       check: checkNickname,
       feedback: nicknameFeedback,
       markUnavailable: () => setNicknameCheckStatus('unavailable'),

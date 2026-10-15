@@ -18,6 +18,8 @@ function useEditProfileForm(user: EditableUser, onSuccess: () => void) {
     initialNickname: user.nickname,
     initialBio: user.bio,
     initialProfileImageUrl: user.profileImage,
+    initialNicknameVerified: true,
+    originalNickname: user.nickname,
   });
 
   const [preferredGenres, setPreferredGenres] = useState<Genre[]>(user.preferredGenres);
@@ -62,12 +64,20 @@ function useEditProfileForm(user: EditableUser, onSuccess: () => void) {
     setSubmitErrorMessage('저장에 실패했어요. 잠시 후 다시 시도해주세요.');
   };
 
+  const isDirty =
+    profileFields.nickname.value !== user.nickname ||
+    profileFields.bio.value !== user.bio ||
+    profileFields.profileImage.url !== user.profileImage ||
+    preferredGenres.length !== user.preferredGenres.length ||
+    preferredGenres.some((genre) => !user.preferredGenres.includes(genre));
+
   return {
     profileFields,
     preferredGenres,
     toggleGenre,
     submitErrorMessage,
     isSubmitting,
+    isDirty,
     handleSubmit,
   };
 }
