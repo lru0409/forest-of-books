@@ -33,6 +33,19 @@ const createMockPrisma = (): MockPrismaService => ({
 
 const targetUser = { id: 'user-2', nickname: 'target' };
 
+// cursor 형식(base64url("<createdAt ISO>|<follow id>"))을 테스트에서도 직접 만들어 형식을 고정해 둔다
+const toCursor = (createdAt: Date, id: string) =>
+  Buffer.from(`${createdAt.toISOString()}|${id}`).toString('base64url');
+
+const cursorCreatedAt = new Date('2026-01-01T00:00:00.000Z');
+const validCursor = toCursor(cursorCreatedAt, 'cursor-1');
+const cursorWhere = {
+  OR: [
+    { createdAt: { lt: cursorCreatedAt } },
+    { createdAt: cursorCreatedAt, id: { lt: 'cursor-1' } },
+  ],
+};
+
 const followerUser = (id: string) => ({
   id,
   nickname: `user-${id}`,
@@ -63,18 +76,14 @@ describe('FollowService', () => {
   // ─────────────────────────────────────────────
   describe('follow', () => {
     it('자기 자신을 팔로우하면 BadRequestException', async () => {
-      await expect(service.follow('user-1', 'user-1')).rejects.toBeInstanceOf(
-        BadRequestException,
-      );
+      await expect(service.follow('user-1', 'user-1')).rejects.toBeInstanceOf(BadRequestException);
       expect(mockPrisma.follow.upsert).not.toHaveBeenCalled();
     });
 
     it('대상 유저가 없으면 NotFoundException', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.follow('user-1', 'user-2')).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
+      await expect(service.follow('user-1', 'user-2')).rejects.toBeInstanceOf(NotFoundException);
       expect(mockPrisma.follow.upsert).not.toHaveBeenCalled();
     });
 
@@ -144,9 +153,7 @@ describe('FollowService', () => {
   // ─────────────────────────────────────────────
   describe('getFollowers', () => {
     it('limit개 이하면 nextCursor null', async () => {
-      mockPrisma.follow.findMany.mockResolvedValueOnce([
-        { id: 'f1', follower: followerUser('a') },
-      ]);
+      mockPrisma.follow.findMany.mockResolvedValueOnce([{ id: 'f1', follower: followerUser('a') }]);
 
       const result = await service.getFollowers('user-1', undefined, undefined, 20);
 
@@ -156,16 +163,16 @@ describe('FollowService', () => {
       ]);
     });
 
-    it('limit보다 많으면 마지막 항목의 follow id를 nextCursor로 반환', async () => {
+    it('limit보다 많으면 마지막 항목의 (createdAt, follow id)를 nextCursor로 반환', async () => {
       mockPrisma.follow.findMany.mockResolvedValueOnce([
-        { id: 'f1', follower: followerUser('a') },
-        { id: 'f2', follower: followerUser('b') },
+        { id: 'f1', createdAt: cursorCreatedAt, follower: followerUser('a') },
+        { id: 'f2', createdAt: new Date('2025-12-31T00:00:00.000Z'), follower: followerUser('b') },
       ]);
 
       const result = await service.getFollowers('user-1', undefined, undefined, 1);
 
       expect(result.items).toHaveLength(1);
-      expect(result.nextCursor).toBe('f1');
+      expect(result.nextCursor).toBe(toCursor(cursorCreatedAt, 'f1'));
     });
 
     it('viewerId가 있으면 각 항목의 isFollowing을 표시', async () => {
@@ -191,19 +198,53 @@ describe('FollowService', () => {
       });
     });
 
-    it('cursor가 있으면 해당 row 다음부터 조회', async () => {
+    it('cursor가 있으면 cursor의 (createdAt, id)보다 뒤의 row만 조회', async () => {
       mockPrisma.follow.findMany.mockResolvedValueOnce([]);
 
-      await service.getFollowers('user-1', undefined, 'cursor-1', 20);
+      await service.getFollowers('user-1', undefined, validCursor, 20);
 
       expect(mockPrisma.follow.findMany).toHaveBeenCalledWith({
-        where: { followingId: 'user-1' },
+        where: { followingId: 'user-1', ...cursorWhere },
         orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
         take: 21,
-        cursor: { id: 'cursor-1' },
-        skip: 1,
         include: { follower: true },
       });
+    });
+
+    it('nextCursor를 다음 요청의 cursor로 쓰면 그 row 이후부터 조회', async () => {
+      mockPrisma.follow.findMany.mockResolvedValueOnce([
+        { id: 'f1', createdAt: cursorCreatedAt, follower: followerUser('a') },
+        { id: 'f2', createdAt: new Date('2025-12-31T00:00:00.000Z'), follower: followerUser('b') },
+      ]);
+      const first = await service.getFollowers('user-1', undefined, undefined, 1);
+      mockPrisma.follow.findMany.mockResolvedValueOnce([]);
+
+      await service.getFollowers('user-1', undefined, first.nextCursor ?? undefined, 1);
+
+      expect(mockPrisma.follow.findMany).toHaveBeenLastCalledWith({
+        where: {
+          followingId: 'user-1',
+          OR: [
+            { createdAt: { lt: cursorCreatedAt } },
+            { createdAt: cursorCreatedAt, id: { lt: 'f1' } },
+          ],
+        },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        take: 2,
+        include: { follower: true },
+      });
+    });
+
+    it.each([
+      ['형식이 아닌 문자열', 'cursor-1'],
+      ['id가 없음', Buffer.from('2026-01-01T00:00:00.000Z|').toString('base64url')],
+      ['날짜가 잘못됨', Buffer.from('not-a-date|follow-1').toString('base64url')],
+      ['구분자가 더 있음', Buffer.from('2026-01-01T00:00:00.000Z|a|b').toString('base64url')],
+    ])('cursor 형식이 잘못되면(%s) BadRequestException', async (_, cursor) => {
+      await expect(service.getFollowers('user-1', undefined, cursor, 20)).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
+      expect(mockPrisma.follow.findMany).not.toHaveBeenCalled();
     });
   });
 
@@ -224,19 +265,24 @@ describe('FollowService', () => {
       });
     });
 
-    it('cursor가 있으면 해당 row 다음부터 조회', async () => {
+    it('cursor가 있으면 cursor의 (createdAt, id)보다 뒤의 row만 조회', async () => {
       mockPrisma.follow.findMany.mockResolvedValueOnce([]);
 
-      await service.getFollowing('user-1', undefined, 'cursor-1', 20);
+      await service.getFollowing('user-1', undefined, validCursor, 20);
 
       expect(mockPrisma.follow.findMany).toHaveBeenCalledWith({
-        where: { followerId: 'user-1' },
+        where: { followerId: 'user-1', ...cursorWhere },
         orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
         take: 21,
-        cursor: { id: 'cursor-1' },
-        skip: 1,
         include: { following: true },
       });
+    });
+
+    it('cursor 형식이 잘못되면 BadRequestException', async () => {
+      await expect(
+        service.getFollowing('user-1', undefined, 'cursor-1', 20),
+      ).rejects.toBeInstanceOf(BadRequestException);
+      expect(mockPrisma.follow.findMany).not.toHaveBeenCalled();
     });
 
     it('목록 항목을 매핑해서 반환', async () => {

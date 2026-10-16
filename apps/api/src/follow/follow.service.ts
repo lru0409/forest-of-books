@@ -6,6 +6,12 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { FollowListResponseDto, FollowUserResponseDto } from './dto';
 
 const DEFAULT_LIMIT = 20;
+const CURSOR_SEPARATOR = '|';
+
+interface FollowCursor {
+  createdAt: Date;
+  id: string;
+}
 
 @Injectable()
 export class FollowService {
@@ -52,14 +58,17 @@ export class FollowService {
     limit = DEFAULT_LIMIT,
   ): Promise<FollowListResponseDto> {
     const rows = await this.prisma.follow.findMany({
-      where: { followingId: userId },
+      where: { followingId: userId, ...this.cursorCondition(cursor) },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit + 1,
-      ...(cursor && { cursor: { id: cursor }, skip: 1 }),
       include: { follower: true },
     });
 
-    const entries = rows.map((row) => ({ followId: row.id, user: row.follower }));
+    const entries = rows.map((row) => ({
+      followId: row.id,
+      createdAt: row.createdAt,
+      user: row.follower,
+    }));
     return this.toListResponse(entries, viewerId, limit);
   }
 
@@ -70,19 +79,53 @@ export class FollowService {
     limit = DEFAULT_LIMIT,
   ): Promise<FollowListResponseDto> {
     const rows = await this.prisma.follow.findMany({
-      where: { followerId: userId },
+      where: { followerId: userId, ...this.cursorCondition(cursor) },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit + 1,
-      ...(cursor && { cursor: { id: cursor }, skip: 1 }),
       include: { following: true },
     });
 
-    const entries = rows.map((row) => ({ followId: row.id, user: row.following }));
+    const entries = rows.map((row) => ({
+      followId: row.id,
+      createdAt: row.createdAt,
+      user: row.following,
+    }));
     return this.toListResponse(entries, viewerId, limit);
   }
 
+  // cursor 이후(정렬 기준 createdAt desc, id desc에서 더 뒤)의 row만 조회하는 조건
+  private cursorCondition(cursor?: string) {
+    if (!cursor) return {};
+
+    const { createdAt, id } = this.decodeCursor(cursor);
+    return { OR: [{ createdAt: { lt: createdAt } }, { createdAt, id: { lt: id } }] };
+  }
+
+  // 목록 정렬 키(createdAt, id)를 그대로 담는다. row 자체를 가리키지 않아서 그 row가 삭제돼도 유효하다.
+  private encodeCursor({ createdAt, id }: FollowCursor): string {
+    return Buffer.from(`${createdAt.toISOString()}${CURSOR_SEPARATOR}${id}`).toString('base64url');
+  }
+
+  private decodeCursor(cursor: string): FollowCursor {
+    const [isoDate, id, ...rest] = Buffer.from(cursor, 'base64url')
+      .toString()
+      .split(CURSOR_SEPARATOR);
+    const createdAt = new Date(isoDate ?? '');
+
+    // Invalid Date의 toISOString()은 RangeError를 던지므로 먼저 걸러낸다
+    if (
+      !id ||
+      rest.length > 0 ||
+      Number.isNaN(createdAt.getTime()) ||
+      createdAt.toISOString() !== isoDate
+    ) {
+      throw new BadRequestException('잘못된 cursor입니다.');
+    }
+    return { createdAt, id };
+  }
+
   private async toListResponse(
-    entries: { followId: string; user: User }[],
+    entries: { followId: string; createdAt: Date; user: User }[],
     viewerId: string | undefined,
     limit: number,
   ): Promise<FollowListResponseDto> {
@@ -109,6 +152,12 @@ export class FollowService {
     }));
 
     const lastEntry = page[page.length - 1];
-    return { items, nextCursor: hasMore && lastEntry ? lastEntry.followId : null };
+    return {
+      items,
+      nextCursor:
+        hasMore && lastEntry
+          ? this.encodeCursor({ createdAt: lastEntry.createdAt, id: lastEntry.followId })
+          : null,
+    };
   }
 }
