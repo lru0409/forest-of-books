@@ -15,6 +15,7 @@ import { FollowListModal } from './FollowListModal';
 
 interface ProfileCardProps {
   user: PublicUserProfile;
+  email?: string | null;
   isOwner: boolean;
   bookCount: number;
   onUserNotFound: () => void;
@@ -23,6 +24,7 @@ interface ProfileCardProps {
 
 export function ProfileCard({
   user,
+  email,
   isOwner,
   bookCount,
   onUserNotFound,
@@ -68,9 +70,12 @@ export function ProfileCard({
         />
       </div>
 
-      <div className="mb-6 flex flex-col gap-0.5">
-        <p className="text-background text-xl font-semibold">{user.nickname}</p>
-        {user.bio && <p className="text-primary-foreground text-sm">&quot;{user.bio}&quot;</p>}
+      <div className="mb-6 flex flex-col">
+        <p className="text-background mb-1 text-xl font-semibold">{user.nickname}</p>
+        <div className="flex flex-col gap-3.5">
+          {isOwner && email && <p className="text-primary-foreground text-xs break-all">{email}</p>}
+          {user.bio && <p className="text-primary-foreground text-sm">&quot;{user.bio}&quot;</p>}
+        </div>
       </div>
 
       <div className="flex w-full flex-col gap-2">

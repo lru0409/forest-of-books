@@ -67,6 +67,7 @@ export function useProfile(userId: string) {
     [isOwner, me, otherUser],
   );
   const status: ProfileStatus = isOwner ? 'success' : otherUserStatus;
+  const email = isOwner ? (me?.email ?? null) : null;
 
-  return { user, status, isOwner, refresh, markNotFound };
+  return { user, email, status, isOwner, refresh, markNotFound };
 }

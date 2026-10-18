@@ -22,7 +22,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
   const token = useAuthStore((state) => state.token);
   const isAuthStoreHydrated = useAuthStore((state) => state.hasHydrated);
-  const { user, status: profileStatus, isOwner, refresh, markNotFound } = useProfile(userId);
+  const { user, email, status: profileStatus, isOwner, refresh, markNotFound } = useProfile(userId);
 
   const [items, setItems] = useState<LibraryEntryListItem[]>([]);
   const [itemsStatus, setItemsStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -108,6 +108,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         <div className="w-full xl:sticky xl:top-0 xl:w-74 xl:min-w-74">
           <ProfileCard
             user={user}
+            email={email}
             isOwner={isOwner}
             bookCount={items.length}
             onUserNotFound={markNotFound}
