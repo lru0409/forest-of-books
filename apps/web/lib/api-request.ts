@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 
 import { API_URL } from './constants/api';
+import { savePostLoginRedirect } from './post-login-redirect';
 import { type ApiResponse } from './types/api';
 
 interface ApiRequestOptions {
@@ -44,6 +45,7 @@ export async function apiRequest<T = undefined, E = undefined>(
               label: '다시 로그인하기',
               onClick: () => {
                 toast.dismiss('session-expired');
+                savePostLoginRedirect();
                 window.location.assign('/signin');
               },
             },

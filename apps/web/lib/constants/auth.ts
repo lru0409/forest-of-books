@@ -6,6 +6,7 @@ export const LOGIN_REQUIRED_ROUTES: { path: string; redirectTo: string }[] = [
 export const GUEST_ONLY_ROUTES: { path: string; redirectTo: string }[] = [
   { path: '/signin', redirectTo: '/' },
   { path: '/signup', redirectTo: '/' },
+  { path: '/auth/callback', redirectTo: '/' },
 ];
 
 export const AUTH_NOTICE_ROUTES: { path: string; description: string }[] = [

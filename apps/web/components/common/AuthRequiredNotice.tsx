@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { UserRoundKey } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { savePostLoginRedirect } from '@/lib';
 import { StatusNotice } from './StatusNotice';
 
 interface AuthRequiredNoticeProps {
@@ -21,7 +22,13 @@ export function AuthRequiredNotice({ description, className }: AuthRequiredNotic
       title="로그인이 필요해요"
       description={description}
       action={
-        <Button className="mt-6 w-full" onClick={() => router.push('/signin')}>
+        <Button
+          className="mt-6 w-full"
+          onClick={() => {
+            savePostLoginRedirect();
+            router.push('/signin');
+          }}
+        >
           로그인하러 가기
         </Button>
       }

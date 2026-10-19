@@ -17,8 +17,8 @@ function CallbackHandler() {
       router.replace('/signin');
       return;
     }
+    // 이동은 AuthGuard 가 담당 (토큰이 설정되면 게스트 전용 라우트에서 복귀 경로로 replace)
     setToken(token);
-    router.replace('/');
   }, [searchParams, router, setToken]);
 
   return <LoadingScreen message="로그인 중..." />;

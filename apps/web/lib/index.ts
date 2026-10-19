@@ -1,4 +1,4 @@
-export { cn, parseFilterParam, formatRatingLabel } from './utils';
+export { cn, parseFilterParam, formatRatingLabel, matchRoute } from './utils';
 export { formatDate } from './date';
 export { useDebounce } from './hooks/useDebounce';
 export { useMediaQuery } from './hooks/useMediaQuery';
@@ -21,6 +21,7 @@ export {
   PROFILE_IMAGE_ACCEPTED_TYPES,
   PROFILE_IMAGE_MAX_FILE_SIZE,
 } from './constants/user';
+export { savePostLoginRedirect, consumePostLoginRedirect } from './post-login-redirect';
 export { apiRequest } from './api-request';
 export type { ApiResponse } from './types/api';
 export type { Genre, Book } from './types/book';

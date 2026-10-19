@@ -3,15 +3,16 @@
 import { useEffect, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
-import { AUTH_NOTICE_ROUTES, GUEST_ONLY_ROUTES, LOGIN_REQUIRED_ROUTES } from '@/lib';
+import {
+  AUTH_NOTICE_ROUTES,
+  GUEST_ONLY_ROUTES,
+  LOGIN_REQUIRED_ROUTES,
+  consumePostLoginRedirect,
+  matchRoute,
+} from '@/lib';
 import { Container } from '@/components/layout';
 import { AuthRequiredNotice } from '@/components/common';
 import { useAuthStore } from '@/store/authStore';
-
-function matchRoute(pathname: string, path: string) {
-  if (path.endsWith('/*')) return pathname.startsWith(path.slice(0, -1));
-  return pathname === path;
-}
 
 export function AuthGuard({ children }: { children: ReactNode }) {
   const token = useAuthStore((state) => state.token);
@@ -29,7 +30,8 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     }
 
     const matched = GUEST_ONLY_ROUTES.find((route) => matchRoute(pathname, route.path));
-    if (matched) router.replace(matched.redirectTo);
+    // 로그인 직후 /signin, /auth/callback 에서 이 분기로 들어오므로 저장된 복귀 경로를 여기서 소비
+    if (matched) router.replace(consumePostLoginRedirect(matched.redirectTo));
   }, [hasHydrated, token, pathname, router]);
 
   if (!token) {

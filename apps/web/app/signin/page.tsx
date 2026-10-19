@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -14,7 +13,6 @@ import { useAuthStore } from '@/store/authStore';
 import { SignupLink } from './_components/SignupLink';
 
 export default function SignIn() {
-  const router = useRouter();
   const setToken = useAuthStore((state) => state.setToken);
   const { openDialog, closeDialog } = useDialog();
 
@@ -39,8 +37,8 @@ export default function SignIn() {
     setIsSubmitting(false);
 
     if (result.isSuccess) {
+      // 이동은 AuthGuard 가 담당 (토큰이 설정되면 게스트 전용 라우트에서 복귀 경로로 replace)
       setToken(result.data.token);
-      router.push('/');
       return;
     }
     if (result.statusCode === 401) {
