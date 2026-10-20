@@ -8,7 +8,6 @@ import { Button } from '@/components/ui';
 import { useDialog } from '@/context/dialog';
 import type { Genre } from '@/lib';
 import AuthService from '@/services/auth';
-import { useAuthStore } from '@/store/authStore';
 import { useSignupStore } from '@/store/signupStore';
 import { Step } from '../constants';
 
@@ -18,7 +17,6 @@ function useRegistration() {
 
   const { email, password, nickname, bio, profileImageUrl, isSocialLogin, update } =
     useSignupStore();
-  const setToken = useAuthStore((state) => state.setToken);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const progressResolveRef = useRef<(() => void) | null>(null);
@@ -82,7 +80,8 @@ function useRegistration() {
     setIsSubmitting(false);
 
     if (result.isSuccess) {
-      setToken(result.data.token);
+      // 토큰 설정은 완료 화면에서 수행 (여기서 하면 AuthGuard가 /signup 에서 먼저 이동시킴)
+      update({ registeredToken: result.data.token });
       router.push('/signup/complete');
       return;
     }

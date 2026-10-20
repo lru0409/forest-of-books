@@ -1,19 +1,25 @@
 'use client';
 
 import { useEffect } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { PartyPopper } from 'lucide-react';
 
 import { Container } from '@/components/layout';
 import { Button } from '@/components/ui';
+import { consumePostLoginRedirect } from '@/lib';
+import { useAuthStore } from '@/store/authStore';
 import { useSignupStore } from '@/store/signupStore';
 
 export default function SignupCompletePage() {
+  const router = useRouter();
+  const setToken = useAuthStore((state) => state.setToken);
   const reset = useSignupStore((state) => state.reset);
 
   useEffect(() => {
+    const token = useSignupStore.getState().registeredToken;
+    if (token) setToken(token);
     reset();
-  }, [reset]);
+  }, [setToken, reset]);
 
   return (
     <Container className="flex justify-center">
@@ -34,8 +40,8 @@ export default function SignupCompletePage() {
         </div>
 
         <div className="animate-emerge mb-10 w-full px-4 delay-[450ms]">
-          <Button asChild className="w-full">
-            <Link href="/">시작하기</Link>
+          <Button className="w-full" onClick={() => router.replace(consumePostLoginRedirect())}>
+            시작하기
           </Button>
         </div>
       </div>

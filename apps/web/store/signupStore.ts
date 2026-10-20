@@ -14,6 +14,7 @@ interface SignupData {
   nicknameVerified: boolean;
   bio: string;
   profileImageUrl: string;
+  registeredToken: string | null; // 가입 완료 화면에서 로그인 처리하기 위해 잠시 보관 (persist 제외)
 }
 
 interface SignupActions {
@@ -43,6 +44,7 @@ const initialState: SignupData = {
   nicknameVerified: false,
   bio: '',
   profileImageUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/images/profile-defaults/1.png`,
+  registeredToken: null,
 };
 
 export const useSignupStore = create<SignupData & SignupActions>()(
