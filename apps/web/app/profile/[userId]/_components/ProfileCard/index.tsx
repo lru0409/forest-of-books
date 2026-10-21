@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Pencil } from 'lucide-react';
 
 import { Modal } from '@/components/layout';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,6 @@ import { FollowListModal } from './FollowListModal';
 
 interface ProfileCardProps {
   user: PublicUserProfile;
-  email?: string | null;
   isOwner: boolean;
   bookCount: number;
   onUserNotFound: () => void;
@@ -24,7 +24,6 @@ interface ProfileCardProps {
 
 export function ProfileCard({
   user,
-  email,
   isOwner,
   bookCount,
   onUserNotFound,
@@ -60,7 +59,16 @@ export function ProfileCard({
   };
 
   return (
-    <div className="bg-primary flex flex-col items-center rounded-3xl px-4 pt-8 pb-4 text-center shadow-lg">
+    <div className="bg-primary relative flex flex-col items-center rounded-3xl px-4 pt-8 pb-4 text-center shadow-lg">
+      {isOwner && (
+        <Link
+          href="/profile/edit"
+          aria-label="프로필 수정"
+          className="text-primary-foreground hover:bg-primary-foreground/20 absolute top-3 right-3 flex size-8 items-center justify-center rounded-full transition-colors"
+        >
+          <Pencil className="size-4" aria-hidden="true" />
+        </Link>
+      )}
       <div className="mb-3.5">
         <Avatar
           profileImageUrl={user.profileImage}
@@ -70,12 +78,9 @@ export function ProfileCard({
         />
       </div>
 
-      <div className="mb-6 flex flex-col">
-        <p className="text-background mb-1 text-xl font-semibold">{user.nickname}</p>
-        <div className="flex flex-col gap-3.5">
-          {isOwner && email && <p className="text-primary-foreground text-xs break-all">{email}</p>}
-          {user.bio && <p className="text-primary-foreground text-sm">&quot;{user.bio}&quot;</p>}
-        </div>
+      <div className="mb-6 flex flex-col gap-0.5">
+        <p className="text-background text-xl font-semibold">{user.nickname}</p>
+        {user.bio && <p className="text-primary-foreground text-sm">&quot;{user.bio}&quot;</p>}
       </div>
 
       <div className="flex w-full flex-col gap-2">
@@ -132,10 +137,9 @@ export function ProfileCard({
         )}
       </div>
 
-      {isLoggedIn && (
+      {isLoggedIn && !isOwner && (
         <div className="mt-6 flex w-full gap-2">
           <ProfileActions
-            isOwner={isOwner}
             userId={user.id}
             isFollowing={user.isFollowing}
             onUserNotFound={onUserNotFound}
@@ -148,20 +152,16 @@ export function ProfileCard({
 }
 
 const ProfileActions = ({
-  isOwner,
   userId,
   isFollowing: initialIsFollowing,
   onUserNotFound,
   onProfileRefresh,
 }: {
-  isOwner: boolean;
   userId: string;
   isFollowing: boolean;
   onUserNotFound: () => void;
   onProfileRefresh: () => void;
 }) => {
-  const router = useRouter();
-  const clearToken = useAuthStore((state) => state.clearToken);
   const { openDialog, closeDialog } = useDialog();
 
   const { isFollowing, isPending, toggleFollow } = useFollowToggle({
@@ -188,32 +188,6 @@ const ProfileActions = ({
       );
     },
   });
-
-  if (isOwner) {
-    return (
-      <>
-        <Button
-          variant="secondary"
-          size="sm"
-          className="text-primary bg-background flex-1 hover:bg-white"
-          onClick={() => router.push('/profile/edit')}
-        >
-          프로필 수정
-        </Button>
-        <Button
-          variant="secondary"
-          size="sm"
-          className="flex-1"
-          onClick={() => {
-            clearToken();
-            router.push('/profile');
-          }}
-        >
-          로그아웃
-        </Button>
-      </>
-    );
-  }
 
   if (isFollowing) {
     return (
