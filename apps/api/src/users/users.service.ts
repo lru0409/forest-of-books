@@ -14,10 +14,9 @@ export class UsersService {
   ) {}
 
   async getMe(user: User): Promise<MeResponseDto> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...me } = user;
     const { followerCount, followingCount } = await this.followService.getCounts(user.id);
-    return { ...me, followerCount, followingCount };
+    return { ...me, hasPassword: password !== null, followerCount, followingCount };
   }
 
   async findProfileById(id: string, viewerId?: string): Promise<UserProfileResponseDto> {

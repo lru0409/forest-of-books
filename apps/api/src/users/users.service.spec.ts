@@ -91,10 +91,17 @@ describe('UsersService', () => {
         preferredGenres: ['NOVEL'],
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
+        hasPassword: true,
         followerCount: 2,
         followingCount: 4,
       });
       expect(mockFollowService.getCounts).toHaveBeenCalledWith('user-1');
+    });
+
+    it('password가 없는 소셜 유저는 hasPassword false', async () => {
+      const result = await service.getMe({ ...user, password: null });
+
+      expect(result.hasPassword).toBe(false);
     });
   });
 

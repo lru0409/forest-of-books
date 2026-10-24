@@ -11,6 +11,8 @@ interface UserProfileBase {
   followingCount: number;
 }
 
+export type LoginProvider = 'EMAIL' | 'KAKAO' | 'GOOGLE' | 'NAVER';
+
 export interface PublicUserProfile extends UserProfileBase {
   isFollowing: boolean;
 }
@@ -20,5 +22,6 @@ export interface Me extends UserProfileBase {
   naverId: string | null;
   kakaoId: string | null;
   googleId: string | null;
+  hasPassword: boolean;
   updatedAt: string;
 }

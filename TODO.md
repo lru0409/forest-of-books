@@ -28,8 +28,5 @@
 - [ ] 어드민 페이지: 고아 프로필 이미지 수동 정리 트리거 (`apps/api/src/upload/upload.service.ts`)
 - [ ] 어드민 페이지: 만료된 이메일 인증 코드 수동 정리 트리거 (`apps/api/src/auth/email-verification.service.ts`)
 
----
-
-> 참고: `packages/db/.env`에 DB 접속 정보 평문 포함 확인됨. 커밋 여부(.gitignore 처리) 별도 점검 권장.
-
 - [ ] 비로그인 전환 시 로그인 시에만 보여줘야 할 다이얼로그 닫기
+- [ ] 계정 연동(이메일 계정 + 소셜 등)을 도입할지 고민 필요
