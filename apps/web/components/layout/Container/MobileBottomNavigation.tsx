@@ -4,10 +4,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { cn } from '@/lib/utils';
-import { NAV_ITEMS } from './constants';
+import { useNavItems } from './useNavItems';
 
 export function MobileBottomNavigation() {
   const pathname = usePathname();
+  const navItems = useNavItems();
 
   return (
     <div className="fixed bottom-3 z-40 flex w-full justify-center md:hidden">
@@ -15,7 +16,7 @@ export function MobileBottomNavigation() {
         aria-label="주요 메뉴"
         className="bg-primary flex items-center gap-7 rounded-full p-1.5 shadow-lg"
       >
-        {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
+        {navItems.map(({ href, icon: Icon, label }) => {
           const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href);
 
           return (
