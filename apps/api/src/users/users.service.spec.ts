@@ -1,5 +1,6 @@
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import * as bcrypt from 'bcrypt';
 
 import type { User } from '@repo/db';
 import { FollowService } from 'src/follow/follow.service';
@@ -112,9 +113,7 @@ describe('UsersService', () => {
     it('유저가 없으면 NotFoundException', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.findProfileById('missing')).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
+      await expect(service.findProfileById('missing')).rejects.toBeInstanceOf(NotFoundException);
     });
 
     it('공개 프로필 필드와 팔로우 정보를 매핑해서 반환', async () => {
@@ -176,9 +175,9 @@ describe('UsersService', () => {
     it('다른 유저가 이미 쓰는 닉네임이면 ConflictException', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({ ...user, id: 'user-2' });
 
-      await expect(
-        service.updateMyProfile('user-1', { nickname: 'taken' }),
-      ).rejects.toBeInstanceOf(ConflictException);
+      await expect(service.updateMyProfile('user-1', { nickname: 'taken' })).rejects.toBeInstanceOf(
+        ConflictException,
+      );
       expect(mockPrisma.user.update).not.toHaveBeenCalled();
     });
 
@@ -206,6 +205,63 @@ describe('UsersService', () => {
         where: { id: 'user-1' },
         data: { bio: '새 소개', preferredGenres: ['ESSAY'] },
       });
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  // changePassword
+  // ─────────────────────────────────────────────
+  describe('changePassword', () => {
+    const currentPassword = 'Current1!';
+    const newPassword = 'Newpass1!';
+    let userWithPassword: User;
+
+    beforeAll(async () => {
+      userWithPassword = { ...user, password: await bcrypt.hash(currentPassword, 10) };
+    });
+
+    it('비밀번호가 없는 소셜 유저면 BadRequestException (PASSWORD_NOT_SET)', async () => {
+      const err = await service
+        .changePassword({ ...user, password: null }, { currentPassword, newPassword })
+        .catch((e) => e);
+
+      expect(err).toBeInstanceOf(BadRequestException);
+      expect(err.response).toMatchObject({ errorCode: 'PASSWORD_NOT_SET' });
+      expect(mockPrisma.user.update).not.toHaveBeenCalled();
+    });
+
+    it('현재 비밀번호가 틀리면 BadRequestException (INVALID_CURRENT_PASSWORD)', async () => {
+      const err = await service
+        .changePassword(userWithPassword, { currentPassword: 'Wrong1!pw', newPassword })
+        .catch((e) => e);
+
+      expect(err).toBeInstanceOf(BadRequestException);
+      expect(err.response).toMatchObject({ errorCode: 'INVALID_CURRENT_PASSWORD' });
+      expect(mockPrisma.user.update).not.toHaveBeenCalled();
+    });
+
+    it('새 비밀번호가 현재와 같으면 BadRequestException (SAME_AS_CURRENT_PASSWORD)', async () => {
+      const err = await service
+        .changePassword(userWithPassword, { currentPassword, newPassword: currentPassword })
+        .catch((e) => e);
+
+      expect(err).toBeInstanceOf(BadRequestException);
+      expect(err.response).toMatchObject({ errorCode: 'SAME_AS_CURRENT_PASSWORD' });
+      expect(mockPrisma.user.update).not.toHaveBeenCalled();
+    });
+
+    it('성공하면 새 비밀번호를 해시해서 저장', async () => {
+      mockPrisma.user.update.mockResolvedValue(userWithPassword);
+
+      await service.changePassword(userWithPassword, { currentPassword, newPassword });
+
+      expect(mockPrisma.user.update).toHaveBeenCalledWith({
+        where: { id: 'user-1' },
+        data: { password: expect.any(String) },
+      });
+      const savedHash: string = mockPrisma.user.update.mock.calls[0][0].data.password;
+      expect(savedHash).not.toBe(newPassword);
+      await expect(bcrypt.compare(newPassword, savedHash)).resolves.toBe(true);
     });
   });
 });

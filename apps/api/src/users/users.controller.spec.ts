@@ -12,12 +12,14 @@ type MockUsersService = {
   getMe: jest.Mock;
   findProfileById: jest.Mock;
   updateMyProfile: jest.Mock;
+  changePassword: jest.Mock;
 };
 
 const createMockUsersService = (): MockUsersService => ({
   getMe: jest.fn(),
   findProfileById: jest.fn(),
   updateMyProfile: jest.fn(),
+  changePassword: jest.fn(),
 });
 
 const requestWithUser = (userId?: string): Request =>
@@ -64,6 +66,17 @@ describe('UsersController', () => {
       await controller.updateMe(requestWithUser('user-1'), dto);
 
       expect(mockUsersService.updateMyProfile).toHaveBeenCalledWith('user-1', dto);
+    });
+  });
+
+  describe('changePassword', () => {
+    it('req.user와 dto로 service.changePassword 호출', async () => {
+      const dto = { currentPassword: 'Current1!', newPassword: 'Newpass1!' };
+      mockUsersService.changePassword.mockResolvedValue(undefined);
+
+      await controller.changePassword(requestWithUser('user-1'), dto);
+
+      expect(mockUsersService.changePassword).toHaveBeenCalledWith({ id: 'user-1' }, dto);
     });
   });
 

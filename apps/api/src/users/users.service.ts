@@ -1,10 +1,21 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 
 import type { User } from '@repo/db';
 import { FollowService } from 'src/follow/follow.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 
-import { MeResponseDto, UpdateUserProfileDto, UserProfileResponseDto } from './dto';
+import {
+  ChangePasswordDto,
+  MeResponseDto,
+  UpdateUserProfileDto,
+  UserProfileResponseDto,
+} from './dto';
 
 @Injectable()
 export class UsersService {
@@ -56,6 +67,36 @@ export class UsersService {
     });
 
     return this.getMe(user);
+  }
+
+  async changePassword(user: User, dto: ChangePasswordDto): Promise<void> {
+    if (user.password === null) {
+      throw new BadRequestException({
+        errorCode: 'PASSWORD_NOT_SET',
+        message: '비밀번호가 설정되지 않은 계정입니다.',
+      });
+    }
+
+    const isCurrentPasswordValid = await bcrypt.compare(dto.currentPassword, user.password);
+    if (!isCurrentPasswordValid) {
+      throw new BadRequestException({
+        errorCode: 'INVALID_CURRENT_PASSWORD',
+        message: '현재 비밀번호가 일치하지 않습니다.',
+      });
+    }
+
+    if (dto.currentPassword === dto.newPassword) {
+      throw new BadRequestException({
+        errorCode: 'SAME_AS_CURRENT_PASSWORD',
+        message: '현재 비밀번호와 다른 비밀번호를 입력해 주세요.',
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword },
+    });
   }
 }
 
