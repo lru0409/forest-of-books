@@ -22,11 +22,21 @@ interface UpdateMyProfilePayload {
   preferredGenres?: Genre[];
 }
 
-function updateMyProfile(
-  payload: UpdateMyProfilePayload,
-  token: string,
-): Promise<ApiResponse<Me>> {
+function updateMyProfile(payload: UpdateMyProfilePayload, token: string): Promise<ApiResponse<Me>> {
   return apiRequest('/users/me', {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}` },
+    body: payload,
+  });
+}
+
+interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+}
+
+function changePassword(payload: ChangePasswordPayload, token: string): Promise<ApiResponse<null>> {
+  return apiRequest('/users/me/password', {
     method: 'PATCH',
     headers: { Authorization: `Bearer ${token}` },
     body: payload,
@@ -37,4 +47,5 @@ export default {
   getUserProfile,
   getMe,
   updateMyProfile,
+  changePassword,
 };
