@@ -13,6 +13,7 @@ type MockUsersService = {
   findProfileById: jest.Mock;
   updateMyProfile: jest.Mock;
   changePassword: jest.Mock;
+  deleteMe: jest.Mock;
 };
 
 const createMockUsersService = (): MockUsersService => ({
@@ -20,6 +21,7 @@ const createMockUsersService = (): MockUsersService => ({
   findProfileById: jest.fn(),
   updateMyProfile: jest.fn(),
   changePassword: jest.fn(),
+  deleteMe: jest.fn(),
 });
 
 const requestWithUser = (userId?: string): Request =>
@@ -77,6 +79,17 @@ describe('UsersController', () => {
       await controller.changePassword(requestWithUser('user-1'), dto);
 
       expect(mockUsersService.changePassword).toHaveBeenCalledWith({ id: 'user-1' }, dto);
+    });
+  });
+
+  describe('deleteMe', () => {
+    it('req.user와 dto로 service.deleteMe 호출', async () => {
+      const dto = { password: 'Current1!' };
+      mockUsersService.deleteMe.mockResolvedValue(undefined);
+
+      await controller.deleteMe(requestWithUser('user-1'), dto);
+
+      expect(mockUsersService.deleteMe).toHaveBeenCalledWith({ id: 'user-1' }, dto);
     });
   });
 

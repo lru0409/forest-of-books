@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -17,6 +18,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 import {
   ChangePasswordDto,
+  DeleteAccountDto,
   MeResponseDto,
   UpdateUserProfileDto,
   UserProfileResponseDto,
@@ -45,6 +47,13 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   changePassword(@Req() req: Request, @Body() dto: ChangePasswordDto): Promise<void> {
     return this.usersService.changePassword(req.user as User, dto);
+  }
+
+  @Delete('me')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(JwtAuthGuard)
+  deleteMe(@Req() req: Request, @Body() dto: DeleteAccountDto): Promise<void> {
+    return this.usersService.deleteMe(req.user as User, dto);
   }
 
   @Get(':id')

@@ -12,6 +12,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 import {
   ChangePasswordDto,
+  DeleteAccountDto,
   MeResponseDto,
   UpdateUserProfileDto,
   UserProfileResponseDto,
@@ -97,6 +98,29 @@ export class UsersService {
       where: { id: user.id },
       data: { password: hashedPassword },
     });
+  }
+
+  async deleteMe(user: User, dto: DeleteAccountDto): Promise<void> {
+    if (user.password !== null) {
+      const isPasswordValid =
+        dto.password !== undefined && (await bcrypt.compare(dto.password, user.password));
+      if (!isPasswordValid) {
+        throw new BadRequestException({
+          errorCode: 'INVALID_CURRENT_PASSWORD',
+          message: '현재 비밀번호가 일치하지 않습니다.',
+        });
+      }
+    } else if (dto.nickname !== user.nickname) {
+      throw new BadRequestException({
+        errorCode: 'NICKNAME_CONFIRM_MISMATCH',
+        message: '닉네임이 일치하지 않습니다.',
+      });
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.libraryEntry.deleteMany({ where: { userId: user.id } }),
+      this.prisma.user.delete({ where: { id: user.id } }),
+    ]);
   }
 }
 

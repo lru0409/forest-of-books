@@ -12,7 +12,12 @@ type MockPrismaService = {
   user: {
     findUnique: jest.Mock;
     update: jest.Mock;
+    delete: jest.Mock;
   };
+  libraryEntry: {
+    deleteMany: jest.Mock;
+  };
+  $transaction: jest.Mock;
 };
 
 type MockFollowService = {
@@ -24,7 +29,12 @@ const createMockPrisma = (): MockPrismaService => ({
   user: {
     findUnique: jest.fn(),
     update: jest.fn(),
+    delete: jest.fn().mockReturnValue('delete-user-op'),
   },
+  libraryEntry: {
+    deleteMany: jest.fn().mockReturnValue('delete-library-entries-op'),
+  },
+  $transaction: jest.fn().mockResolvedValue([]),
 });
 
 const createMockFollowService = (): MockFollowService => ({
@@ -262,6 +272,86 @@ describe('UsersService', () => {
       const savedHash: string = mockPrisma.user.update.mock.calls[0][0].data.password;
       expect(savedHash).not.toBe(newPassword);
       await expect(bcrypt.compare(newPassword, savedHash)).resolves.toBe(true);
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  // deleteMe
+  // ─────────────────────────────────────────────
+  describe('deleteMe', () => {
+    const password = 'Current1!';
+    let userWithPassword: User;
+
+    beforeAll(async () => {
+      userWithPassword = { ...user, password: await bcrypt.hash(password, 10) };
+    });
+
+    const expectNothingDeleted = () => {
+      expect(mockPrisma.$transaction).not.toHaveBeenCalled();
+      expect(mockPrisma.libraryEntry.deleteMany).not.toHaveBeenCalled();
+      expect(mockPrisma.user.delete).not.toHaveBeenCalled();
+    };
+
+    it('비밀번호 계정은 비밀번호가 맞으면 서재 기록과 유저를 한 트랜잭션으로 삭제', async () => {
+      await service.deleteMe(userWithPassword, { password });
+
+      expect(mockPrisma.libraryEntry.deleteMany).toHaveBeenCalledWith({
+        where: { userId: 'user-1' },
+      });
+      expect(mockPrisma.user.delete).toHaveBeenCalledWith({ where: { id: 'user-1' } });
+      expect(mockPrisma.$transaction).toHaveBeenCalledWith([
+        'delete-library-entries-op',
+        'delete-user-op',
+      ]);
+    });
+
+    it('비밀번호 계정은 비밀번호가 틀리면 BadRequestException (INVALID_CURRENT_PASSWORD)', async () => {
+      const err = await service
+        .deleteMe(userWithPassword, { password: 'Wrong1!pw' })
+        .catch((e) => e);
+
+      expect(err).toBeInstanceOf(BadRequestException);
+      expect(err.response).toMatchObject({ errorCode: 'INVALID_CURRENT_PASSWORD' });
+      expectNothingDeleted();
+    });
+
+    it('비밀번호 계정은 비밀번호를 안 보내면 BadRequestException (INVALID_CURRENT_PASSWORD)', async () => {
+      const err = await service.deleteMe(userWithPassword, { nickname: 'tester' }).catch((e) => e);
+
+      expect(err).toBeInstanceOf(BadRequestException);
+      expect(err.response).toMatchObject({ errorCode: 'INVALID_CURRENT_PASSWORD' });
+      expectNothingDeleted();
+    });
+
+    it('소셜 계정은 닉네임이 맞으면 서재 기록과 유저를 한 트랜잭션으로 삭제', async () => {
+      await service.deleteMe({ ...user, password: null }, { nickname: 'tester' });
+
+      expect(mockPrisma.libraryEntry.deleteMany).toHaveBeenCalledWith({
+        where: { userId: 'user-1' },
+      });
+      expect(mockPrisma.user.delete).toHaveBeenCalledWith({ where: { id: 'user-1' } });
+      expect(mockPrisma.$transaction).toHaveBeenCalledWith([
+        'delete-library-entries-op',
+        'delete-user-op',
+      ]);
+    });
+
+    it('소셜 계정은 닉네임이 다르면 BadRequestException (NICKNAME_CONFIRM_MISMATCH)', async () => {
+      const err = await service
+        .deleteMe({ ...user, password: null }, { nickname: 'other' })
+        .catch((e) => e);
+
+      expect(err).toBeInstanceOf(BadRequestException);
+      expect(err.response).toMatchObject({ errorCode: 'NICKNAME_CONFIRM_MISMATCH' });
+      expectNothingDeleted();
+    });
+
+    it('소셜 계정은 닉네임을 안 보내면 BadRequestException (NICKNAME_CONFIRM_MISMATCH)', async () => {
+      const err = await service.deleteMe({ ...user, password: null }, {}).catch((e) => e);
+
+      expect(err).toBeInstanceOf(BadRequestException);
+      expect(err.response).toMatchObject({ errorCode: 'NICKNAME_CONFIRM_MISMATCH' });
+      expectNothingDeleted();
     });
   });
 });
