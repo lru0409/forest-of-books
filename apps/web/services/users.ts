@@ -43,9 +43,23 @@ function changePassword(payload: ChangePasswordPayload, token: string): Promise<
   });
 }
 
+interface DeleteMePayload {
+  password?: string;
+  nickname?: string;
+}
+
+function deleteMe(payload: DeleteMePayload, token: string): Promise<ApiResponse<null>> {
+  return apiRequest('/users/me', {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+    body: payload,
+  });
+}
+
 export default {
   getUserProfile,
   getMe,
   updateMyProfile,
   changePassword,
+  deleteMe,
 };
