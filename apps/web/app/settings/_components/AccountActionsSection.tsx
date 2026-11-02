@@ -28,8 +28,7 @@ export function AccountActionsSection({ showPasswordChange }: AccountActionsSect
           title="회원 탈퇴"
           description="탈퇴하면 계정과 모든 기록이 삭제돼요."
           tone="destructive"
-          href="/settings/withdraw"
-          disabled
+          href="/settings/delete-account"
         />
       </SettingsMenu>
     </section>

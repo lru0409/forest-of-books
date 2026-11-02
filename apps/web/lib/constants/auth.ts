@@ -3,6 +3,7 @@ export const LOGIN_REQUIRED_ROUTES: { path: string; redirectTo: string }[] = [
   { path: '/profile/edit', redirectTo: '/profile' },
   { path: '/settings', redirectTo: '/' },
   { path: '/settings/password', redirectTo: '/' },
+  { path: '/settings/delete-account', redirectTo: '/' },
 ];
 
 export const GUEST_ONLY_ROUTES: { path: string; redirectTo: string }[] = [
