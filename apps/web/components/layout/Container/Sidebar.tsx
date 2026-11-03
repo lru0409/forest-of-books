@@ -30,7 +30,11 @@ export function Sidebar() {
           const isActive = (() => {
             if (href === '/') return pathname === '/';
             if (href === '/profile') {
-              return pathname === '/profile' || (!!user && pathname === `/profile/${user.id}`);
+              return (
+                pathname === '/profile' ||
+                pathname === '/profile/edit' ||
+                (!!user && pathname === `/profile/${user.id}`)
+              );
             }
             return pathname.startsWith(href);
           })();
@@ -39,6 +43,7 @@ export function Sidebar() {
             <li key={href}>
               <Link
                 href={href}
+                aria-current={isActive ? 'page' : undefined}
                 className={cn(
                   'flex h-11 items-center gap-3 rounded-lg px-3.5 transition-colors',
                   isActive
