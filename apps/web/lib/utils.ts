@@ -18,8 +18,17 @@ export function formatRatingLabel(value: number) {
   return value % 1 === 0 ? String(value) : value.toFixed(1);
 }
 
-// TODO: wild card가 중간에 들어오는 케이스도 고려 필요
-export function matchRoute(pathname: string, path: string) {
-  if (path.endsWith('/*')) return pathname.startsWith(path.slice(0, -1));
-  return pathname === path;
+export function matchRoute(pathname: string, pattern: string) {
+  const pathnameSegments = pathname.split('/');
+  const patternSegments = pattern.split('/');
+  const hasTrailingWildcard = patternSegments.at(-1) === '*';
+
+  const isLengthMatched = hasTrailingWildcard
+    ? pathnameSegments.length >= patternSegments.length
+    : pathnameSegments.length === patternSegments.length;
+  if (!isLengthMatched) return false;
+
+  return patternSegments.every((segment, i) =>
+    segment === '*' ? pathnameSegments[i] !== '' : segment === pathnameSegments[i],
+  );
 }

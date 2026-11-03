@@ -6,7 +6,7 @@ const STORAGE_KEY = 'postLoginRedirect';
 function isSafePath(path: string) {
   const url = new URL(path, window.location.origin);
   if (url.origin !== window.location.origin) return false;
-  return !GUEST_ONLY_ROUTES.some((route) => matchRoute(url.pathname, route.path));
+  return !GUEST_ONLY_ROUTES.some((route) => matchRoute(url.pathname, route.pattern));
 }
 
 export function savePostLoginRedirect(path?: string) {
