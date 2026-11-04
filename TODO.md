@@ -14,11 +14,23 @@
 
 - [ ] 뱃지 API 연동 (백엔드 뱃지 시스템 + 유저별 획득/선택 뱃지 조회, 현재 `MOCK_BADGES` 사용 중)
 - [ ] BookList에서 아이템 클릭 시 처리
-- [ ] 팔로워, 팔로잉 조회 API 연동
 
-## 커뮤니티
+## 테스트
 
-- [ ] 팔로우/언팔로우 API 연동
+- [ ] 웹 테스트 프레임워크 도입 (Vitest + Testing Library, E2E는 Playwright)
+- [ ] 테스트를 turbo 파이프라인 및 GitHub Actions CI에 연결
+
+## 공통 컴포넌트화
+
+- [ ] 뒤로가기 버튼: 페이지 좌상단 '돌아가기' 버튼 (`settings/delete-account`, `settings/password`, `notes/add`, `profile/edit`)
+- [ ] 페이지 제목 + 설명 헤더 (`settings`, `settings/password`, `settings/delete-account`, `profile/edit`, `notes/add`, `signup` 각 스텝)
+- [ ] 좁은 단일 컬럼 페이지 레이아웃 래퍼 (`settings/password`, `settings/delete-account`, `notes/add`, `profile/edit`)
+- [ ] 폼 필드: 라벨 + 힌트 + 에러 메시지 (`settings/password`, `settings/delete-account`, `signup`, `notes/add` 수동 등록)
+- [ ] 폼 제출 에러 메시지 (`profile/edit`, `settings/password`, `settings/delete-account`)
+- [ ] 알림/확인 모달 호출 중복 (`settings/delete-account`, `notes/add`, `notes` 패널 툴바, `signup`)
+- [ ] 로딩 스피너 표시 (`notes`, `profile`, `notes/add` 검색, 팔로우 목록 모달)
+- [ ] 프로필 아바타 원형 이미지 (`profile/[userId]` ProfileCard, `ProfileImageOverlay`, `ProfileFieldsSection`)
+- [ ] 회원가입 스텝 하단 이전/다음 버튼 (`signup` 이메일·프로필 스텝)
 
 ## 운영/어드민
 

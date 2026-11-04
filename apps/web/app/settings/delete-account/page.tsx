@@ -73,7 +73,6 @@ function DeleteAccountForm({ user }: { user: Me }) {
   return (
     <Container className="flex items-start justify-center" showBottomNav={false}>
       <div className="relative mt-16 flex min-h-[calc(100%-4rem)] w-full max-w-125 flex-col">
-        {/* TODO: 이 요소 컴포넌트화 */}
         <button
           type="button"
           onClick={() => router.back()}
