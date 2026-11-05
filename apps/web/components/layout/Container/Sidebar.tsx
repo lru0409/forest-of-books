@@ -1,15 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 
 import { cn } from '@/lib/utils';
-import { useAuthStore } from '@/store/authStore';
 import { useNavItems } from './useNavItems';
 
 export function Sidebar() {
-  const pathname = usePathname();
-  const user = useAuthStore((state) => state.user);
   const navItems = useNavItems();
 
   return (
@@ -26,19 +22,7 @@ export function Sidebar() {
 
       {/* 메뉴 영역 */}
       <ul className="mx-2 flex flex-col gap-1 pt-4 lg:pt-0">
-        {navItems.map(({ href, icon: Icon, label }) => {
-          const isActive = (() => {
-            if (href === '/') return pathname === '/';
-            if (href === '/profile') {
-              return (
-                pathname === '/profile' ||
-                pathname === '/profile/edit' ||
-                (!!user && pathname === `/profile/${user.id}`)
-              );
-            }
-            return pathname.startsWith(href);
-          })();
-
+        {navItems.map(({ href, icon: Icon, label, isActive }) => {
           return (
             <li key={href}>
               <Link

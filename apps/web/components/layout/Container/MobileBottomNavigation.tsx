@@ -1,13 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 
 import { cn } from '@/lib/utils';
 import { useNavItems } from './useNavItems';
 
 export function MobileBottomNavigation() {
-  const pathname = usePathname();
   const navItems = useNavItems();
 
   return (
@@ -16,9 +14,7 @@ export function MobileBottomNavigation() {
         aria-label="주요 메뉴"
         className="bg-primary flex items-center gap-7 rounded-full p-1.5 shadow-lg"
       >
-        {navItems.map(({ href, icon: Icon, label }) => {
-          const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href);
-
+        {navItems.map(({ href, icon: Icon, label, isActive }) => {
           return (
             <Link
               key={href}
