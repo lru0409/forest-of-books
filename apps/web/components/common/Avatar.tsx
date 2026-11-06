@@ -19,12 +19,12 @@ export function Avatar({ profileImageUrl, nickname, badge, onClickBadge, classNa
         <img
           src={profileImageUrl}
           alt={nickname}
-          className={cn('size-36 rounded-full object-cover shadow-md', className)}
+          className={cn('size-10 rounded-full object-cover shadow-md', className)}
         />
       ) : (
         <div
           className={cn(
-            'bg-background text-primary flex size-36 items-center justify-center rounded-full shadow-md',
+            'bg-background text-primary flex size-10 items-center justify-center rounded-full shadow-md',
             className,
           )}
         >

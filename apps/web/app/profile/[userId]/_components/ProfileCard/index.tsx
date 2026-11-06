@@ -6,11 +6,10 @@ import { Pencil } from 'lucide-react';
 
 import { Modal } from '@/components/layout';
 import { Button } from '@/components/ui/button';
-import { GenreBadge } from '@/components/common';
+import { Avatar, GenreBadge } from '@/components/common';
 import { MOCK_BADGES, type Badge, type PublicUserProfile, useFollowToggle } from '@/lib';
 import { useAuthStore } from '@/store/authStore';
 import { useDialog } from '@/context/dialog';
-import { Avatar } from './Avatar';
 import { BadgeCollectionModal } from './BadgeCollectionModal';
 import { FollowListModal } from './FollowListModal';
 
@@ -73,6 +72,7 @@ export function ProfileCard({
         <Avatar
           profileImageUrl={user.profileImage}
           nickname={user.nickname}
+          className="size-36"
           badge={selectedBadge ?? undefined}
           onClickBadge={handleOpenBadges}
         />

@@ -1,14 +1,13 @@
 import Link from 'next/link';
 import { AlertCircle, UserRoundX } from 'lucide-react';
 
-import { Spinner } from '@/components/common';
+import { Avatar, Spinner } from '@/components/common';
 import { Modal } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { type FollowUser, useFollowToggle } from '@/lib';
 import { useAuthStore } from '@/store/authStore';
 import { useDialog } from '@/context/dialog';
 import { useFollowList } from './useFollowList';
-import { Avatar } from './Avatar';
 
 interface FollowListModalProps {
   userId: string;

@@ -1,4 +1,5 @@
 export { AuthRequiredNotice } from './AuthRequiredNotice';
+export { Avatar } from './Avatar';
 export { BookCover } from './BookCover';
 export { BookColorPalette } from './BookColorPalette';
 export { BookColorPicker } from './BookColorPicker';
