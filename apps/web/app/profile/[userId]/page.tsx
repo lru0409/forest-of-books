@@ -1,11 +1,11 @@
 'use client';
 
 import { use, useEffect, useState } from 'react';
-import { TriangleAlert, LoaderCircle, UserRoundX } from 'lucide-react';
+import { TriangleAlert, UserRoundX } from 'lucide-react';
 
 import { type LibraryEntryListItem } from '@/lib';
 import { Container } from '@/components/layout';
-import { StatusNotice } from '@/components/common';
+import { Spinner, StatusNotice } from '@/components/common';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/authStore';
 import LibraryService from '@/services/library';
@@ -82,13 +82,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
       <Container>
         <StatusNotice
           className="h-full"
-          icon={
-            <LoaderCircle
-              className="text-primary size-12 animate-spin"
-              strokeWidth={2}
-              aria-hidden="true"
-            />
-          }
+          icon={<Spinner className="text-primary size-12" />}
           title="프로필을 불러오는 중이에요"
         />
       </Container>

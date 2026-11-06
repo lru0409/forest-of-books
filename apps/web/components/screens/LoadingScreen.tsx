@@ -1,5 +1,5 @@
+import { Spinner } from '@/components/common';
 import { cn } from '@/lib';
-import { Loader2 } from 'lucide-react';
 
 interface LoadingScreenProps {
   message?: string;
@@ -14,7 +14,7 @@ export function LoadingScreen({ message = '로딩 중...', className }: LoadingS
         className,
       )}
     >
-      <Loader2 className="text-primary size-10 animate-spin" strokeWidth={2} />
+      <Spinner className="text-primary size-10" />
       <p className="text-foreground text-lg font-semibold">{message}</p>
     </div>
   );

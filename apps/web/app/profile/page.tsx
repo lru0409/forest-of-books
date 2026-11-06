@@ -2,10 +2,9 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LoaderCircle } from 'lucide-react';
 
 import { Container } from '@/components/layout';
-import { StatusNotice } from '@/components/common';
+import { Spinner, StatusNotice } from '@/components/common';
 import { useAuthStore } from '@/store/authStore';
 
 export default function ProfilePage() {
@@ -22,13 +21,7 @@ export default function ProfilePage() {
     <Container>
       <StatusNotice
         className="h-full"
-        icon={
-          <LoaderCircle
-            className="text-primary size-12 animate-spin"
-            strokeWidth={2}
-            aria-hidden="true"
-          />
-        }
+        icon={<Spinner className="text-primary size-12" />}
         title="프로필로 이동 중이에요"
       />
     </Container>

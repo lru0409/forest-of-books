@@ -1,12 +1,12 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { BookOpen, TriangleAlert, LoaderCircle } from 'lucide-react';
+import { BookOpen, TriangleAlert } from 'lucide-react';
 
 import { useLocalStorage, type LibraryEntryListItem } from '@/lib';
 import { Container } from '@/components/layout';
 import { Button } from '@/components/ui/button';
-import { StatusNotice } from '@/components/common';
+import { Spinner, StatusNotice } from '@/components/common';
 import { useAuthStore } from '@/store/authStore';
 import { type ViewMode } from './types';
 import { BookShelf, BookCardGrid, FilterBar, BookDetailAside } from './_components';
@@ -52,13 +52,7 @@ export default function NotesPage() {
       <Container>
         <StatusNotice
           className="h-full"
-          icon={
-            <LoaderCircle
-              className="text-primary size-12 animate-spin"
-              strokeWidth={2}
-              aria-hidden="true"
-            />
-          }
+          icon={<Spinner className="text-primary size-12" />}
           title="서재를 불러오는 중이에요"
           description="잠시만 기다려주세요."
         />

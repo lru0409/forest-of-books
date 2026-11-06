@@ -1,6 +1,7 @@
-import { Check, LoaderCircle, Pencil } from 'lucide-react';
+import { Check, Pencil } from 'lucide-react';
 
 import { formatDate } from '@/lib';
+import { Spinner } from '@/components/common';
 import { Switch } from '@/components/ui/switch';
 
 interface RecordHeaderProps {
@@ -53,7 +54,7 @@ export function RecordHeader({
           className="hover:bg-primary-foreground/50 flex size-9 cursor-pointer items-center justify-center rounded-full transition-colors disabled:pointer-events-none disabled:opacity-50"
         >
           {isSaving ? (
-            <LoaderCircle className="size-4.5 animate-spin" strokeWidth={2.5} aria-hidden="true" />
+            <Spinner className="size-4.5" strokeWidth={2.5} />
           ) : isEditing ? (
             <Check className="size-4.5" aria-hidden="true" />
           ) : (

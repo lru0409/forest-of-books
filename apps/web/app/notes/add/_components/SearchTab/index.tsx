@@ -1,9 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { SearchX, LoaderCircle, Search, CircleX } from 'lucide-react';
+import { SearchX, Search, CircleX } from 'lucide-react';
 
-import { BookColorPicker, BookCover, SearchInput, StatusNotice } from '@/components/common';
+import {
+  BookColorPicker,
+  BookCover,
+  SearchInput,
+  Spinner,
+  StatusNotice,
+} from '@/components/common';
 import { Button } from '@/components/ui';
 import { Modal } from '@/components/layout';
 import { useDialog } from '@/context/dialog';
@@ -74,13 +80,7 @@ export function SearchTab({ onAdd, onGoToManual }: SearchTabProps) {
         {viewState === 'loading' && (
           <StatusNotice
             className="flex-1"
-            icon={
-              <LoaderCircle
-                className="text-primary size-9 animate-spin"
-                strokeWidth={2.5}
-                aria-hidden="true"
-              />
-            }
+            icon={<Spinner className="text-primary size-9" strokeWidth={2.5} />}
             title="불러오는 중..."
           />
         )}
@@ -133,7 +133,7 @@ export function SearchTab({ onAdd, onGoToManual }: SearchTabProps) {
           <div ref={sentinelRef} className="flex items-center justify-center gap-1.5 py-6">
             {isLoadingMore && (
               <>
-                <LoaderCircle className="text-secondary size-5 animate-spin" strokeWidth={4} />
+                <Spinner className="text-secondary size-5" strokeWidth={4} />
                 <p className="text-secondary text-sm">불러오는 중...</p>
               </>
             )}

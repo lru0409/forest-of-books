@@ -1,8 +1,8 @@
 import { type ReactNode } from 'react';
-import { LoaderCircle, TriangleAlert } from 'lucide-react';
+import { TriangleAlert } from 'lucide-react';
 
 import { type LibraryEntryDetailItem, type LibraryEntryNotePatch } from '@/lib';
-import { StatusNotice } from '@/components/common';
+import { Spinner, StatusNotice } from '@/components/common';
 import { Textarea, Button } from '@/components/ui';
 import { Modal } from '@/components/layout';
 import { useDialog } from '@/context/dialog';
@@ -88,7 +88,7 @@ export const RecordView = ({
   if (isLoading) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-1.5">
-        <LoaderCircle className="text-secondary size-6 animate-spin" strokeWidth={3} />
+        <Spinner className="text-secondary size-6" strokeWidth={3} />
         <p className="text-secondary text-sm">불러오는 중...</p>
       </div>
     );

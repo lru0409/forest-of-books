@@ -1,6 +1,7 @@
 import Link from 'next/link';
-import { AlertCircle, LoaderCircle, UserRoundX } from 'lucide-react';
+import { AlertCircle, UserRoundX } from 'lucide-react';
 
+import { Spinner } from '@/components/common';
 import { Modal } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { type FollowUser, useFollowToggle } from '@/lib';
@@ -35,9 +36,7 @@ function FollowListBody({ userId, mode, isOwner, onProfileRefresh }: FollowListM
     <div className="h-96 max-h-[60vh] overflow-y-auto">
       {viewState === 'loading' && (
         <FollowListStatus
-          icon={
-            <LoaderCircle className="size-8 animate-spin" strokeWidth={1.6} aria-hidden="true" />
-          }
+          icon={<Spinner className="size-8" strokeWidth={1.6} />}
           description="불러오는 중이에요"
         />
       )}
@@ -69,12 +68,7 @@ function FollowListBody({ userId, mode, isOwner, onProfileRefresh }: FollowListM
           ))}
           {hasMore && (
             <div ref={sentinelRef} className="flex justify-center py-3">
-              {isLoadingMore && (
-                <LoaderCircle
-                  className="text-muted-foreground size-4 animate-spin"
-                  aria-hidden="true"
-                />
-              )}
+              {isLoadingMore && <Spinner className="text-muted-foreground size-4" />}
             </div>
           )}
         </div>

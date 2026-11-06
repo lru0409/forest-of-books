@@ -10,4 +10,5 @@ export { ProfileFieldsSection } from './ProfileFieldsSection';
 export { ProfileImageOverlay } from './ProfileImageOverlay';
 export { SearchInput } from './SearchInput';
 export { SegmentedToggle, type SegmentedToggleOption } from './SegmentedToggle';
+export { Spinner } from './Spinner';
 export { StatusNotice } from './StatusNotice';
