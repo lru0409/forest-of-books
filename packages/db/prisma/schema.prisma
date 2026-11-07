@@ -53,6 +53,8 @@ model User {
   libraryEntries LibraryEntry[]
   following      Follow[]       @relation("Follower")
   followers      Follow[]       @relation("Following")
+  likes          Like[]
+  bookmarks      Bookmark[]
 }
 
 model Book {
@@ -78,13 +80,59 @@ model LibraryEntry {
   rating    Int?
   comment   String?
   note      String?
+  likeCount Int           @default(0)
+  viewCount Int           @default(0)
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
-  book Book @relation(fields: [bookId], references: [id])
+  user      User       @relation(fields: [userId], references: [id])
+  book      Book       @relation(fields: [bookId], references: [id])
+  likes     Like[]
+  bookmarks Bookmark[]
+  views     EntryView[]
 
   @@unique([userId, bookId])
+  @@index([isPublic, createdAt(sort: Desc), id])
+  @@index([bookId, isPublic, createdAt(sort: Desc), id])
+  @@index([userId, isPublic, createdAt(sort: Desc), id])
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  entryId   String
+  createdAt DateTime @default(now())
+
+  user  User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entry LibraryEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, entryId])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  entryId   String
+  createdAt DateTime @default(now())
+
+  user  User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entry LibraryEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, entryId])
+  @@index([userId, createdAt(sort: Desc), id])
+}
+
+// 조회수 중복 방지용. viewerKey는 로그인 유저 id 또는 IP 해시, day는 조회한 날짜.
+model EntryView {
+  id        String   @id @default(cuid())
+  entryId   String
+  viewerKey String
+  day       DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  entry LibraryEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@unique([entryId, viewerKey, day])
 }
 
 model Follow {
