@@ -11,6 +11,7 @@ import { BooksModule } from './books/books.module';
 import { LibraryModule } from './library/library.module';
 import { UsersModule } from './users/users.module';
 import { FollowModule } from './follow/follow.module';
+import { FeedModule } from './feed/feed.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { FollowModule } from './follow/follow.module';
     LibraryModule,
     UsersModule,
     FollowModule,
+    FeedModule,
   ],
   controllers: [AppController],
   providers: [AppService],
