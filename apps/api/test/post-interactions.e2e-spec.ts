@@ -1,5 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 
+import type { BookmarksService } from 'src/bookmarks/bookmarks.service';
 import type { PostsService } from 'src/posts/posts.service';
 
 // 실제 DB를 쓰는 테스트라서 로컬 DB를 TEST_DATABASE_URL로 지정했을 때만 실행한다.
@@ -27,9 +28,11 @@ const describeWithDb = isLocalDatabase(TEST_DATABASE_URL) ? describe : describe.
 describeWithDb('post interactions (real db)', () => {
   const NICKNAME_PREFIX = 'interaction-test-';
   const BOOK_TITLE_PREFIX = 'interaction-test-book-';
+  const BASE_TIME = new Date('2026-01-01T00:00:00.000Z').getTime();
 
   let prisma: (typeof import('@repo/db'))['prisma'];
   let postsService: PostsService;
+  let bookmarksService: BookmarksService;
 
   beforeAll(async () => {
     // @repo/db는 import 시점의 DATABASE_URL로 Pool을 만들기 때문에 import 전에 바꿔야 함
@@ -38,9 +41,11 @@ describeWithDb('post interactions (real db)', () => {
     const { PrismaService } = await import('src/prisma/prisma.service');
     const { FeedItemsService } = await import('src/feed/feed-items.service');
     const { PostsService } = await import('src/posts/posts.service');
+    const { BookmarksService } = await import('src/bookmarks/bookmarks.service');
     const prismaService = new PrismaService();
     const feedItems = new FeedItemsService(prismaService);
     postsService = new PostsService(prismaService, feedItems);
+    bookmarksService = new BookmarksService(prismaService, feedItems);
   });
 
   const deleteTestData = async () => {
@@ -232,6 +237,102 @@ describeWithDb('post interactions (real db)', () => {
       await expect(postsService.bookmark(entry.id, reader.id)).rejects.toBeInstanceOf(
         NotFoundException,
       );
+    });
+  });
+
+  describe('saved list', () => {
+    // 저장 순서: e1 → e2 → e3 (목록은 최신 저장순: e3, e2, e1)
+    const setupSaved = async () => {
+      const author = await createUser('author');
+      const reader = await createUser('reader');
+      const books = await Promise.all([1, 2, 3].map((n) => createBook(String(n))));
+      const entries = await Promise.all(books.map((book) => createEntry(author.id, book.id)));
+      const bookmarks = [];
+      for (const [index, entry] of entries.entries()) {
+        bookmarks.push(
+          await prisma.bookmark.create({
+            data: {
+              userId: reader.id,
+              entryId: entry.id,
+              createdAt: new Date(BASE_TIME + index * 1000),
+            },
+          }),
+        );
+      }
+      return { author, reader, entries, bookmarks };
+    };
+
+    it('저장한 노트를 최신 저장순으로 cursor 페이지네이션', async () => {
+      const { reader, entries } = await setupSaved();
+      const [e1, e2, e3] = entries;
+
+      const first = await bookmarksService.findMine(reader.id, undefined, 2);
+      expect(first.items.map((item) => item.entryId)).toEqual([e3!.id, e2!.id]);
+      expect(first.items.every((item) => item.isAvailable && item.post?.isBookmarked)).toBe(true);
+
+      const second = await bookmarksService.findMine(reader.id, first.nextCursor!, 2);
+      expect(second.items.map((item) => item.entryId)).toEqual([e1!.id]);
+      expect(second.nextCursor).toBeNull();
+    });
+
+    it('cursor가 가리키는 저장을 취소해도 다음 페이지에 남은 항목을 반환', async () => {
+      const { reader, entries } = await setupSaved();
+      const [e1, e2] = entries;
+
+      const first = await bookmarksService.findMine(reader.id, undefined, 2);
+      await postsService.unbookmark(e2!.id, reader.id);
+
+      const second = await bookmarksService.findMine(reader.id, first.nextCursor!, 2);
+      expect(second.items.map((item) => item.entryId)).toEqual([e1!.id]);
+    });
+
+    it('작성자가 비공개로 전환한 노트는 자리표시만 남고, 다시 공개하면 복구됨', async () => {
+      const { reader, entries } = await setupSaved();
+      const [, e2] = entries;
+      await prisma.libraryEntry.update({ where: { id: e2!.id }, data: { isPublic: false } });
+
+      const hidden = await bookmarksService.findMine(reader.id, undefined, 10);
+      const placeholder = hidden.items.find((item) => item.entryId === e2!.id);
+      expect(placeholder).toMatchObject({ isAvailable: false, post: null });
+      expect(hidden.items).toHaveLength(3);
+
+      await prisma.libraryEntry.update({ where: { id: e2!.id }, data: { isPublic: true } });
+
+      const restored = await bookmarksService.findMine(reader.id, undefined, 10);
+      expect(restored.items.find((item) => item.entryId === e2!.id)).toMatchObject({
+        isAvailable: true,
+      });
+    });
+
+    it('노트가 삭제되면 저장함에서도 사라짐', async () => {
+      const { reader, entries } = await setupSaved();
+      const [, e2] = entries;
+      await prisma.libraryEntry.delete({ where: { id: e2!.id } });
+
+      const result = await bookmarksService.findMine(reader.id, undefined, 10);
+
+      expect(result.items.map((item) => item.entryId)).not.toContain(e2!.id);
+      expect(result.items).toHaveLength(2);
+    });
+
+    it('내가 쓴 노트를 저장해 둔 뒤 비공개로 바꿔도 내 저장함에서는 그대로 보임', async () => {
+      const reader = await createUser('reader');
+      const book = await createBook('mine');
+      const mine = await createEntry(reader.id, book.id);
+      await postsService.bookmark(mine.id, reader.id);
+      await prisma.libraryEntry.update({ where: { id: mine.id }, data: { isPublic: false } });
+
+      const result = await bookmarksService.findMine(reader.id, undefined, 10);
+
+      expect(result.items[0]).toMatchObject({ entryId: mine.id, isAvailable: true });
+    });
+
+    it('다른 유저의 저장은 보이지 않음', async () => {
+      const { author } = await setupSaved();
+
+      const result = await bookmarksService.findMine(author.id, undefined, 10);
+
+      expect(result.items).toEqual([]);
     });
   });
 });

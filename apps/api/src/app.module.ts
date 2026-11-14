@@ -14,6 +14,7 @@ import { UsersModule } from './users/users.module';
 import { FollowModule } from './follow/follow.module';
 import { FeedModule } from './feed/feed.module';
 import { PostsModule } from './posts/posts.module';
+import { BookmarksModule } from './bookmarks/bookmarks.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { PostsModule } from './posts/posts.module';
     FollowModule,
     FeedModule,
     PostsModule,
+    BookmarksModule,
   ],
   controllers: [AppController],
   providers: [AppService],
