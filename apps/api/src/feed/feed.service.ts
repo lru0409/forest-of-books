@@ -15,7 +15,7 @@ const POPULAR_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 export class FeedService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly feedItems: FeedItemsService,
+    private readonly feedItemsService: FeedItemsService,
   ) {}
 
   async getFeed(
@@ -44,7 +44,7 @@ export class FeedService {
     const last = page[page.length - 1];
 
     return {
-      items: await this.feedItems.toFeedItems(page, viewer?.id),
+      items: await this.feedItemsService.toFeedItems(page, viewer?.id),
       nextCursor: hasMore && last ? sort.encode(last) : null,
     };
   }

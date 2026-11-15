@@ -12,7 +12,7 @@ const DEFAULT_LIMIT = 20;
 export class BookmarksService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly feedItems: FeedItemsService,
+    private readonly feedItemsService: FeedItemsService,
   ) {}
 
   async findMine(
@@ -32,7 +32,7 @@ export class BookmarksService {
 
     // 공개 노트이거나 내 노트면 내용을 보여주고, 그 외(작성자가 비공개로 전환)는 자리표시만 남긴다
     const available = page.filter((row) => row.entry.isPublic || row.entry.userId === userId);
-    const feedItems = await this.feedItems.toFeedItems(
+    const feedItems = await this.feedItemsService.toFeedItems(
       available.map((row) => row.entry),
       userId,
     );

@@ -11,7 +11,7 @@ import { PostDetailResponseDto } from './dto';
 export class PostsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly feedItems: FeedItemsService,
+    private readonly feedItemsService: FeedItemsService,
   ) {}
 
   async findOne(entryId: string, viewerId?: string): Promise<PostDetailResponseDto> {
@@ -24,7 +24,7 @@ export class PostsService {
       throw new NotFoundException('노트를 찾을 수 없습니다.');
     }
 
-    const [item] = await this.feedItems.toFeedItems([entry], viewerId);
+    const [item] = await this.feedItemsService.toFeedItems([entry], viewerId);
     if (!item) throw new NotFoundException('노트를 찾을 수 없습니다.');
 
     return { ...item, note: entry.note };

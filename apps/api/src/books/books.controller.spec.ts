@@ -1,14 +1,26 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import type { Request } from 'express';
+
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 import { BooksController } from './books.controller';
 import { BooksService } from './books.service';
 
 type MockBooksService = {
   search: jest.Mock;
+  findOne: jest.Mock;
+  findNotes: jest.Mock;
 };
+
+const mockJwtAuthGuard = { canActivate: () => true };
+
+const requestWithUser = (userId?: string): Request =>
+  ({ user: userId ? { id: userId } : undefined }) as unknown as Request;
 
 const createMockBooksService = (): MockBooksService => ({
   search: jest.fn(),
+  findOne: jest.fn(),
+  findNotes: jest.fn(),
 });
 
 describe('BooksController', () => {
@@ -21,7 +33,10 @@ describe('BooksController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [BooksController],
       providers: [{ provide: BooksService, useValue: mockBooksService }],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue(mockJwtAuthGuard)
+      .compile();
 
     controller = module.get<BooksController>(BooksController);
   });
@@ -67,6 +82,35 @@ describe('BooksController', () => {
       const result = await controller.search({ query: '토지' });
 
       expect(result).toBe(serviceResult);
+    });
+  });
+
+  describe('findOne', () => {
+    it('책 id와 조회자 id를 service에 전달', async () => {
+      mockBooksService.findOne.mockResolvedValue({ id: 'book-1' });
+
+      const result = await controller.findOne('book-1', requestWithUser('user-1'));
+
+      expect(mockBooksService.findOne).toHaveBeenCalledWith('book-1', 'user-1');
+      expect(result).toEqual({ id: 'book-1' });
+    });
+
+    it('비로그인이면 viewerId는 undefined', async () => {
+      mockBooksService.findOne.mockResolvedValue({ id: 'book-1' });
+
+      await controller.findOne('book-1', requestWithUser());
+
+      expect(mockBooksService.findOne).toHaveBeenCalledWith('book-1', undefined);
+    });
+  });
+
+  describe('findNotes', () => {
+    it('책 id, 조회자 id, cursor, limit을 service에 전달', async () => {
+      mockBooksService.findNotes.mockResolvedValue({ items: [], nextCursor: null });
+
+      await controller.findNotes('book-1', { cursor: 'c', limit: 5 }, requestWithUser('user-1'));
+
+      expect(mockBooksService.findNotes).toHaveBeenCalledWith('book-1', 'user-1', 'c', 5);
     });
   });
 });
