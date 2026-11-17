@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 
 import type { BooksService } from 'src/books/books.service';
+import type { CommunityService } from 'src/community/community.service';
 
 // 실제 DB를 쓰는 테스트라서 로컬 DB를 TEST_DATABASE_URL로 지정했을 때만 실행한다.
 // (프로덕션 DB를 건드리지 않도록 localhost/127.0.0.1이 아니면 건너뜀)
@@ -28,9 +29,12 @@ const describeWithDb = isLocalDatabase(TEST_DATABASE_URL) ? describe : describe.
 describeWithDb('book detail, community panel, library bookId (real db)', () => {
   const NICKNAME_PREFIX = 'community-test-';
   const BOOK_TITLE_PREFIX = 'community-test-book-';
+  // 로컬 DB에 다른 데이터가 있어도 항상 맨 앞에 오도록 좋아요 수를 크게 준다
+  const BIG = 1_000_000;
 
   let prisma: (typeof import('@repo/db'))['prisma'];
   let booksService: BooksService;
+  let communityService: CommunityService;
 
   beforeAll(async () => {
     // @repo/db는 import 시점의 DATABASE_URL로 Pool을 만들기 때문에 import 전에 바꿔야 함
@@ -39,12 +43,14 @@ describeWithDb('book detail, community panel, library bookId (real db)', () => {
     const { PrismaService } = await import('src/prisma/prisma.service');
     const { FeedItemsService } = await import('src/feed/feed-items.service');
     const { BooksService } = await import('src/books/books.service');
+    const { CommunityService } = await import('src/community/community.service');
     const prismaService = new PrismaService();
     booksService = new BooksService(
       { get: () => undefined } as unknown as ConfigService,
       prismaService,
       new FeedItemsService(prismaService),
     );
+    communityService = new CommunityService(prismaService);
   });
 
   const deleteTestData = async () => {
@@ -174,6 +180,76 @@ describeWithDb('book detail, community panel, library bookId (real db)', () => {
 
       const second = await booksService.findNotes(book.id, undefined, first.nextCursor!, 2);
       expect(second.items.map((item) => item.entryId)).toEqual([oldest.id]);
+    });
+  });
+
+  describe('community popular books', () => {
+    it('좋아요 합계, 같으면 노트 수 순으로 정렬하고 오래된 노트와 비공개 노트는 제외', async () => {
+      const users = await Promise.all(['a', 'b', 'c', 'd'].map(createUser));
+      const [top, tieMany, tieOne, old, hidden] = await Promise.all(
+        ['top', 'tie-many', 'tie-one', 'old', 'hidden'].map(createBook),
+      );
+      await createEntry(users[0]!.id, top!.id, { likeCount: BIG + 10 });
+      // 합계 BIG+4 동률: 노트가 더 많은 책이 먼저
+      await createEntry(users[0]!.id, tieMany!.id, { likeCount: BIG });
+      await createEntry(users[1]!.id, tieMany!.id, { likeCount: 4 });
+      await createEntry(users[2]!.id, tieOne!.id, { likeCount: BIG + 4 });
+      await createEntry(users[3]!.id, old!.id, {
+        likeCount: BIG * 5,
+        createdAt: new Date(Date.now() - 31 * 24 * 60 * 60 * 1000),
+      });
+      await createEntry(users[3]!.id, hidden!.id, { likeCount: BIG * 5, isPublic: false });
+
+      const result = await communityService.getPopularBooks(20);
+
+      const testBooks = result.filter((item) => item.book.title.startsWith(BOOK_TITLE_PREFIX));
+      expect(testBooks.map((item) => item.book.id)).toEqual([top!.id, tieMany!.id, tieOne!.id]);
+      expect(testBooks[1]).toMatchObject({ noteCount: 2, likeCount: BIG + 4 });
+    });
+  });
+
+  describe('community users', () => {
+    it('공개 노트가 있는 유저를 팔로워 많은 순으로, 나는 빼고 isFollowing을 채움', async () => {
+      const [viewer, popular, normal, noNote, privateOnly] = await Promise.all(
+        ['viewer', 'popular', 'normal', 'no-note', 'private-only'].map(createUser),
+      );
+      const [fan1, fan2] = await Promise.all(['fan1', 'fan2'].map(createUser));
+      const book = await createBook('1');
+      const book2 = await createBook('2');
+      const book3 = await createBook('3');
+      await createEntry(popular!.id, book.id);
+      await createEntry(normal!.id, book.id);
+      await createEntry(viewer!.id, book2.id);
+      await createEntry(privateOnly!.id, book3.id, { isPublic: false });
+      // popular: 팔로워 2, normal: 팔로워 1 (viewer가 normal을 팔로우)
+      await prisma.follow.createMany({
+        data: [
+          { followerId: fan1!.id, followingId: popular!.id },
+          { followerId: fan2!.id, followingId: popular!.id },
+          { followerId: viewer!.id, followingId: normal!.id },
+        ],
+      });
+
+      const result = await communityService.getUsers(viewer!.id, 20);
+
+      const testUsers = result.filter((user) => user.nickname.startsWith(NICKNAME_PREFIX));
+      expect(testUsers.map((user) => user.id)).toEqual([popular!.id, normal!.id]);
+      expect(testUsers.map((user) => user.followerCount)).toEqual([2, 1]);
+      expect(testUsers.map((user) => user.isFollowing)).toEqual([false, true]);
+      expect(
+        testUsers.some((user) => [viewer!.id, noNote!.id, privateOnly!.id].includes(user.id)),
+      ).toBe(false);
+    });
+
+    it('비로그인이면 본인 제외 없이 isFollowing은 모두 false', async () => {
+      const a = await createUser('a');
+      const book = await createBook('1');
+      await createEntry(a.id, book.id);
+
+      const result = await communityService.getUsers(undefined, 20);
+
+      const found = result.find((user) => user.id === a.id);
+      expect(found).toMatchObject({ isFollowing: false, followerCount: 0 });
     });
   });
 });

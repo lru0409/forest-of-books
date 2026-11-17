@@ -15,12 +15,12 @@ import { FollowModule } from './follow/follow.module';
 import { FeedModule } from './feed/feed.module';
 import { PostsModule } from './posts/posts.module';
 import { BookmarksModule } from './bookmarks/bookmarks.module';
+import { CommunityModule } from './community/community.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
-    // 전역 가드는 걸지 않는다. 조회수/신고/댓글 등 필요한 엔드포인트에만 ThrottlerGuard를 적용한다.
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 60 }]),
     PrismaModule,
     AuthModule,
@@ -32,6 +32,7 @@ import { BookmarksModule } from './bookmarks/bookmarks.module';
     FeedModule,
     PostsModule,
     BookmarksModule,
+    CommunityModule,
   ],
   controllers: [AppController],
   providers: [AppService],

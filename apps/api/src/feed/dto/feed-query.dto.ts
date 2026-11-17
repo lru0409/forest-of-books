@@ -1,7 +1,7 @@
 import { Type } from 'class-transformer';
 import { IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
-import { FEED_TABS, FeedTab } from '../constants/feed-tabs.constant';
+import { FEED_TABS, FeedTab } from '../constants/feed.constant';
 
 export class FeedQueryDto {
   @IsOptional()

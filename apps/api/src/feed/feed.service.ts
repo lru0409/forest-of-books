@@ -4,12 +4,11 @@ import type { Prisma, User } from '@repo/db';
 import { LATEST_SORT, POPULAR_SORT } from 'src/common/pagination/cursor';
 import { PrismaService } from 'src/prisma/prisma.service';
 
-import { FeedTab } from './constants/feed-tabs.constant';
+import { FeedTab, POPULAR_WINDOW_MS } from './constants/feed.constant';
 import { FeedResponseDto } from './dto';
 import { FeedItemsService, feedEntryInclude } from './feed-items.service';
 
 const DEFAULT_LIMIT = 20;
-const POPULAR_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 
 @Injectable()
 export class FeedService {
