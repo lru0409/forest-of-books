@@ -4,11 +4,13 @@ import {
   IsEnum,
   IsIn,
   IsInt,
+  IsNotEmpty,
   IsOptional,
   IsString,
   Max,
   MaxLength,
   Min,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 
@@ -67,10 +69,17 @@ export class CreateLibraryEntryNoteDto {
   note?: string;
 }
 
+// book(새 책 정보)과 bookId(이미 등록된 책) 중 하나만 보낸다.
 export class CreateLibraryEntryDto {
+  @ValidateIf((dto: CreateLibraryEntryDto) => dto.bookId === undefined)
   @ValidateNested()
   @Type(() => CreateLibraryEntryBookDto)
-  book!: CreateLibraryEntryBookDto;
+  book?: CreateLibraryEntryBookDto;
+
+  @ValidateIf((dto: CreateLibraryEntryDto) => dto.book === undefined)
+  @IsString()
+  @IsNotEmpty()
+  bookId?: string;
 
   @ValidateNested()
   @Type(() => CreateLibraryEntryNoteDto)

@@ -3,6 +3,7 @@ import type { ConfigService } from '@nestjs/config';
 
 import type { BooksService } from 'src/books/books.service';
 import type { CommunityService } from 'src/community/community.service';
+import type { LibraryService } from 'src/library/library.service';
 
 // 실제 DB를 쓰는 테스트라서 로컬 DB를 TEST_DATABASE_URL로 지정했을 때만 실행한다.
 // (프로덕션 DB를 건드리지 않도록 localhost/127.0.0.1이 아니면 건너뜀)
@@ -35,6 +36,7 @@ describeWithDb('book detail, community panel, library bookId (real db)', () => {
   let prisma: (typeof import('@repo/db'))['prisma'];
   let booksService: BooksService;
   let communityService: CommunityService;
+  let libraryService: LibraryService;
 
   beforeAll(async () => {
     // @repo/db는 import 시점의 DATABASE_URL로 Pool을 만들기 때문에 import 전에 바꿔야 함
@@ -44,6 +46,7 @@ describeWithDb('book detail, community panel, library bookId (real db)', () => {
     const { FeedItemsService } = await import('src/feed/feed-items.service');
     const { BooksService } = await import('src/books/books.service');
     const { CommunityService } = await import('src/community/community.service');
+    const { LibraryService } = await import('src/library/library.service');
     const prismaService = new PrismaService();
     booksService = new BooksService(
       { get: () => undefined } as unknown as ConfigService,
@@ -51,6 +54,7 @@ describeWithDb('book detail, community panel, library bookId (real db)', () => {
       new FeedItemsService(prismaService),
     );
     communityService = new CommunityService(prismaService);
+    libraryService = new LibraryService(prismaService);
   });
 
   const deleteTestData = async () => {
@@ -250,6 +254,31 @@ describeWithDb('book detail, community panel, library bookId (real db)', () => {
 
       const found = result.find((user) => user.id === a.id);
       expect(found).toMatchObject({ isFollowing: false, followerCount: 0 });
+    });
+  });
+
+  describe('library create with bookId', () => {
+    const note = { color: '#A27873' };
+
+    // 같은 책을 또 등록하는 ConflictException(P2002)은 단위 테스트에서 확인한다.
+    // 이 jest 환경에서는 Prisma의 DB 제약 에러가 ReferenceError로 바뀌어서 실DB로는 검증할 수 없다.
+    it('이미 등록된 책의 id로 새 책을 만들지 않고 서재 항목을 만든다', async () => {
+      const a = await createUser('a');
+      const book = await createBook('1');
+
+      const created = await libraryService.create(a.id, { bookId: book.id, note });
+
+      expect(created).toMatchObject({ title: book.title });
+      expect(await prisma.book.count({ where: { title: book.title } })).toBe(1);
+      expect(await prisma.libraryEntry.count({ where: { userId: a.id, bookId: book.id } })).toBe(1);
+    });
+
+    it('없는 책 id는 NotFoundException', async () => {
+      const a = await createUser('a');
+
+      await expect(libraryService.create(a.id, { bookId: 'missing', note })).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
     });
   });
 });
