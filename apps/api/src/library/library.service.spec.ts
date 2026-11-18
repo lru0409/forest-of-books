@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   NotFoundException,
@@ -17,6 +18,7 @@ type MockPrismaService = {
     delete: jest.Mock;
   };
   book: {
+    findUnique: jest.Mock;
     upsert: jest.Mock;
     create: jest.Mock;
   };
@@ -31,6 +33,7 @@ const createMockPrisma = (): MockPrismaService => ({
     delete: jest.fn(),
   },
   book: {
+    findUnique: jest.fn(),
     upsert: jest.fn(),
     create: jest.fn(),
   },
@@ -291,6 +294,56 @@ describe('LibraryService', () => {
       await expect(
         service.create('user-1', { book: bookInput, note: noteInput }),
       ).rejects.toBe(otherError);
+    });
+
+    describe('bookId로 등록', () => {
+      it('이미 등록된 책을 찾아 book 생성/upsert 없이 그 책으로 create', async () => {
+        mockPrisma.book.findUnique.mockResolvedValue(book);
+        mockPrisma.libraryEntry.create.mockResolvedValue(entry);
+
+        await service.create('user-1', { bookId: 'book-1', note: noteInput });
+
+        expect(mockPrisma.book.findUnique).toHaveBeenCalledWith({ where: { id: 'book-1' } });
+        expect(mockPrisma.book.upsert).not.toHaveBeenCalled();
+        expect(mockPrisma.book.create).not.toHaveBeenCalled();
+        expect(mockPrisma.libraryEntry.create).toHaveBeenCalledWith({
+          data: { userId: 'user-1', bookId: 'book-1', color: '#A27873' },
+          include: { book: true },
+        });
+      });
+
+      it('책이 없으면 NotFoundException', async () => {
+        mockPrisma.book.findUnique.mockResolvedValue(null);
+
+        await expect(
+          service.create('user-1', { bookId: 'missing', note: noteInput }),
+        ).rejects.toBeInstanceOf(NotFoundException);
+        expect(mockPrisma.libraryEntry.create).not.toHaveBeenCalled();
+      });
+
+      it('이미 서재에 있는 책이면 ConflictException (P2002)', async () => {
+        mockPrisma.book.findUnique.mockResolvedValue(book);
+        const p2002Error = Object.assign(new Error('unique constraint'), { code: 'P2002' });
+        mockPrisma.libraryEntry.create.mockRejectedValue(p2002Error);
+
+        await expect(
+          service.create('user-1', { bookId: 'book-1', note: noteInput }),
+        ).rejects.toBeInstanceOf(ConflictException);
+      });
+
+      it('book과 bookId를 같이 보내면 BadRequestException', async () => {
+        await expect(
+          service.create('user-1', { book: bookInput, bookId: 'book-1', note: noteInput }),
+        ).rejects.toBeInstanceOf(BadRequestException);
+        expect(mockPrisma.book.findUnique).not.toHaveBeenCalled();
+        expect(mockPrisma.book.upsert).not.toHaveBeenCalled();
+      });
+
+      it('둘 다 없으면 BadRequestException', async () => {
+        await expect(service.create('user-1', { note: noteInput })).rejects.toBeInstanceOf(
+          BadRequestException,
+        );
+      });
     });
   });
 

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -46,13 +47,7 @@ export class LibraryService {
   }
 
   async create(userId: string, dto: CreateLibraryEntryDto): Promise<LibraryEntryDetailResponseDto> {
-    const book = dto.book.isbn
-      ? await this.prisma.book.upsert({
-          where: { isbn: dto.book.isbn },
-          update: {},
-          create: { ...dto.book },
-        })
-      : await this.prisma.book.create({ data: { ...dto.book } });
+    const book = await this.resolveBookForNewEntry(dto);
 
     try {
       const entry = await this.prisma.libraryEntry.create({
@@ -105,6 +100,31 @@ export class LibraryService {
     await this.ensureCanEdit(entryId, currentUserId);
 
     await this.prisma.libraryEntry.delete({ where: { id: entryId } });
+  }
+
+  // bookId면 이미 등록된 책을 쓰고, book이면 isbn이 있을 땐 upsert, 없으면 새로 만든다
+  private async resolveBookForNewEntry(dto: CreateLibraryEntryDto): Promise<Book> {
+    if (dto.bookId !== undefined && dto.book !== undefined) {
+      throw new BadRequestException('book과 bookId 중 하나만 보내주세요.');
+    }
+
+    if (dto.bookId !== undefined) {
+      const book = await this.prisma.book.findUnique({ where: { id: dto.bookId } });
+      if (!book) throw new NotFoundException('책을 찾을 수 없습니다.');
+      return book;
+    }
+
+    if (dto.book === undefined) {
+      throw new BadRequestException('book 또는 bookId가 필요합니다.');
+    }
+
+    return dto.book.isbn
+      ? this.prisma.book.upsert({
+          where: { isbn: dto.book.isbn },
+          update: {},
+          create: { ...dto.book },
+        })
+      : this.prisma.book.create({ data: { ...dto.book } });
   }
 
   private async ensureCanEdit(entryId: string, currentUserId: string): Promise<void> {
