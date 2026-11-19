@@ -2,7 +2,7 @@ import { type ReactNode } from 'react';
 import { TriangleAlert } from 'lucide-react';
 
 import { type LibraryEntryDetailItem, type LibraryEntryNotePatch } from '@/lib';
-import { Spinner, StatusNotice } from '@/components/common';
+import { RatingStars, Spinner, StatusNotice } from '@/components/common';
 import { Textarea, Button } from '@/components/ui';
 import { Modal } from '@/components/layout';
 import { useDialog } from '@/context/dialog';
@@ -10,7 +10,6 @@ import useLibraryEntryRecord from './useLibraryEntryRecord';
 
 import { RecordHeader } from './RecordHeader';
 import { RatingInput } from './RatingInput';
-import { RatingStars } from './RatingStars';
 
 interface RecordViewProps {
   detail: LibraryEntryDetailItem | null;

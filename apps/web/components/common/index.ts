@@ -3,6 +3,7 @@ export { Avatar } from './Avatar';
 export { BookCover } from './BookCover';
 export { BookColorPalette } from './BookColorPalette';
 export { BookColorPicker } from './BookColorPicker';
+export { RatingStars } from './RatingStars';
 export { ReadingStatusBadge } from './ReadingStatusBadge';
 export { GenreBadge } from './GenreBadge';
 export { GenreSelector } from './GenreSelector';
