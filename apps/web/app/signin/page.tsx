@@ -4,9 +4,9 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
-import { Container, Modal } from '@/components/layout';
+import { Container } from '@/components/layout';
 import { Button, Input } from '@/components/ui';
-import { useDialog } from '@/context/dialog';
+import { useCommonDialog } from '@/lib/hooks/useCommonDialog';
 import { isValidEmail } from '@/lib';
 import AuthService from '@/services/auth';
 import { useAuthStore } from '@/store/authStore';
@@ -14,7 +14,7 @@ import { SignupLink } from './_components/SignupLink';
 
 export default function SignIn() {
   const setToken = useAuthStore((state) => state.setToken);
-  const { openDialog, closeDialog } = useDialog();
+  const { showActionFailed } = useCommonDialog();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -46,17 +46,7 @@ export default function SignIn() {
       return;
     }
     // unknown error
-    openDialog(
-      <Modal
-        title={'오류가 발생했습니다.\n잠시 후 다시 시도해주세요.'}
-        buttons={[
-          <Button key="close" onClick={closeDialog}>
-            확인
-          </Button>,
-        ]}
-        showCloseButton={false}
-      />,
-    );
+    showActionFailed();
   };
 
   return (

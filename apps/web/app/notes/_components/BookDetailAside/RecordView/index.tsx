@@ -6,6 +6,7 @@ import { RatingStars, Spinner, StatusNotice } from '@/components/common';
 import { Textarea, Button } from '@/components/ui';
 import { Modal } from '@/components/layout';
 import { useDialog } from '@/context/dialog';
+import { useCommonDialog } from '@/lib/hooks/useCommonDialog';
 import useLibraryEntryRecord from './useLibraryEntryRecord';
 
 import { RecordHeader } from './RecordHeader';
@@ -27,28 +28,15 @@ export const RecordView = ({
   isPublic,
 }: RecordViewProps) => {
   const { openDialog, closeDialog } = useDialog();
+  const { showActionFailed } = useCommonDialog();
 
   const { noteDraft, isEditing, isSaving, updateNoteDraft, startEditing, finishEditing } =
     useLibraryEntryRecord({ detail, updateItem });
 
-  const showSaveErrorDialog = () => {
-    openDialog(
-      <Modal
-        title={'저장에 실패했어요.\n잠시 후 다시 시도해주세요.'}
-        buttons={[
-          <Button key="close" onClick={closeDialog}>
-            확인
-          </Button>,
-        ]}
-        showCloseButton={false}
-      />,
-    );
-  };
-
   const onTogglePublic = async (nextIsPublic: boolean) => {
     if (!nextIsPublic) {
       const success = await updateItem({ isPublic: false });
-      if (!success) showSaveErrorDialog();
+      if (!success) showActionFailed('저장');
       return;
     }
 
@@ -65,7 +53,7 @@ export const RecordView = ({
             onClick={async () => {
               closeDialog();
               const success = await updateItem({ isPublic: true });
-              if (!success) showSaveErrorDialog();
+              if (!success) showActionFailed('저장');
             }}
           >
             공개
@@ -81,7 +69,7 @@ export const RecordView = ({
       return;
     }
     const success = await finishEditing();
-    if (!success) showSaveErrorDialog();
+    if (!success) showActionFailed('저장');
   };
 
   if (isLoading) {

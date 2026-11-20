@@ -4,12 +4,12 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Pencil } from 'lucide-react';
 
-import { Modal } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Avatar, GenreBadge } from '@/components/common';
 import { MOCK_BADGES, type Badge, type PublicUserProfile, useFollowToggle } from '@/lib';
 import { useAuthStore } from '@/store/authStore';
 import { useDialog } from '@/context/dialog';
+import { useCommonDialog } from '@/lib/hooks/useCommonDialog';
 import { BadgeCollectionModal } from './BadgeCollectionModal';
 import { FollowListModal } from './FollowListModal';
 
@@ -162,30 +162,20 @@ const ProfileActions = ({
   onUserNotFound: () => void;
   onProfileRefresh: () => void;
 }) => {
-  const { openDialog, closeDialog } = useDialog();
+  const { showUserNotFound, showActionFailed } = useCommonDialog();
 
   const { isFollowing, isPending, toggleFollow } = useFollowToggle({
     userId,
     initialIsFollowing,
     onChange: onProfileRefresh,
     onError: ({ statusCode, action }) => {
-      const isNotFound = statusCode === 404;
-      // 삭제된 유저라서 팔로우할 수 없으므로 화면도 not-found로 바꿈
-      if (isNotFound) onUserNotFound();
-      const title = isNotFound
-        ? '존재하지 않는 사용자예요.'
-        : `${action === 'follow' ? '팔로우' : '언팔로우'}가 실패했어요.\n잠시 후 다시 시도해주세요.`;
-      openDialog(
-        <Modal
-          title={title}
-          buttons={[
-            <Button key="close" onClick={closeDialog}>
-              확인
-            </Button>,
-          ]}
-          showCloseButton={false}
-        />,
-      );
+      if (statusCode === 404) {
+        // 삭제된 유저라서 팔로우할 수 없으므로 화면도 not-found로 바꿈
+        onUserNotFound();
+        showUserNotFound();
+        return;
+      }
+      showActionFailed(action === 'follow' ? '팔로우' : '언팔로우');
     },
   });
 

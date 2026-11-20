@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { type FollowUser, useFollowToggle } from '@/lib';
 import { useAuthStore } from '@/store/authStore';
 import { useDialog } from '@/context/dialog';
+import { useCommonDialog } from '@/lib/hooks/useCommonDialog';
 import { useFollowList } from './useFollowList';
 
 interface FollowListModalProps {
@@ -96,7 +97,8 @@ function FollowListRow({
   onToggle: (userId: string, isFollowing: boolean) => void;
   onProfileRefresh: () => void;
 }) {
-  const { openDialog, closeDialog, closeAllDialogs } = useDialog();
+  const { closeDialog, closeAllDialogs } = useDialog();
+  const { showUserNotFound, showActionFailed } = useCommonDialog();
   const isLoggedIn = useAuthStore((state) => state.token !== null);
   const currentUserId = useAuthStore((state) => state.user?.id);
   const isSelf = currentUserId === item.id;
@@ -110,23 +112,13 @@ function FollowListRow({
       if (isOwner) onProfileRefresh();
     },
     onError: ({ statusCode, action }) => {
-      const isNotFound = statusCode === 404;
-      if (isNotFound) onProfileRefresh();
-      const title = isNotFound
-        ? '존재하지 않는 사용자예요.'
-        : `${action === 'follow' ? '팔로우' : '언팔로우'}가 실패했어요.\n잠시 후 다시 시도해주세요.`;
-      openDialog(
-        <Modal
-          title={title}
-          buttons={[
-            // 404면 삭제된 유저가 목록에 남아 있으므로 목록 모달까지 닫음
-            <Button key="close" onClick={isNotFound ? closeAllDialogs : closeDialog}>
-              확인
-            </Button>,
-          ]}
-          showCloseButton={false}
-        />,
-      );
+      if (statusCode === 404) {
+        onProfileRefresh();
+        // 삭제된 유저가 목록에 남아 있으므로 목록 모달까지 닫음
+        showUserNotFound(closeAllDialogs);
+        return;
+      }
+      showActionFailed(action === 'follow' ? '팔로우' : '언팔로우');
     },
   });
 

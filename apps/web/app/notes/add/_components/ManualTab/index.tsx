@@ -8,10 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Modal } from '@/components/layout';
 import { BookColorPicker } from '@/components/common';
-import { useDialog } from '@/context/dialog';
 import { GENRES, GENRE_LABELS, type Book, type Genre } from '@/lib';
+import { useCommonDialog } from '@/lib/hooks/useCommonDialog';
 import { useManualBookForm } from './useManualBookForm';
 
 interface ManualTabProps {
@@ -19,24 +18,14 @@ interface ManualTabProps {
 }
 
 export function ManualTab({ onAdd }: ManualTabProps) {
-  const { openDialog, closeDialog } = useDialog();
+  const { showActionFailed } = useCommonDialog();
   const { title, author, publisher, genre, color, isSubmitting, canSubmit, handleSubmit } =
     useManualBookForm(onAdd);
 
   const onSubmit = async (e: React.FormEvent) => {
     const result = await handleSubmit(e);
     if (result !== 'success') {
-      openDialog(
-        <Modal
-          title={'등록에 실패했어요.\n잠시 후 다시 시도해주세요.'}
-          buttons={[
-            <Button key="close" onClick={closeDialog}>
-              확인
-            </Button>,
-          ]}
-          showCloseButton={false}
-        />,
-      );
+      showActionFailed('등록');
     }
   };
 

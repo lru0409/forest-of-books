@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Modal } from '@/components/layout';
 import { Button } from '@/components/ui';
 import { useDialog } from '@/context/dialog';
+import { useCommonDialog } from '@/lib/hooks/useCommonDialog';
 import type { Genre } from '@/lib';
 import AuthService from '@/services/auth';
 import { useSignupStore } from '@/store/signupStore';
@@ -14,6 +15,7 @@ import { Step } from '../constants';
 function useRegistration() {
   const router = useRouter();
   const { openDialog, closeDialog } = useDialog();
+  const { showActionFailed } = useCommonDialog();
 
   const { email, password, nickname, bio, profileImageUrl, isSocialLogin, update } =
     useSignupStore();
@@ -96,17 +98,7 @@ function useRegistration() {
       return;
     }
     // unknown error
-    openDialog(
-      <Modal
-        title={'오류가 발생했습니다.\n잠시 후 다시 시도해주세요.'}
-        buttons={[
-          <Button key="close" onClick={closeDialog}>
-            확인
-          </Button>,
-        ]}
-        showCloseButton={false}
-      />,
-    );
+    showActionFailed();
   };
 
   return {

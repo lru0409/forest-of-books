@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui';
 import { Modal } from '@/components/layout';
 import { useDialog } from '@/context/dialog';
+import { useCommonDialog } from '@/lib/hooks/useCommonDialog';
 import type { Book } from '@/lib';
 import { useBookSearch } from './useBookSearch';
 
@@ -23,6 +24,7 @@ interface SearchTabProps {
 
 export function SearchTab({ onAdd, onGoToManual }: SearchTabProps) {
   const { openDialog, closeDialog } = useDialog();
+  const { showActionFailed } = useCommonDialog();
   const { query, setQuery, results, error, isLoadingMore, hasMore, viewState, sentinelRef } =
     useBookSearch();
 
@@ -48,17 +50,7 @@ export function SearchTab({ onAdd, onGoToManual }: SearchTabProps) {
       return;
     }
 
-    openDialog(
-      <Modal
-        title={'등록에 실패했어요.\n잠시 후 다시 시도해주세요.'}
-        buttons={[
-          <Button key="close" onClick={closeDialog}>
-            확인
-          </Button>,
-        ]}
-        showCloseButton={false}
-      />,
-    );
+    showActionFailed('등록');
   };
 
   return (

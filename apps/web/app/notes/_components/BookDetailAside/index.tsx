@@ -11,9 +11,7 @@ import {
   type LibraryEntryNotePatch,
   type ReadingStatus,
 } from '@/lib';
-import { Button } from '@/components/ui';
-import { Modal } from '@/components/layout';
-import { useDialog } from '@/context/dialog';
+import { useCommonDialog } from '@/lib/hooks/useCommonDialog';
 import { useAuthStore } from '@/store/authStore';
 import LibraryService from '@/services/library';
 
@@ -134,7 +132,7 @@ function BookDetailPanel({
   showFullscreenToggle: boolean;
   onToggleFullscreen: () => void;
 }) {
-  const { openDialog, closeDialog } = useDialog();
+  const { showActionFailed } = useCommonDialog();
   const token = useAuthStore((state) => state.token);
 
   const [detail, setDetail] = useState<LibraryEntryDetailItem | null>(null);
@@ -157,28 +155,14 @@ function BookDetailPanel({
     });
   }, [item.id, token]);
 
-  const showSaveErrorDialog = () => {
-    openDialog(
-      <Modal
-        title={'저장에 실패했어요.\n잠시 후 다시 시도해주세요.'}
-        buttons={[
-          <Button key="close" onClick={closeDialog}>
-            확인
-          </Button>,
-        ]}
-        showCloseButton={false}
-      />,
-    );
-  };
-
   const handleStatusChange = async (status: ReadingStatus) => {
     const success = await updateItem({ status });
-    if (!success) showSaveErrorDialog();
+    if (!success) showActionFailed('저장');
   };
 
   const handleColorChange = async (color: string) => {
     const success = await updateItem({ color });
-    if (!success) showSaveErrorDialog();
+    if (!success) showActionFailed('저장');
   };
 
   return (

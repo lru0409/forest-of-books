@@ -4,6 +4,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Minimize2, Maximize2, Trash2 } from 'lucide-react';
 
 import { useDialog } from '@/context/dialog';
+import { useCommonDialog } from '@/lib/hooks/useCommonDialog';
 import { Modal } from '@/components/layout';
 import { Button } from '@/components/ui';
 
@@ -80,7 +81,8 @@ export const PanelToolBar = ({
 };
 
 const DeleteConfirmModal = ({ onDelete }: { onDelete: () => Promise<boolean> }) => {
-  const { openDialog, closeDialog } = useDialog();
+  const { closeDialog } = useDialog();
+  const { showActionFailed } = useCommonDialog();
   const [isDeleting, setIsDeleting] = useState(false);
 
   return (
@@ -101,17 +103,7 @@ const DeleteConfirmModal = ({ onDelete }: { onDelete: () => Promise<boolean> }) 
             setIsDeleting(false);
             closeDialog();
             if (!success) {
-              openDialog(
-                <Modal
-                  title={'삭제에 실패했어요.\n잠시 후 다시 시도해주세요.'}
-                  buttons={[
-                    <Button key="close" onClick={closeDialog}>
-                      확인
-                    </Button>,
-                  ]}
-                  showCloseButton={false}
-                />,
-              );
+              showActionFailed('삭제');
             }
           }}
         >
